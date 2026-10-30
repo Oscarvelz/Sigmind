@@ -202,6 +202,14 @@
       .sync svg { width: 14px; height: 14px; }
       .sync[data-state="syncing"] svg { animation: pulse 1.4s var(--ease) infinite; }
       @keyframes pulse { 50% { opacity: 0.35; } }
+      .x-ac { display: grid; gap: 10px; }
+      .x-ac label { display: grid; gap: 4px; font-size: 13px; color: var(--dim); }
+      .x-ac input { height: var(--tap); padding: 0 14px; border-radius: var(--r-s); background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font: 400 16px/1 var(--sans); width: 100%; }
+      .x-ac input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+      .x-ac__pw { position: relative; }
+      .x-ac__pw .iconbtn { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: transparent; border: 0; box-shadow: none; }
+      .x-ac__err { color: #e2667a; font-size: 13.5px; }
+      .x-ac__ok { color: var(--primary); font-size: 13.5px; }
 
       /* ============ HOME ============ */
       .hero { position: relative; overflow: hidden; padding: 20px; border-radius: var(--r-xl); }
@@ -563,6 +571,60 @@
       @media (min-width: 1500px) {
         .lessons[data-view="grid"][style*="--cols: 4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       }
+      /* ============ LESSON ENGINE (Phase 2): anatomy, hint ladder, traps, fading, predict-before-run ============ */
+      .x-ladder { margin-top: 14px; display: grid; gap: 8px; }
+      .x-ladder__btn { justify-self: start; min-height: var(--tap); padding: 0 16px; border-radius: 999px; background: transparent; border: 1px solid var(--border); color: var(--text); font-weight: 500; }
+      .x-rung { margin: 0; padding: 10px 14px; border-radius: var(--r-s); background: var(--surface-2); border-left: 3px solid var(--primary); font-size: 14px; animation: rise var(--dur, 0.3s) ease; }
+      .x-rung b { display: block; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
+      .x-hl { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: var(--r-s); animation: x-hl 0.8s ease 3; }
+      @keyframes x-hl { 50% { outline-color: transparent; } }
+      .x-trap { margin-top: 12px; padding: 12px 14px; border-radius: var(--r-s); border: 1px solid var(--primary); font-size: 14px; display: grid; gap: 10px; }
+      .x-trap__code { font: 500 11px/1 var(--mono); letter-spacing: 0.08em; color: var(--dim); }
+      .x-gap { margin-top: 10px; font-size: 14px; color: var(--dim); }
+      .x-so { margin-top: 14px; padding: 12px 14px; border-radius: var(--r-s); border: 1px solid var(--primary); font: 500 17px/1.45 var(--display); }
+      .x-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+      .x-tags .chip { height: 28px; font-size: 12px; }
+      .x-fade { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; counter-reset: fd; }
+      .x-fade li { padding: 10px 12px; border-radius: var(--r-s); background: var(--surface-2); border: 1px solid var(--border); }
+      .x-fade li.is-blank { border-style: dashed; border-color: var(--primary); color: var(--dim); }
+      .x-fade li.is-filled { border-color: var(--primary); animation: rise var(--dur, 0.3s) ease; }
+      .qopt.is-picked { border-color: var(--primary); }
+      .player__top:has(.x-anat) { flex-wrap: wrap; }
+      .x-anat { flex-basis: 100%; order: 9; display: flex; justify-content: space-between; gap: 2px; margin: 2px 0 0; padding: 0; list-style: none; }
+      .x-anat li { flex: 1; min-width: 0; display: grid; justify-items: center; gap: 4px; font-size: 11px; color: var(--dim); text-align: center; }
+      .x-anat li::before { content: ""; width: 8px; height: 8px; border-radius: 999px; border: 1px solid var(--border); }
+      .x-anat li.is-past::before { background: var(--dim); }
+      .x-anat li.is-cur { color: var(--text); font-weight: 600; }
+      .x-anat li.is-cur::before { background: var(--primary); border-color: var(--primary); }
+      .x-run { margin-top: 12px; display: grid; gap: 10px; }
+      .x-run__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+      .x-run__btns button { min-height: var(--tap); padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); font-weight: 500; }
+      .x-run__btns button:disabled { opacity: 0.45; }
+      .x-run__lock { font-size: 13px; color: var(--dim); }
+      .x-run__out { padding: 12px 14px; border-radius: var(--r-s); background: var(--surface-2); border: 1px solid var(--border); font: 400 14px/1.5 var(--mono); }
+      .x-run__bar { height: 10px; border-radius: 999px; background: var(--border); overflow: hidden; }
+      .x-run__bar b { display: block; height: 100%; width: var(--w, 0%); background: var(--primary); transition: width 0.12s linear; }
+      @media (prefers-reduced-motion: reduce) { .x-rung, .x-hl, .x-fade li.is-filled { animation: none; } .x-run__bar b { transition: none; } }
+      /* O2 · Library grid: tiles grow with their titles; no card or heading may overlap or clip (AT-13) */
+      .lessons[data-view="grid"] .lesson { aspect-ratio: auto; min-height: 112px; justify-content: flex-start; }
+      .lesson > span { min-width: 0; max-width: 100%; }
+      .lesson__t { overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; }
+      .lesson__day { white-space: nowrap; }
+      .lessons[data-view="grid"][style*="--cols: 3"] .lesson, .lessons[data-view="grid"][style*="--cols: 4"] .lesson { padding: 10px; min-height: 96px; }
+      .lessons[data-view="grid"][style*="--cols: 4"] .lesson__day { font-size: 9.5px; letter-spacing: 0.04em; }
+      .grpname { flex-wrap: wrap; }
+      @media (max-width: 479px) {
+        .lessons[data-view="grid"][style*="--cols: 4"] { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        .lessons[data-view="grid"][style*="--cols: 3"] { gap: 8px; }
+        .lessons[data-view="grid"][style*="--cols: 3"] .lesson, .lessons[data-view="grid"][style*="--cols: 4"] .lesson { padding: 9px 8px; }
+        .lessons[data-view="grid"][style*="--cols: 3"] .lesson__t, .lessons[data-view="grid"][style*="--cols: 4"] .lesson__t { font-size: 11.5px; line-height: 1.3; }
+        .lessons[data-view="grid"][style*="--cols: 4"] .lesson__day { font-size: 10px; }
+      }
+      @media (min-width: 960px) {
+        .lessons[data-view="grid"] .lesson { min-height: 170px; justify-content: flex-end; }
+        .lessons[data-view="grid"][style*="--cols: 3"] .lesson, .lessons[data-view="grid"][style*="--cols: 4"] .lesson { padding: 18px; min-height: 150px; }
+        .lessons[data-view="grid"][style*="--cols: 4"] .lesson__day { font-size: 12px; }
+      }
     </style>
     <script>
       /* before first paint: the saved theme, and no splash if it already ran this session */
@@ -617,7 +679,7 @@
         var I = {
           sun: SVG('<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.6 12H2.4M21.6 12h-2.2M6.3 6.3 4.8 4.8M19.2 19.2l-1.5-1.5M17.7 6.3l1.5-1.5M4.8 19.2l1.5-1.5"/>'),
           moon: SVG('<path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2Z"/>'),
-          gear: SVG('<circle cx="12" cy="12" r="3.1"/><path d="M12 3.2v2.1M12 18.7v2.1M4.8 7.9l1.8 1M17.4 15.1l1.8 1M4.8 16.1l1.8-1M17.4 8.9l1.8-1"/>'),
+          gear: SVG('<path d="M10.3 3h3.4l.5 2.4 1.6.7 2.1-1.4 2.4 2.4-1.4 2.1.7 1.6 2.4.5v3.4l-2.4.5-.7 1.6 1.4 2.1-2.4 2.4-2.1-1.4-1.6.7-.5 2.4h-3.4l-.5-2.4-1.6-.7-2.1 1.4-2.4-2.4 1.4-2.1-.7-1.6L3 13.7v-3.4l2.4-.5.7-1.6-1.4-2.1 2.4-2.4 2.1 1.4 1.6-.7Z"/><circle cx="12" cy="12" r="3"/>'),
           cloud: SVG('<path d="M7.2 18h9.3a3.6 3.6 0 0 0 .4-7.2A5.2 5.2 0 0 0 7 9.3a3.9 3.9 0 0 0 .2 8.7Z"/>'),
           eye: SVG('<path d="M2.6 12S6 5.9 12 5.9 21.4 12 21.4 12 18 18.1 12 18.1 2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="2.8"/>'),
           eyeOff: SVG('<path d="M4 4l16 16M9.6 5.9A9.6 9.6 0 0 1 12 5.6c6 0 9.4 6.1 9.4 6.1a18 18 0 0 1-2.6 3.4M6.5 7.9A17.6 17.6 0 0 0 2.6 11.7S6 17.8 12 17.8a9.5 9.5 0 0 0 3-.5"/>'),
@@ -664,7 +726,7 @@
         /* the single local profile: progress, settings, theme and Lab preferences all live in prefs */
         var prefs = Object.assign({ night: "aurora", day: "pearl", theme: "night", goal: 10, sort: "recent", level: "all", view: "medium", cols: 2 }, Store.get(K.prefs, {}));
         var meta = Object.assign({ localAt: null, device: "This browser", rev: 1 }, Store.get(K.meta, {}));
-        delete meta.onlineAt; delete meta.syncAt;
+        delete meta.onlineAt; if (!Store.get("sm.cloud", null)) delete meta.syncAt;
 
         /* one-time migration from the old on-device accounts: keep the name, fold any stored
            per-account progress into the profile, then drop the account data for good */
@@ -712,11 +774,219 @@
             Store.set(K.prefs, prefs);
             Store.set(K.meta, meta);
             Sync.set(Store.ok ? "saved" : "memory");
+            if (Acct && Acct.touch) Acct.touch();
             var el = $("#saved");
             if (el) el.textContent = Save.label();
           }
         };
         var savePrefs = Save.schedule;
+
+        /* ============ ACCOUNT & ONLINE SYNC (same Supabase project as Numina and Anima) ============ */
+        /* Sigmind keeps its own keys (user metadata sigmind_progress / sigmind_updated_at, local sm.cloud),
+           so it never reads or overwrites Numina's or Anima's progress. Local saving stays exactly as before. */
+        var SUPABASE_URL = "https://etyimgbooxvqejkjhfyo.supabase.co";
+        var SUPABASE_KEY = "sb_publishable_PhzsifRX21bl1JX_1NXMCA_0kB-q6xB";
+        K.cloud = "sm.cloud";
+        var Cloud = {
+          s: Store.get(K.cloud, null),
+          save: function (s) { Cloud.s = s; if (s) Store.set(K.cloud, s); else Store.del(K.cloud); },
+          take: function (d) {
+            var u = d.user || {}, md = u.user_metadata || {}, old = Cloud.s && Cloud.s.user;
+            var s = {
+              access_token: d.access_token, refresh_token: d.refresh_token,
+              expires_at: Date.now() + (d.expires_in || 3600) * 1000,
+              user: { id: u.id || (old && old.id), email: u.email || (old && old.email) || "", name: md.name || (old && old.name) || "" }
+            };
+            Cloud.save(s);
+            return s;
+          },
+          raw: function (path, opt) {
+            opt = opt || {};
+            var h = { apikey: SUPABASE_KEY, Authorization: "Bearer " + ((Cloud.s && Cloud.s.access_token) || SUPABASE_KEY), "Content-Type": "application/json" };
+            var init = { method: opt.method || "GET", headers: h };
+            if (opt.body) init.body = JSON.stringify(opt.body);
+            if (opt.keepalive) init.keepalive = true;
+            return fetch(SUPABASE_URL + path, init).then(function (r) {
+              return r.text().then(function (t) { var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) { j = null; } return { ok: r.ok, status: r.status, data: j }; });
+            }, function () { var e = new Error("Can’t reach the server. Check your connection; your progress is still saved on this device."); e.offline = true; throw e; });
+          },
+          err: function (res) {
+            var d = res.data || {};
+            var e = new Error(d.msg || d.error_description || d.message || (typeof d.error === "string" ? d.error : "") || "Request failed (" + res.status + ").");
+            e.status = res.status; e.code = d.code || d.error_code;
+            return e;
+          },
+          refresh: function () {
+            if (!Cloud.s || !Cloud.s.refresh_token) { var n = new Error("Signed out."); n.expired = true; return Promise.reject(n); }
+            if (Cloud.busy) return Cloud.busy;
+            Cloud.busy = Cloud.raw("/auth/v1/token?grant_type=refresh_token", { method: "POST", body: { refresh_token: Cloud.s.refresh_token } }).then(function (res) {
+              Cloud.busy = null;
+              if (!res.ok) { var e = Cloud.err(res); if (res.status === 400 || res.status === 401) e.expired = true; throw e; }
+              return Cloud.take(res.data);
+            }, function (e) { Cloud.busy = null; throw e; });
+            return Cloud.busy;
+          },
+          stale: false,
+          req: function (path, opt) {
+            opt = opt || {};
+            var near = Cloud.s && Cloud.s.expires_at - Date.now() < 60000, pre = Promise.resolve();
+            if (near) pre = Cloud.refresh();
+            else if (Cloud.s && Cloud.stale) { Cloud.stale = false; pre = Cloud.refresh().catch(function () {}); }
+            return pre.then(function () { return Cloud.raw(path, opt); }).then(function (res) {
+              if (res.status === 401 && !opt.retried) { opt.retried = true; return Cloud.refresh().then(function () { return Cloud.raw(path, opt); }); }
+              return res;
+            });
+          }
+        };
+        var Acct = {
+          state: "off", dirty: false, quiet: false, t: null, busy: null, again: false,
+          form: { mode: "in", name: "", email: "", pw: "", show: false, err: "", msg: "", working: false },
+          labels: { off: "Saved on this device", syncing: "Syncing…", live: "Synced", pending: "Pending sync", offline: "Offline · saved on this device", expired: "Sign in again to sync" },
+          on: function () { return !!(Cloud.s && Cloud.s.user && Cloud.s.user.id); },
+          text: function () {
+            var l = Acct.labels[Acct.state] || "";
+            if (Acct.state === "live" && meta.syncAt) l += " · " + new Date(meta.syncAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            return l;
+          },
+          set: function (s) { Acct.state = s; Sync.paint(); var r = $("#ac-state"); if (r) r.textContent = Acct.text(); },
+          touch: function () {
+            if (Acct.quiet || !Acct.on()) return;
+            Acct.dirty = true;
+            if (Acct.state !== "expired") Acct.set(navigator.onLine === false ? "offline" : "pending");
+            clearTimeout(Acct.t);
+            Acct.t = setTimeout(Acct.push, 3000);
+          },
+          fail: function (e) {
+            if (window.console) console.warn("sync", e);
+            if (e && e.expired) return Acct.set("expired");
+            Acct.set(navigator.onLine === false || (e && e.offline) ? "offline" : "pending");
+          },
+          ok: function () { Acct.dirty = false; meta.syncAt = Date.now(); Store.set(K.meta, meta); Acct.set("live"); },
+          snap: function () { return JSON.stringify([prefs.mastered || [], prefs.xp || 0, prefs.streak || 0, prefs.pos || {}, prefs.answers || {}, prefs.lastDone || null, prefs.recent || []]); },
+          push: function (keep) {
+            clearTimeout(Acct.t);
+            if (!Acct.on()) return Promise.resolve();
+            if (Acct.busy) { Acct.again = true; return Acct.busy; }
+            Acct.set("syncing");
+            var data = Backup.build(), at = new Date().toISOString();
+            Acct.busy = Cloud.req("/auth/v1/user", { method: "PUT", keepalive: keep === true, body: { data: { sigmind_progress: JSON.stringify(data), sigmind_updated_at: at } } })
+              .then(function (res) { if (!res.ok) throw Cloud.err(res); Cloud.stale = true; Acct.ok(); })
+              .catch(Acct.fail)
+              .then(function () { Acct.busy = null; if (Acct.again) { Acct.again = false; if (Acct.dirty) Acct.push(); } });
+            return Acct.busy;
+          },
+          pull: function () {
+            if (!Acct.on()) return Promise.resolve();
+            if (navigator.onLine === false) { Acct.set("offline"); return Promise.resolve(); }
+            Acct.set("syncing");
+            return Cloud.req("/auth/v1/user").then(function (res) {
+              if (!res.ok) throw Cloud.err(res);
+              var md = (res.data && (res.data.user_metadata || (res.data.user && res.data.user.user_metadata))) || {}, remote = null;
+              if (md.sigmind_progress) { try { remote = JSON.parse(md.sigmind_progress); } catch (e) { remote = null; } }
+              if (remote && remote.app === "sigmind" && remote.prefs) {
+                var before = Acct.snap();
+                Acct.quiet = true;
+                try { Backup.mergeIn(remote); Save.dirty = true; Save.flush(); } finally { Acct.quiet = false; }
+                if (Acct.snap() !== before) { Themes.apply(); Views.render(); }
+                var remoteSnap = (function () { var keep = prefs; prefs = remote.prefs; var x = Acct.snap(); prefs = keep; return x; })();
+                if (Acct.dirty || remoteSnap !== Acct.snap()) return Acct.push();
+                return Acct.ok();
+              }
+              return Acct.push();
+            }).catch(Acct.fail);
+          },
+          signIn: function () {
+            var f = Acct.form, email = f.email.trim(), pw = f.pw;
+            f.err = ""; f.msg = "";
+            if (email.indexOf("@") < 1) f.err = "Enter a valid email.";
+            else if (pw.length < 8) f.err = "Password needs at least 8 characters.";
+            else if (f.mode === "up" && f.name.trim().length < 2) f.err = "Enter your name (2+ letters).";
+            if (f.err) return Views.render();
+            f.working = true; Views.render();
+            var call = f.mode === "up"
+              ? Cloud.raw("/auth/v1/signup", { method: "POST", body: { email: email, password: pw, data: { name: f.name.trim() } } })
+              : Cloud.raw("/auth/v1/token?grant_type=password", { method: "POST", body: { email: email, password: pw } });
+            call.then(function (res) {
+              if (!res.ok) {
+                var e = Cloud.err(res);
+                if (/invalid login/i.test(e.message)) e.message = "That email and password don’t match an account. It’s the same account you use in Numina and Anima.";
+                if (/not confirmed/i.test(e.message)) e.message = "Confirm your email first (check your inbox), then sign in.";
+                throw e;
+              }
+              if (!res.data || !res.data.access_token) { f.mode = "in"; f.msg = "Check your email to confirm, then sign in."; return; }
+              Cloud.take(res.data);
+              if (Cloud.s.user.name && !prefs.name) { prefs.name = Cloud.s.user.name; savePrefs(); }
+              f.pw = ""; f.msg = ""; f.show = false;
+              UI.toast("Signed in. Syncing your progress");
+              return Acct.pull();
+            }).catch(function (e) { f.err = e.message || "Sign-in failed."; })
+              .then(function () { f.working = false; Views.render(); });
+          },
+          recover: function () {
+            var f = Acct.form, email = f.email.trim();
+            f.err = ""; f.msg = "";
+            if (email.indexOf("@") < 1) { f.err = "Enter your email first."; return Views.render(); }
+            Cloud.raw("/auth/v1/recover", { method: "POST", body: { email: email } }).then(function (res) {
+              if (!res.ok) throw Cloud.err(res);
+              f.msg = "Reset link sent. Check your inbox.";
+            }).catch(function (e) { f.err = e.message; }).then(function () { Views.render(); });
+          },
+          signOut: function () {
+            var first = Acct.dirty ? Acct.push() : Promise.resolve();
+            return first.catch(function () {}).then(function () {
+              if (Cloud.s) Cloud.raw("/auth/v1/logout", { method: "POST" }).catch(function () {});
+              clearTimeout(Acct.t); Acct.dirty = false;
+              Cloud.save(null); Acct.state = "off"; Sync.paint(); Views.render();
+              UI.toast("Signed out. Progress stays on this device");
+            });
+          },
+          html: function () {
+            var b = function (id, t, cls) { return '<button type="button" class="' + (cls || "danger") + ' press" id="' + id + '">' + t + "</button>"; };
+            var f = Acct.form;
+            if (Acct.on()) {
+              return '<p class="x-saved" id="ac-state" aria-live="polite">' + esc(Acct.text()) + "</p>" +
+                '<div class="rows"><div class="row"><span>Account</span><span>' + esc(Cloud.s.user.email) + "</span></div>" +
+                '<div class="row"><span>Last sync</span><span>' + esc(meta.syncAt ? UI.when(meta.syncAt) : "Not yet") + "</span></div></div>" +
+                (Acct.state === "expired" ? '<p class="x-ac__err">Your session ended. Sign out and sign in again to resume syncing; progress here is kept.</p>' : "") +
+                '<div class="x-bk">' + b("ac-sync", "Sync now") + b("ac-out", "Sign out") + "</div>" +
+                '<p class="dim">Same account as Numina and Anima. Each app keeps its own progress.</p>';
+            }
+            return '<p class="dim">Sign in and your progress follows you from phone to tablet. Same account as Numina and Anima; Sigmind keeps its own progress. Without an account, everything stays saved on this device.</p>' +
+              '<form class="x-ac" id="ac-form" novalidate>' +
+              (f.mode === "up" ? '<label>Name<input id="ac-name" autocomplete="name" value="' + esc(f.name) + '" /></label>' : "") +
+              '<label>Email<input id="ac-email" type="email" inputmode="email" autocomplete="email" value="' + esc(f.email) + '" /></label>' +
+              '<label>Password<span class="x-ac__pw"><input id="ac-pw" type="' + (f.show ? "text" : "password") + '" autocomplete="' + (f.mode === "up" ? "new-password" : "current-password") + '" value="' + esc(f.pw) + '" />' +
+              '<button type="button" class="iconbtn press" id="ac-eye" aria-label="Show password" aria-pressed="' + f.show + '">' + (f.show ? I.eyeOff : I.eye) + "</button></span></label>" +
+              (f.err ? '<p class="x-ac__err" role="alert">' + esc(f.err) + "</p>" : "") +
+              (f.msg ? '<p class="x-ac__ok" role="status">' + esc(f.msg) + "</p>" : "") +
+              '<div class="x-bk">' + b("ac-go", f.working ? "Working…" : f.mode === "up" ? "Create account" : "Sign in", "x-lab__ok") +
+              b("ac-mode", f.mode === "up" ? "I have an account" : "Create account") + (f.mode === "in" ? b("ac-forgot", "Forgot password") : "") + "</div></form>";
+          },
+          click: function (t) {
+            var f = Acct.form;
+            if (t.id === "ac-go") { if (!f.working) Acct.signIn(); return; }
+            if (t.id === "ac-mode") { f.mode = f.mode === "up" ? "in" : "up"; f.err = ""; f.msg = ""; return Views.render(); }
+            if (t.id === "ac-forgot") return Acct.recover();
+            if (t.id === "ac-eye") { f.show = !f.show; Views.render(); var e = $("#ac-pw"); if (e) e.focus(); return; }
+            if (t.id === "ac-sync") return Acct.pull();
+            if (t.id === "ac-out") return Acct.signOut();
+          },
+          begin: function () { if (Acct.on()) Acct.pull(); }
+        };
+        doc.addEventListener("input", function (e) {
+          var id = e.target.id, f = Acct.form;
+          if (id === "ac-email") f.email = e.target.value;
+          if (id === "ac-pw") f.pw = e.target.value;
+          if (id === "ac-name") f.name = e.target.value;
+        });
+        doc.addEventListener("submit", function (e) { if (e.target.id === "ac-form") { e.preventDefault(); if (!Acct.form.working) Acct.signIn(); } });
+        window.addEventListener("online", function () { if (Acct.on()) Acct.pull(); });
+        window.addEventListener("offline", function () { if (Acct.on()) Acct.set("offline"); });
+        doc.addEventListener("visibilitychange", function () {
+          if (!Acct.on()) return;
+          if (doc.visibilityState === "hidden") { if (Acct.dirty) Acct.push(true); }
+          else Acct.pull();
+        });
         doc.addEventListener("visibilitychange", function () { if (doc.visibilityState === "hidden") Save.flush(); });
         window.addEventListener("pagehide", Save.flush);
         window.addEventListener("beforeunload", Save.flush);
@@ -747,6 +1017,11 @@
           paint: function () {
             var el = $("#sync");
             if (!el) return;
+            if (Acct && Acct.on && Acct.on()) {
+              el.dataset.state = Acct.state === "syncing" ? "syncing" : Acct.state === "live" ? "live" : "off";
+              el.innerHTML = I.cloud + "<span>" + Acct.text() + "</span>";
+              return;
+            }
             el.dataset.state = Sync.state === "memory" ? "off" : Sync.state === "saving" ? "syncing" : "live";
             el.innerHTML = I.check + "<span>" + Sync.labels[Sync.state] + "</span>";
           }
@@ -3539,21 +3814,23 @@
               recent: function (a, b) {
                 var ia = recent.indexOf(a.day), ib = recent.indexOf(b.day);
                 if (ia !== ib) return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
-                return a.day - b.day;
+                if (!!a.isNew !== !!b.isNew) return a.isNew ? 1 : -1;
+                return a.isNew ? a.ord - b.ord : a.day - b.day;
               },
               az: function (a, b) { return a.title.localeCompare(b.title); },
               za: function (a, b) { return b.title.localeCompare(a.title); }
             }[prefs.sort];
             var style = prefs.view === "grid" ? ' style="--cols: ' + prefs.cols + '"' : "";
             var groups = GROUPS.filter(function (g) { return prefs.level === "all" || prefs.level === g.v; }).map(function (g) {
-              var items = LESSONS.filter(function (l) { return l.level === g.v; }).sort(sorter);
+              var items = LESSONS.filter(function (l) { return l.level === g.v; }).concat(g.v === "foundations" ? newLessons() : []).sort(sorter);
               return '<section aria-label="' + g.t + '"><div class="grpname"><h2 class="mark" style="--fs:18px">' + g.t + '</h2><span class="eyebrow">' + g.s + "</span></div>" +
                 '<div class="lessons" data-view="' + prefs.view + '"' + style + ">" +
                 items.map(function (l) {
-                  return '<button type="button" class="lesson press" data-lesson="' + l.day + '"><span><span class="lesson__day">Day ' + l.day + "</span>" + ((prefs.mastered || []).indexOf(l.day) > -1 ? '<span class="ok-badge" role="img" aria-label="Mastered">' + I.check + "</span>" : "") + '<br><span class="lesson__t">' + esc(l.title) + '</span></span><span class="lesson__n">' + I.chev + "</span></button>";
+                  return '<button type="button" class="lesson press" data-lesson="' + l.day + '"><span><span class="lesson__day">' + (l.isNew ? esc(l.pillar) + " · New" : "Day " + l.day) + "</span>" + ((prefs.mastered || []).indexOf(l.day) > -1 ? '<span class="ok-badge" role="img" aria-label="Mastered">' + I.check + "</span>" : "") + '<br><span class="lesson__t">' + esc(l.title) + '</span></span><span class="lesson__n">' + I.chev + "</span></button>";
                 }).join("") + "</div></section>";
             }).join("");
-            return '<div><h1 class="greet">Library</h1><p class="dim">30 lessons in three levels.</p></div>' + bar + groups;
+            var nn = newLessons().length;
+            return '<div><h1 class="greet">Library</h1><p class="dim">30 lessons in three levels' + (nn ? ", plus " + nn + " new Foundations lessons" : "") + ".</p></div>" + bar + groups;
           },
           lab: function () {
             var tile = function (s, soon) {
@@ -3594,6 +3871,7 @@
                 toggle("night", "Night mode", prefs.theme === "night")) +
               fold("learning", "Learning",
                 UI.selBtn("Daily goal", prefs.goal, "Daily goal", GOALS) + toggle("remind", "Daily reminder", !!prefs.remind)) +
+              fold("account", "Account &amp; Sync", Acct.html()) +
               fold("progress", "Progress &amp; Backup",
                 '<p class="x-saved" id="saved" aria-live="polite">' + Save.label() + "</p>" +
                 (!Store.ok && !Save.noteSeen ? '<div class="x-note"><p>Progress can\'t be saved in this preview; use the installed app or Export.</p><button type="button" class="danger press" id="note-ok">Got it</button></div>' : "") +
@@ -3749,10 +4027,23 @@
             if (mode === "replace") {
               Object.keys(prefs).forEach(function (k) { delete prefs[k]; });
               Object.assign(prefs, { night: "aurora", day: "pearl", theme: "night", goal: 10, sort: "recent", level: "all", view: "medium", cols: 2 }, JSON.parse(JSON.stringify(b)));
-            } else {
+            } else Backup.mergeIn(data);
+            Save.dirty = true;
+            Save.flush();
+            Backup.code = ""; Backup.paste = "";
+            Themes.apply();
+            Views.render();
+            UI.toast("Progress restored.");
+          },
+          mergeIn: function (data) {
+            var b = data.prefs;
+            {
               var union = function (a, c) { return (a || []).concat((c || []).filter(function (d) { return (a || []).indexOf(d) < 0; })); };
               var newer = ((data.meta && data.meta.localAt) || Date.parse(data.exportedAt) || 0) > (meta.localAt || 0);
-              var prog = { mastered: 1, recent: 1, pos: 1, answers: 1, xp: 1, streak: 1, lastDone: 1 };
+              var prog = { mastered: 1, recent: 1, pos: 1, answers: 1, xp: 1, streak: 1, lastDone: 1, mastery: 1, misses: 1, hints: 1, proven: 1, predictions: 1 };
+              ["mastery", "misses", "hints"].forEach(function (k) { if (!b[k]) return; prefs[k] = prefs[k] || {}; Object.keys(b[k]).forEach(function (c) { prefs[k][c] = Math.max(prefs[k][c] || 0, b[k][c] || 0); }); });
+              if (b.proven) prefs.proven = Object.assign({}, b.proven, prefs.proven || {});
+              if (Array.isArray(b.predictions)) { var seenP = {}; prefs.predictions = (prefs.predictions || []).concat(b.predictions).filter(function (x) { var k = JSON.stringify(x); if (seenP[k]) return false; seenP[k] = 1; return true; }).sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); }).slice(-300); }
               prefs.mastered = union(prefs.mastered, b.mastered);
               prefs.recent = union(prefs.recent, b.recent);
               prefs.pos = prefs.pos || {};
@@ -3764,12 +4055,6 @@
               if (b.lastDone && (!prefs.lastDone || Date.parse(b.lastDone) > Date.parse(prefs.lastDone))) prefs.lastDone = b.lastDone;
               Object.keys(b).forEach(function (k) { if (!prog[k] && (newer || !(k in prefs))) prefs[k] = b[k]; });
             }
-            Save.dirty = true;
-            Save.flush();
-            Backup.code = ""; Backup.paste = "";
-            Themes.apply();
-            Views.render();
-            UI.toast("Progress restored.");
           }
         };
         doc.addEventListener("input", function (e) { if (e.target.id === "bk-paste") Backup.paste = e.target.value; });
@@ -3948,6 +4233,77 @@
           stage.addEventListener("click", function (e) { if (e.target.closest("[data-x=reset]")) { vals = PHQ8.slice(); draw(); } });
           watchViz(cv, draw);
         }
+        /* ============ FOUNDATIONS PATH LAYER (Phase 1 metadata, 2026-10-27) ============
+           A path over the existing lessons: stored lesson ids (Day numbers) never change.
+           "Day N" is a position label, never a deadline. Items: number = existing Day, string = new lesson id (written in later phases). */
+        var PILLARS = [
+          { id: "A1", part: "A", t: "Data First", core: "A variable is one question asked of every case.", items: ["a1-row", 1] },
+          { id: "A2", part: "A", t: "Measurement in Psychology", core: "Observed score = true score + error.", items: [25, "a2-hidden", "a2-error", "a2-relvalid"] },
+          { id: "A3", part: "A", t: "Populations, Samples & Study Design", core: "Who got studied, and who got what.", items: [2, "a3-lotteries", "a3-observe", "a3-confound"] },
+          { id: "A4", part: "A", t: "Distributions", core: "What values, how often, what shape.", items: ["a4-dist", 3, "6a"] },
+          { id: "A5", part: "A", t: "Centre & Spread", core: "Always two numbers, never one.", items: [4, 5, "6b"] },
+          { id: "A6", part: "A", t: "Probability, Chance & Base Rates", core: "A result means nothing until you ask how common it was.", items: ["9a", "9b", "a6-screening", "a6-conditional"] },
+          { id: "A7", part: "A", t: "The Normal Model & z-scores", core: "A model, and a translator.", items: [8, 7, "a7-percentiles"] },
+          { id: "A8", part: "A", t: "Sampling Variability & the CLT", core: "Samples jitter; means jitter less.", items: ["a8-means", 10] },
+          { id: "B1", part: "B", t: "Inference Logic", core: "Which population stories are still plausible?", items: [11, "b1-null", 12] },
+          { id: "B2", part: "B", t: "Effect Size, Power & Reliable Change", core: "How big, how sure, how real.", items: [14, 13, "b2-client"] },
+          { id: "B3", part: "B", t: "Comparing Groups", core: "The design decides the test.", items: ["b3-which", 15, 16, 17, 20, 27] },
+          { id: "B4", part: "B", t: "Relationships", core: "Togetherness is not cause.", items: [18, 19, 22] },
+          { id: "B5", part: "B", t: "Interactions & Beyond the Straight Line", core: "When, for whom, through what.", items: [21, 23, 24] },
+          { id: "B6", part: "B", t: "Reading Research Like a Clinician", core: "Literacy, not mastery.", literacy: true, items: [26, 29, 28, "30a", "30b", "b6-capstone"] }
+        ];
+        /* the in-place splits: both halves stay inside their existing Day slot */
+        var SPLITS = { "6a": { day: 6, t: "Shape" }, "6b": { day: 6, t: "Boxplots" }, "9a": { day: 9, t: "Probability as long-run frequency" }, "9b": { day: 9, t: "Base rates" }, "30a": { day: 30, t: "Bayesian thinking" }, "30b": { day: 30, t: "Reading an APA results section" } };
+        var NEW_LESSONS = {
+          "a1-row": "One Row, One Person", "a2-hidden": "Measuring a Hidden Thing", "a2-error": "True Score + Error", "a2-relvalid": "Reliable Is Not Valid",
+          "a3-lotteries": "The Two Lotteries", "a3-observe": "Experiment vs Observation", "a3-confound": "The Third Puppeteer: Confounding",
+          "a4-dist": "What Is a Distribution?", "a6-screening": "Screening Tests & False Positives", "a6-conditional": "Knowing Something Changes the Odds",
+          "a7-percentiles": "Percentiles: Where Does This Client Stand?", "a8-means": "Samples Have a Distribution Too", "b1-null": "The Null Story",
+          "b2-client": "Did THIS Client Really Change?", "b3-which": "Which Test? The Design Decides", "b6-capstone": "Capstone: Dissect a Clinical Paper"
+        };
+        /* prerequisites per pillar (dependency order): a pillar is recommended once these are proven */
+        var PILLAR_PREREQ = { A1: [], A2: ["A1"], A3: ["A1"], A4: ["A1", "A2"], A5: ["A4"], A6: ["A3"], A7: ["A5"], A8: ["A7", "A3"], B1: ["A8"], B2: ["B1", "A2"], B3: ["B2"], B4: ["B3"], B5: ["B4"], B6: ["B5"] };
+        /* where each existing Day lives on the path: pillar + position (all 30 accounted for) */
+        var DAY_PATH = (function () {
+          var out = {};
+          PILLARS.forEach(function (P) {
+            P.items.forEach(function (it, i) {
+              var d = typeof it === "number" ? it : SPLITS[it] ? SPLITS[it].day : 0;
+              if (d && !out[d]) out[d] = { pillar: P.id, pos: i + 1 };
+            });
+          });
+          return out;
+        })();
+        var MISCONCEPTIONS = {
+          "P-IS-H0": { t: "“p = .03 means a 3% chance the null is true / the programme doesn’t work.”", where: "B1" },
+          "SIG-IMPORTANT": { t: "“Significant means large / important.”", where: "B2" },
+          "CLT-DATA": { t: "“The CLT makes the DATA normal as n grows.”", where: "A8" },
+          "CORR-CAUSE": { t: "“They move together, so one caused the other.”", where: "A3 B4" },
+          "BASE-IGNORE": { t: "“The test is 95% accurate, so a positive is 95% certain.”", where: "A6" },
+          "REL-VALID": { t: "“It’s consistent, so it must be measuring the right thing.”", where: "A2" },
+          "SAMPLE-ASSIGN": { t: "“Random sampling and random assignment are the same lottery.”", where: "A3" },
+          "MEAN-TYPICAL": { t: "“The mean describes the typical client.”", where: "A5" },
+          "AVG-NOMINAL": { t: "“You can average any numbers, including category codes.”", where: "A1" },
+          "PAIR-WASTE": { t: "“Pre/post data can be analysed as two independent groups.”", where: "B3" },
+          "MAIN-CROSS": { t: "“The main effect is the story” — when the lines cross.", where: "B5" },
+          "MED-PROOF": { t: "“A mediation result in one paper proves the mechanism.”", where: "B5" }
+        };
+        /* per-concept learning record (0–100 mastery, misses, hint rungs, stored predictions, proven pillars).
+           Created lazily, so a pre-existing profile is untouched until a new mechanic writes to it. */
+        var Learn = {
+          rec: function () {
+            ["mastery", "misses", "hints", "proven"].forEach(function (k) { if (!prefs[k] || typeof prefs[k] !== "object") prefs[k] = {}; });
+            if (!Array.isArray(prefs.predictions)) prefs.predictions = [];
+            return prefs;
+          },
+          setMastery: function (concept, v) { Learn.rec().mastery[concept] = Math.max(0, Math.min(100, Math.round(v))); savePrefs(); },
+          miss: function (concept) { var r = Learn.rec(); r.misses[concept] = (r.misses[concept] || 0) + 1; savePrefs(); },
+          /* hints[concept] counts rung uses; a rung-3 also counts as a miss (feeds C5 error-driven review) */
+          hint: function (concept, rung) { var r = Learn.rec(); r.hints[concept] = (r.hints[concept] || 0) + 1; if (rung >= 3) r.misses[concept] = (r.misses[concept] || 0) + 1; savePrefs(); },
+          bump: function (concept, delta) { var r = Learn.rec(), v = Math.max(0, Math.min(100, Math.round((r.mastery[concept] || 0) + delta))); r.mastery[concept] = v; savePrefs(); return v; },
+          predict: function (where, value) { var r = Learn.rec(); r.predictions.push({ where: String(where), v: value, ts: Date.now() }); if (r.predictions.length > 300) r.predictions.splice(0, r.predictions.length - 300); savePrefs(); },
+          prove: function (pillar) { Learn.rec().proven[pillar] = Date.now(); savePrefs(); }
+        };
         var LESSON_CONTENT = {
           1: {
             home: ["What is a variable?", "the building blocks every statistic rests on."],
@@ -4047,9 +4403,646 @@
             ]
           }
         };
-        var KIND = { hook: "Hook", concept: "Concept", intuition: "Intuition", formula: "Key rule", example: "Worked example", quiz: "Quiz", lens: "Lens" };
+        /* ============ PHASE 3 · Part A lesson visuals (2D canvas, one per pillar anchor) ============ */
+        var PX = { ok: "#34b57a", bad: "#e5484d", cy: "#0891b2", gold: "#e0a526", vio: "#8b5cf6" };
+        function gauss(r) { return (r() + r() + r() + r() + r() + r() - 3) * 1.41; }
+        function vz(aria, ctl, mode) {
+          return '<div class="x-viz"' + (mode ? ' data-mode="' + mode + '"' : "") + '><canvas role="img" aria-label="' + aria + '"></canvas>' + (ctl || "") + '<p class="x-read" aria-live="polite"></p></div>';
+        }
+        function sl(k, label, min, max, val, step) {
+          return '<label>' + label + ' <input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '" value="' + val + '" aria-label="' + label + '"> <output>' + val + "</output></label>";
+        }
+        function bt(k, pairs) { return pairs.map(function (p) { return '<button type="button" class="press" data-xk="' + k + '" data-x="' + p[0] + '" aria-pressed="false">' + p[1] + "</button>"; }).join(""); }
+        function ctl(inner) { return '<div class="x-ctl">' + inner + "</div>"; }
+        /* binds sliders [data-k] and toggles [data-xk] to a state object; redraws and reports on every change */
+        function bindViz(stage, api, st, draw) {
+          var cv = $("canvas", stage), out = $(".x-read", stage);
+          Array.prototype.forEach.call(stage.querySelectorAll("input[data-k]"), function (i) { st[i.dataset.k] = +i.value; });
+          function run() {
+            Array.prototype.forEach.call(stage.querySelectorAll("[data-xk]"), function (b) { b.setAttribute("aria-pressed", String(st[b.dataset.xk] === b.dataset.x)); });
+            var c = vizCanvas(cv); out.innerHTML = draw(c, c.ctx) || "";
+            if (api && api.report) api.report(st);
+          }
+          stage.addEventListener("input", function (e) {
+            var i = e.target.closest("input[data-k]"); if (!i) return;
+            st[i.dataset.k] = +i.value; var o = i.parentNode.querySelector("output"); if (o) o.textContent = i.value; run();
+          });
+          stage.addEventListener("click", function (e) {
+            var b = e.target.closest("[data-xk]"); if (!b) return;
+            e.stopPropagation(); st[b.dataset.xk] = b.dataset.x; if (st.onPick) st.onPick(b.dataset.xk, b.dataset.x); run();
+          });
+          watchViz(cv, run);
+          return run;
+        }
+        function txt(ctx, c, s, x, y, col, al, wt) { ctx.fillStyle = col || c.dim; ctx.font = (wt || "") + " 12px Geist, sans-serif"; ctx.textAlign = al || "center"; ctx.fillText(s, x, y); }
+
+        /* A1 · the intake table: rows are people, columns are questions; tap a column to see what is legal */
+        var A1_COLS = [
+          { t: "Diagnosis", s: "Dx", k: "category (codes)", v: [2, 1, 3, 1, 4, 2], lab: ["MDD", "GAD", "PTSD", "GAD", "SUD", "MDD"], legal: "count, mode", mean: "mean of codes = 2.17: a number that means nothing" },
+          { t: "Distress 1–5", s: "Distress", k: "ordered category", v: [4, 2, 5, 3, 4, 1], legal: "median, percentiles", mean: "median = 3.5; the gaps are not equal, so a mean is shaky" },
+          { t: "PHQ-9", s: "PHQ-9", k: "score (interval)", v: [14, 6, 21, 9, 17, 4], legal: "mean, SD", mean: "mean = 11.8 points: meaningful" },
+          { t: "Sessions", s: "Sessions", k: "count (ratio, true zero)", v: [3, 12, 0, 6, 8, 24], legal: "mean, SD, ratios", mean: "mean = 8.8 sessions; 24 really is twice 12" }
+        ];
+        function tableViz(stage, api) {
+          var st = { col: "", row: "", onPick: function (k) { if (k === "col") st.row = ""; else st.col = ""; } };
+          bindViz(stage, api, st, function (c, ctx) {
+            var cols = 5, cw = c.w / cols, top = 30, rh = (c.h - top - 8) / 6, sel = st.col === "" ? -1 : +st.col, rs = st.row === "" ? -1 : +st.row;
+            txt(ctx, c, "Client", cw / 2, 18, c.text, "center", "600");
+            A1_COLS.forEach(function (C, j) { txt(ctx, c, cw < 100 ? C.s : C.t, cw * (j + 1.5), 18, j === sel ? c.pri : c.text, "center", "600"); });
+            for (var i = 0; i < 6; i++) {
+              var y = top + i * rh;
+              if (i === rs) { ctx.fillStyle = c.pri; ctx.globalAlpha = 0.18; ctx.fillRect(0, y, c.w, rh - 2); ctx.globalAlpha = 1; }
+              txt(ctx, c, "C" + (i + 1), cw / 2, y + rh / 2 + 4, c.text);
+              A1_COLS.forEach(function (C, j) {
+                if (j === sel) { ctx.fillStyle = c.pri; ctx.globalAlpha = 0.22; ctx.fillRect(cw * (j + 1) + 2, y, cw - 4, rh - 2); ctx.globalAlpha = 1; }
+                txt(ctx, c, j === 0 ? C.v[i] + " · " + C.lab[i] : String(C.v[i]), cw * (j + 1.5), y + rh / 2 + 4, c.text);
+              });
+            }
+            if (rs > -1) return "Row C" + (rs + 1) + " = <b>one person</b>, answering every question once.";
+            if (sel < 0) return "Tap a column (a question) or a row (a person).";
+            var C = A1_COLS[sel];
+            return "<b>" + C.t + "</b> · " + C.k + " · legal: <b>" + C.legal + "</b><br>" + C.mean;
+          });
+        }
+        var A1_CTL = ctl(bt("col", [["0", "Diagnosis"], ["1", "Distress"], ["2", "PHQ-9"], ["3", "Sessions"]])) + ctl(bt("row", [["0", "Row C1"], ["2", "Row C3"]]));
+
+        /* A2 · target range: the bullseye is the true score; shots are observed scores */
+        function targetViz(stage, api) {
+          var mode = stage.dataset.mode || "rv", st = { bias: 0, noise: 5, items: 1, seed: 7, again: 0 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var cx = c.w / 2, cy = (c.h - 6) / 2, R = Math.min(c.w, c.h - 12) / 2 - 8, r = seeded(st.seed + st.again * 31), shots = [];
+            [1, 0.75, 0.5, 0.25].forEach(function (f, k) { ctx.beginPath(); ctx.arc(cx, cy, R * f, 0, 7); ctx.strokeStyle = c.dim; ctx.globalAlpha = 0.5; ctx.stroke(); ctx.globalAlpha = 1; });
+            /* the ghost: the true score, unseen in real life */
+            ctx.setLineDash([3, 3]); ctx.strokeStyle = c.text; ctx.beginPath(); ctx.arc(cx, cy, 7, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+            var n = mode === "two" ? 2 : 12, k = mode === "items" ? st.items : 1, sd = (mode === "items" ? 6 : st.noise) * R / 40;
+            for (var i = 0; i < n; i++) {
+              var dx = 0, dy = 0;
+              for (var j = 0; j < k; j++) { dx += gauss(r); dy += gauss(r); }
+              shots.push({ x: cx + st.bias * R / 12 + dx / k * sd, y: cy - st.bias * R / 20 + dy / k * sd });
+            }
+            shots.forEach(function (p, i) { ctx.fillStyle = mode === "two" ? (i ? PX.cy : c.pri) : c.pri; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 7); ctx.fill(); });
+            var mx = shots.reduce(function (t, p) { return t + p.x; }, 0) / n, my = shots.reduce(function (t, p) { return t + p.y; }, 0) / n;
+            var spread = Math.sqrt(shots.reduce(function (t, p) { return t + (p.x - mx) * (p.x - mx) + (p.y - my) * (p.y - my); }, 0) / n) / R * 40;
+            var off = Math.sqrt((mx - cx) * (mx - cx) + (my - cy) * (my - cy)) / R * 40;
+            st.spread = spread; st.off = off;
+            if (mode === "two") {
+              var gap = Math.sqrt(Math.pow(shots[0].x - shots[1].x, 2) + Math.pow(shots[0].y - shots[1].y, 2)) / R * 40;
+              st.gap = gap;
+              return "Week 1 (violet) and week 1 again (cyan): same client, same anxiety · gap <b>" + gap.toFixed(1) + "</b> points · the dashed ring is the true score";
+            }
+            if (mode === "items") return "<b>" + st.items + "</b> item" + (st.items > 1 ? "s" : "") + " per score · spread of scores <b>" + spread.toFixed(1) + "</b>";
+            return "Spread <b>" + spread.toFixed(1) + "</b> (reliability: smaller is better) · off-centre <b>" + off.toFixed(1) + "</b> (validity: smaller is better)";
+          });
+          stage.addEventListener("click", function (e) { if (e.target.closest("[data-again]")) { st.again++; var i = stage.querySelector("input[data-k]"); if (i) i.dispatchEvent(new Event("input", { bubbles: true })); } });
+        }
+
+        /* A3 · two lotteries: who is studied (sampling), who gets what (assignment). Motivation is the hidden trait. */
+        var A3_POP = (function () { var r = seeded(11), a = []; for (var i = 0; i < 80; i++) a.push({ m: Math.max(0, Math.min(10, 5 + gauss(r) * 1.8)), x: r(), y: r() }); return a; })();
+        function lotteryViz(stage, api) {
+          var mode = stage.dataset.mode || "both", st = { samp: mode === "obs" ? "rand" : "", assign: "" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded((st.samp === "rand" ? 3 : 5) + (st.assign === "rand" ? 17 : 29)), W = c.w, H = c.h - 18;
+            var drumW = W * 0.38, popMu = A3_POP.reduce(function (t, p) { return t + p.m; }, 0) / 80;
+            ctx.strokeStyle = c.dim; ctx.strokeRect(4, 14, drumW, H - 14); txt(ctx, c, "Population", 4 + drumW / 2, 10, c.dim);
+            var col = function (m) { return "hsl(" + (200 - m * 16) + ",70%," + (40 + m * 3) + "%)"; };
+            var idx = A3_POP.map(function (_, i) { return i; }), pick = [];
+            if (st.samp) {
+              var pool = st.samp === "rand" ? idx.slice() : idx.filter(function (i) { return A3_POP[i].m > 5.4; });
+              while (pick.length < 20 && pool.length) pick.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
+            }
+            A3_POP.forEach(function (p, i) { ctx.globalAlpha = pick.indexOf(i) > -1 ? 0.25 : 1; ctx.fillStyle = col(p.m); ctx.beginPath(); ctx.arc(10 + p.x * (drumW - 12), 20 + p.y * (H - 26), 3.5, 0, 7); ctx.fill(); });
+            ctx.globalAlpha = 1;
+            var rx = drumW + 18, rw = (W - rx - 8) / 2, rooms = [[], []];
+            if (pick.length && st.assign) {
+              if (st.assign === "rand") { var sh = pick.slice().sort(function () { return r() - 0.5; }); rooms = [sh.slice(0, 10), sh.slice(10)]; }
+              else { var so = pick.slice().sort(function (a, b) { return A3_POP[b].m - A3_POP[a].m; }); rooms = [so.slice(0, 10), so.slice(10)]; }
+            }
+            ["Programme", "Usual care"].forEach(function (t, k) {
+              var x0 = rx + k * (rw + 6); ctx.strokeStyle = c.dim; ctx.strokeRect(x0, 14, rw, H - 14); txt(ctx, c, t, x0 + rw / 2, 10, c.dim);
+              (rooms[k].length ? rooms[k] : k === 0 && !st.assign ? pick : []).forEach(function (i, j) { ctx.fillStyle = col(A3_POP[i].m); ctx.beginPath(); ctx.arc(x0 + 10 + (j % 4) * ((rw - 20) / 3), 26 + Math.floor(j / 4) * 16, 5, 0, 7); ctx.fill(); });
+            });
+            var mean = function (a) { return a.reduce(function (t, i) { return t + A3_POP[i].m; }, 0) / (a.length || 1); };
+            st.sampleOff = pick.length ? Math.abs(mean(pick) - popMu) : null;
+            st.roomGap = rooms[0].length ? Math.abs(mean(rooms[0]) - mean(rooms[1])) : null;
+            var a = !st.samp ? "Pick how clients enter the study." : "Sample motivation <b>" + mean(pick).toFixed(1) + "</b> vs population <b>" + popMu.toFixed(1) + "</b>";
+            var b = st.roomGap == null ? (st.samp ? " · now deal them into rooms" : "") : "<br>Rooms differ in motivation by <b>" + st.roomGap.toFixed(1) + "</b> before any treatment";
+            return a + b;
+          });
+        }
+        function puppetViz(stage, api) {
+          var st = { pull: 7, hold: "off" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded(23), pts = [];
+            for (var i = 0; i < 90; i++) { var z = gauss(r), x = st.pull / 10 * z + gauss(r) * 0.7, y = st.pull / 10 * z + gauss(r) * 0.7; pts.push({ z: z, x: x, y: y }); }
+            var corr = function (a) {
+              var n = a.length, mx = 0, my = 0; a.forEach(function (p) { mx += p.x / n; my += p.y / n; });
+              var sxy = 0, sx = 0, sy = 0; a.forEach(function (p) { sxy += (p.x - mx) * (p.y - my); sx += (p.x - mx) * (p.x - mx); sy += (p.y - my) * (p.y - my); });
+              return sxy / Math.sqrt(sx * sy || 1);
+            };
+            var band = pts.filter(function (p) { return Math.abs(p.z) < 0.35; }), L = 30, B = c.h - 24, S = Math.min(c.w - 40, c.h - 34) / 6;
+            ctx.strokeStyle = c.dim; ctx.beginPath(); ctx.moveTo(L, 8); ctx.lineTo(L, B); ctx.lineTo(c.w - 6, B); ctx.stroke();
+            txt(ctx, c, "Group sessions attended →", c.w / 2, c.h - 6, c.dim); ctx.save(); ctx.translate(12, B / 2); ctx.rotate(-Math.PI / 2); txt(ctx, c, "Days without use →", 0, 0, c.dim); ctx.restore();
+            pts.forEach(function (p) {
+              var inb = Math.abs(p.z) < 0.35, on = st.hold !== "on" || inb;
+              ctx.globalAlpha = on ? 1 : 0.12; ctx.fillStyle = "hsl(" + (200 - (p.z + 2) * 40) + ",70%,55%)";
+              ctx.beginPath(); ctx.arc(L + (c.w - L - 10) / 2 + p.x * S, B - (B - 8) / 2 - p.y * S * 0.8, 4, 0, 7); ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            st.r = corr(pts); st.rIn = corr(band);
+            return st.hold === "on" ? "Only clients with the <b>same motivation</b>: r = <b>" + st.rIn.toFixed(2) + "</b> (everyone: " + st.r.toFixed(2) + ")" : "Everyone: r = <b>" + st.r.toFixed(2) + "</b> · colour = hidden motivation";
+          });
+        }
+
+        /* A4 · clients rain into a skyline; the bin width re-casts it */
+        var A4_SC = (function () { var r = seeded(5), a = []; for (var i = 0; i < 50; i++) a.push(Math.max(0, Math.min(27, Math.round(4 + Math.abs(gauss(r)) * 6 + r() * 3)))); return a; })();
+        var A4_SHAPES = {
+          sym: (function () { var r = seeded(8), a = []; for (var i = 0; i < 60; i++) a.push(Math.max(0, Math.min(27, Math.round(13.5 + gauss(r) * 4)))); return a; })(),
+          skew: (function () { var r = seeded(9), a = []; for (var i = 0; i < 60; i++) a.push(Math.max(0, Math.min(27, Math.round(3 + Math.abs(gauss(r)) * 6 + r() * 2)))); return a; })(),
+          two: (function () { var r = seeded(10), a = []; for (var i = 0; i < 60; i++) a.push(Math.max(0, Math.min(27, Math.round((i < 32 ? 6 : 20) + gauss(r) * 2.3)))); return a; })()
+        };
+        function rainViz(stage, api) {
+          var mode = stage.dataset.mode || "rain", st = { n: mode === "rain" ? 0 : 60, bw: 3, shape: mode === "shape" ? "two" : "" };
+          var run = bindViz(stage, api, st, function (c, ctx) {
+            var data = mode === "rain" ? A4_SC.slice(0, st.n) : A4_SHAPES[st.shape || "sym"], L = 14, W = c.w - 28, H = c.h - 44, bins = [];
+            for (var s = 0; s <= 27; s += st.bw) bins.push({ lo: s, f: data.filter(function (v) { return v >= s && v < s + st.bw; }).length });
+            var max = Math.max(4, Math.max.apply(null, bins.map(function (b) { return b.f; })));
+            bins.forEach(function (b) {
+              var x = L + (b.lo / 28) * W, w = (st.bw / 28) * W - 2, h = (b.f / max) * H;
+              ctx.fillStyle = c.pri; ctx.globalAlpha = 0.85; ctx.fillRect(x + 1, 14 + H - h, w, h); ctx.globalAlpha = 1;
+            });
+            if (mode === "rain" && st.n) { var last = data[st.n - 1]; ctx.fillStyle = PX.gold; ctx.beginPath(); ctx.arc(L + ((last + 0.5) / 28) * W, 8, 5, 0, 7); ctx.fill(); }
+            [0, 9, 18, 27].forEach(function (v) { txt(ctx, c, v, L + ((v + 0.5) / 28) * W, c.h - 10); });
+            st.bins = bins.length;
+            if (mode === "rain") return st.n ? "<b>" + st.n + "</b> of 50 clients · newest PHQ-9 = <b>" + data[st.n - 1] + "</b> · bins of <b>" + st.bw + "</b> points" : "No clients yet. One score is a point; many become a landscape.";
+            return "<b>" + ({ sym: "Symmetric", skew: "Skewed right", two: "Two humps" })[st.shape || "sym"] + "</b> · 60 clients · bins of <b>" + st.bw + "</b>";
+          });
+          stage.addEventListener("click", function (e) {
+            var b = e.target.closest("[data-drop]"); if (!b) return; e.stopPropagation();
+            var target = b.dataset.drop === "all" ? 50 : Math.min(50, st.n + 1);
+            if (reduce || b.dataset.drop === "1") { st.n = target; return run(); }
+            (function tick() { if (!stage.isConnected || st.n >= target) return; st.n++; run(); setTimeout(tick, 40); })();
+          });
+        }
+
+        /* A5 · Day 5: the typical-distance ring breathes with the spread */
+        function ringViz(stage, api) {
+          var st = { spread: 10 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var base = [-4, -2, 0, 2, 4], f = st.spread / 10, vals = base.map(function (d) { return 8 + d * f; });
+            var px = function (v) { return 20 + (v / 16) * (c.w - 40); }, y = c.h / 2;
+            var sd = Math.sqrt(vals.reduce(function (t, v) { return t + (v - 8) * (v - 8); }, 0) / 4), mad = vals.reduce(function (t, v) { return t + Math.abs(v - 8); }, 0) / 5;
+            ctx.strokeStyle = c.dim; ctx.beginPath(); ctx.moveTo(px(0), y + 30); ctx.lineTo(px(16), y + 30); ctx.stroke();
+            for (var v = 0; v <= 16; v += 4) txt(ctx, c, v, px(v), y + 46);
+            ctx.fillStyle = c.pri; ctx.globalAlpha = 0.14; ctx.fillRect(px(8 - sd), y - 34, px(8 + sd) - px(8 - sd), 64); ctx.globalAlpha = 1;
+            ctx.strokeStyle = c.pri; ctx.lineWidth = 2; ctx.strokeRect(px(8 - sd), y - 34, px(8 + sd) - px(8 - sd), 64); ctx.lineWidth = 1;
+            vals.forEach(function (v, i) {
+              ctx.strokeStyle = PX.gold; ctx.beginPath(); ctx.moveTo(px(8), y - 14 + i * 7); ctx.lineTo(px(v), y - 14 + i * 7); ctx.stroke();
+              ctx.fillStyle = c.text; ctx.beginPath(); ctx.arc(px(v), y - 14 + i * 7, 5, 0, 7); ctx.fill();
+            });
+            ctx.strokeStyle = c.text; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(px(8), y - 44); ctx.lineTo(px(8), y + 30); ctx.stroke(); ctx.setLineDash([]);
+            txt(ctx, c, "mean 8", px(8), y - 48, c.text, "center", "600");
+            st.sd = sd; st.mad = mad;
+            return "Sessions: " + vals.map(function (v) { return +v.toFixed(1); }).join(", ") + "<br>typical distance <b>" + mad.toFixed(1) + "</b> · SD <b>" + sd.toFixed(2) + "</b> (the shaded band)";
+          });
+        }
+        /* A5 · Day 6b: a whole distribution compressed into one line */
+        function boxViz(stage, api) {
+          var st = { top: 16 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var vals = [2, 3, 4, 4, 5, 6, 6, 7, 7, 8, 9, 9, 10, 12, st.top].sort(function (a, b) { return a - b; });
+            var q = function (p) { var i = (vals.length - 1) * p, lo = Math.floor(i); return vals[lo] + (vals[Math.ceil(i)] - vals[lo]) * (i - lo); };
+            var q1 = q(0.25), md = q(0.5), q3 = q(0.75), iqr = q3 - q1, fence = q3 + 1.5 * iqr, inside = vals.filter(function (v) { return v <= fence; });
+            var hi = inside[inside.length - 1], px = function (v) { return 16 + (v / 40) * (c.w - 32); }, y = c.h / 2 - 6;
+            vals.forEach(function (v, i) { ctx.fillStyle = v > fence ? PX.bad : c.dim; ctx.beginPath(); ctx.arc(px(v), y - 40 + (i % 3) * 7, 4, 0, 7); ctx.fill(); });
+            ctx.strokeStyle = c.text; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(px(vals[0]), y + 10); ctx.lineTo(px(q1), y + 10); ctx.moveTo(px(q3), y + 10); ctx.lineTo(px(hi), y + 10); ctx.stroke();
+            ctx.fillStyle = c.pri; ctx.globalAlpha = 0.25; ctx.fillRect(px(q1), y - 6, px(q3) - px(q1), 32); ctx.globalAlpha = 1; ctx.strokeRect(px(q1), y - 6, px(q3) - px(q1), 32);
+            ctx.strokeStyle = PX.cy; ctx.beginPath(); ctx.moveTo(px(md), y - 6); ctx.lineTo(px(md), y + 26); ctx.stroke(); ctx.lineWidth = 1;
+            for (var v = 0; v <= 40; v += 10) txt(ctx, c, v, px(v), c.h - 8);
+            st.out = st.top > fence; st.iqr = iqr; st.md = md;
+            return "min <b>" + vals[0] + "</b> · Q1 <b>" + q1 + "</b> · median <b>" + md + "</b> · Q3 <b>" + q3 + "</b> · max <b>" + st.top + "</b><br>IQR (middle half) <b>" + iqr + "</b>" + (st.out ? " · the top client sits past the fence, drawn as a lone dot" : "");
+          });
+        }
+
+        /* A6 · a city of 1,000 people: prevalence, sensitivity and false alarms light it up */
+        function cityViz(stage, api) {
+          var mode = stage.dataset.mode || "city", st = { prev: 2, sens: 90, fa: 9, view: "all" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var N = 1000, sick = Math.round(N * st.prev / 100), tp = Math.round(sick * st.sens / 100), fn = sick - tp, fp = Math.round((N - sick) * st.fa / 100), tn = N - sick - fp;
+            var cols = 50, rows = 20, cw = c.w / cols, ch = (c.h - 6) / rows, s = Math.max(1.6, Math.min(cw, ch) * 0.36), k = 0;
+            var paint = function (n, col, pos) { for (var i = 0; i < n; i++, k++) { var x = (k % cols) * cw + cw / 2, y = Math.floor(k / cols) * ch + ch / 2; ctx.globalAlpha = st.view === "pos" && !pos ? 0.08 : 1; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, s, 0, 7); ctx.fill(); } };
+            paint(tp, PX.ok, true); paint(fn, PX.gold, false); paint(fp, PX.bad, true); paint(tn, c.dim, false);
+            ctx.globalAlpha = 1;
+            st.tp = tp; st.fp = fp; st.fn = fn; st.tn = tn; st.ppv = tp + fp ? tp / (tp + fp) : 0;
+            var key = '<span style="color:' + PX.ok + '">●</span> true cases caught <b>' + tp + '</b> · <span style="color:' + PX.gold + '">●</span> missed <b>' + fn + '</b> · <span style="color:' + PX.bad + '">●</span> false alarms <b>' + fp + "</b>";
+            return key + "<br>" + (tp + fp) + " positive" + (tp + fp === 1 ? "" : "s") + ": <b>" + tp + "</b> truly have it (" + Math.round(st.ppv * 100) + "%)";
+          });
+        }
+
+        /* A7 · the Bell Mountain, manipulable: raw ⇄ z ⇄ percentile, linked */
+        function phi(z) { var t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2), p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return z > 0 ? 1 - p : p; }
+        function bellViz(stage, api) {
+          var mode = stage.dataset.mode || "pct", st = { mu: 50, sd: 10, raw: 60, skew: "off" };
+          if (mode === "z") { st.mu = 18; st.sd = 6; st.raw = 24; }
+          bindViz(stage, api, st, function (c, ctx) {
+            var lo = mode === "normal" ? 0 : st.mu - 4 * st.sd, hi = mode === "normal" ? 100 : st.mu + 4 * st.sd;
+            var px = function (v) { return 14 + (v - lo) / (hi - lo) * (c.w - 28); }, B = c.h - 30, Hh = B - 18;
+            var pdf = function (v) { return Math.exp(-Math.pow((v - st.mu) / st.sd, 2) / 2); };
+            if (st.skew === "on") {
+              var counts = [30, 22, 15, 10, 7, 5, 4, 3, 2, 1, 1], bw = (hi - lo) / 11;
+              counts.forEach(function (f, i) { ctx.fillStyle = PX.gold; ctx.globalAlpha = 0.45; ctx.fillRect(px(lo + i * bw) + 1, B - f / 30 * Hh, px(lo + bw) - px(lo) - 2, f / 30 * Hh); });
+              ctx.globalAlpha = 1;
+            }
+            var z = (st.raw - st.mu) / st.sd, p = phi(z);
+            ctx.beginPath(); ctx.moveTo(px(lo), B);
+            for (var v = lo; v <= Math.min(hi, st.raw); v += (hi - lo) / 200) ctx.lineTo(px(v), B - pdf(v) * Hh);
+            ctx.lineTo(px(Math.min(hi, st.raw)), B); ctx.closePath(); ctx.fillStyle = c.pri; ctx.globalAlpha = mode === "normal" ? 0 : 0.25; ctx.fill(); ctx.globalAlpha = 1;
+            if (mode === "normal") { ctx.fillStyle = c.pri; ctx.globalAlpha = 0.2; ctx.fillRect(px(st.mu - 2 * st.sd), 14, px(st.mu + 2 * st.sd) - px(st.mu - 2 * st.sd), B - 14); ctx.globalAlpha = 1; }
+            ctx.beginPath(); for (v = lo; v <= hi; v += (hi - lo) / 200) ctx[v === lo ? "moveTo" : "lineTo"](px(v), B - pdf(v) * Hh); ctx.strokeStyle = c.text; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1;
+            ctx.strokeStyle = c.dim; ctx.beginPath(); ctx.moveTo(px(lo), B); ctx.lineTo(px(hi), B); ctx.stroke();
+            for (var k = -3; k <= 3; k++) { var t = st.mu + k * st.sd; if (t >= lo && t <= hi) { txt(ctx, c, mode === "normal" ? String(+t.toFixed(1)) : +t.toFixed(1) + "", px(t), B + 14); if (mode !== "normal") txt(ctx, c, (k > 0 ? "+" : "") + k + "z", px(t), B + 27, c.pri); } }
+            st.z = z; st.p = p; st.lo95 = st.mu - 2 * st.sd; st.hi95 = st.mu + 2 * st.sd;
+            if (mode === "normal") return "mean <b>" + st.mu + "</b> · SD <b>" + st.sd + "</b> · about 95% of the model lies between <b>" + +st.lo95.toFixed(1) + "</b> and <b>" + +st.hi95.toFixed(1) + "</b>" + (st.skew === "on" ? "<br>Gold bars: real symptom counts. The bell does not fit them." : "");
+            ctx.strokeStyle = PX.gold; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px(st.raw), 12); ctx.lineTo(px(st.raw), B); ctx.stroke(); ctx.lineWidth = 1;
+            return "raw <b>" + st.raw + "</b> · z <b>" + (z >= 0 ? "+" : "") + z.toFixed(2) + "</b> · percentile <b>" + Math.round(p * 100) + "</b> <span class=\"chip\" style=\"height:22px;font-size:11px\">linked</span>";
+          });
+        }
+
+        /* A8 · two landscapes: CLIENT scores (left, frozen) and MEANS of samples (right, narrows with n) */
+        var A8_POP = (function () { var r = seeded(31), a = []; for (var i = 0; i < 400; i++) a.push(Math.max(0, Math.min(27, 3 + Math.abs(gauss(r)) * 6 + r() * 2))); return a; })();
+        var A8_MU = A8_POP.reduce(function (t, v) { return t + v; }, 0) / 400, A8_SD = Math.sqrt(A8_POP.reduce(function (t, v) { return t + (v - A8_MU) * (v - A8_MU); }, 0) / 400);
+        function twoDistViz(stage, api) {
+          var st = { n: 5 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded(99 + st.n), means = [];
+            for (var i = 0; i < 300; i++) { var s = 0; for (var j = 0; j < st.n; j++) s += A8_POP[Math.floor(r() * 400)]; means.push(s / st.n); }
+            var half = c.w / 2 - 8, H = c.h - 40;
+            function land(x0, data, col, title) {
+              var bins = new Array(28).fill(0); data.forEach(function (v) { bins[Math.min(27, Math.floor(v))]++; });
+              var max = Math.max.apply(null, bins);
+              bins.forEach(function (f, k) { ctx.fillStyle = col; ctx.globalAlpha = 0.85; ctx.fillRect(x0 + k * half / 28, 18 + H - f / max * H, half / 28 - 1, f / max * H); });
+              ctx.globalAlpha = 1; txt(ctx, c, title, x0 + half / 2, 12, c.text, "center", "600"); txt(ctx, c, "0", x0 + 4, c.h - 8); txt(ctx, c, "27", x0 + half - 8, c.h - 8);
+            }
+            land(4, A8_POP, PX.cy, "Clients (400)"); land(c.w / 2 + 4, means, c.pri, "Means of n = " + st.n);
+            var mm = means.reduce(function (t, v) { return t + v; }, 0) / 300, msd = Math.sqrt(means.reduce(function (t, v) { return t + (v - mm) * (v - mm); }, 0) / 300);
+            st.clientSD = A8_SD.toFixed(3); st.meansSD = msd;
+            return "Client spread SD <b>" + st.clientSD + "</b> (never moves) · spread of means <b>" + msd.toFixed(2) + "</b>";
+          });
+        }
+        /* ============ PHASE 3 · Part A lessons (A1–A4). Prisma rule: one idea per step, picture first, one So line. ============ */
+        var TABLE_VZ = function () { return vz("An intake table: six clients in rows, four questions in columns", A1_CTL); };
+        Object.assign(LESSON_CONTENT, {
+          "a1-row": {
+            home: ["One row, one person", "how a dataset is built before any statistic exists."],
+            steps: [
+              { kind: "hook", title: "Six clients, one form", body: '<p class="hook">Six clients fill in the same intake form.</p><p class="dim">Where does each answer go?</p>' },
+              { kind: "predict", title: "Your guess first", q: "In a dataset, one client usually takes up…", options: ["One row", "One column", "One cell"], say: ["Hold that guess. Let’s look.", "Hold that guess. Let’s look.", "Hold that guess. Let’s look."] },
+              { kind: "play", title: "Tap a row, then a column", mount: tableViz, body: "<p>Rows are people. Columns are questions.</p>" + TABLE_VZ(), so: "A row is one person; a column is one question asked of everyone." },
+              { kind: "notice", title: "What did a column hold?", q: "When you tapped PHQ-9, what lit up?", options: ["Every client’s answer to one question", "One client’s answers to every question"], say: ["Yes. A column is a variable: one question, every case.", "That was the row. The column lit everyone’s answer to one question."] },
+              { kind: "formalize", title: "Three words", body: "<p>Each person is a <b>case</b>.</p><p>Each question is a <b>variable</b>.</p><p>Each cell is one <b>observation</b>.</p>", so: "Cases in rows, variables in columns, one observation in each cell." },
+              { kind: "fade", title: "Finish the example", q: "Client C3’s PHQ-9 is 21. Fill the last line.", lines: ["C3 is a case: one row", "PHQ-9 is a variable: one column", "21 is where they meet: one observation"], blank: 2, options: ["21 is where they meet: one observation", "21 is the client", "21 is a variable"], answer: 0, why: "The score is C3’s answer to one question. It is not the person." },
+              { kind: "check", title: "Build-check", mount: tableViz, body: "<p>Use the table.</p>" + TABLE_VZ(), q: "Light up the one column where “twice as much” really means twice: a count with a true zero.",
+                goal: function (st) { return st.col === "3" ? true : st.col === "" ? "Tap a column first." : st.col === "2" ? "PHQ-9 has equal steps but no true zero. A 0 doesn’t mean zero depression." : "That column has no equal steps, so “twice” has no meaning there."; },
+                hints: ["Which question counts something you could have none of?", "Look at the columns: which one could truly be 0?", "Zero sessions means none at all. Find that column."], why: "Sessions is a count: 24 sessions really is twice 12.", concept: "a1-cases" },
+              { kind: "transfer", title: "A new costume", costume: "Group attendance sheet", q: "A sign-in sheet lists 12 group members and whether each attended this week. Each member is a…", options: ["Case: one row", "Variable: one column", "Observation"], answer: 0, why: "Each member is one case. “Attended this week” is the variable, asked of every member.", concept: "a1-cases" }
+            ]
+          },
+          25: {
+            home: ["Reliability & validity", "can you trust the number a questionnaire gives?"],
+            steps: [
+              { kind: "hook", title: "Can you trust the 18?", body: '<p class="hook">A client scores 18 on an anxiety scale.</p><p class="dim">Would the scale say 18 again tomorrow? And is it really measuring anxiety?</p>' },
+              { kind: "predict", title: "Your guess first", q: "A scale gives the same score every time. Is it measuring the right thing?", options: ["Yes, consistency proves it", "Not necessarily", "Only if the score is high"], say: "Keep your guess. The target will answer it." },
+              { kind: "play", title: "Move bias and noise", mount: targetViz, body: "<p>The bullseye is the client’s true anxiety. Each dot is one score.</p>" + vz("A target. Dots are scores; the dashed ring at the centre is the true score.", ctl(sl("noise", "Noise", 1, 10, 6) + sl("bias", "Bias", 0, 10, 0)), "rv"), so: "Noise scatters the scores; bias shifts them all the same way." },
+              { kind: "notice", title: "What changed?", q: "With noise low and bias high, the dots were…", options: ["Tight, but off the bullseye", "Scattered around the bullseye"], say: ["Yes. Consistent, and consistently wrong.", "That was high noise. Low noise, high bias gives a tight cluster off-centre."] },
+              { kind: "formalize", title: "Two virtues", body: "<p><b>Reliability</b>: the scores agree with each other. A tight cluster.</p><p><b>Validity</b>: the scores land on the thing you meant to measure. On the bullseye.</p>", so: "Reliable means consistent; valid means on target. You need both." },
+              { kind: "formalize", title: "Validity is a claim", body: "<p>Nobody can see the bullseye directly.</p><p>So “this scale measures anxiety” is a claim. It needs evidence: does it agree with clinician ratings? Does it rise when anxiety rises?</p>", so: "Validity is argued from evidence, never assumed." },
+              { kind: "check", title: "Build-check", mount: targetViz, body: vz("A target with noise and bias sliders.", ctl(sl("noise", "Noise", 1, 10, 6) + sl("bias", "Bias", 0, 10, 0)), "rv"), q: "Make a scale that is reliable but not valid.",
+                goal: function (st) { if (st.spread > 4) return "The dots are too scattered (spread " + st.spread.toFixed(1) + "). Lower the noise."; if (st.off < 8) return "They sit near the bullseye (off-centre " + st.off.toFixed(1) + "). Add bias."; return true; },
+                hints: ["Reliable is about the dots agreeing. Valid is about where they land.", "Watch the spread and off-centre numbers under the target.", "First make the cluster tight. Then move it."], why: "A tight cluster far from the bullseye: the same wrong answer every time.", concept: "a2-relvalid" },
+              { kind: "transfer", title: "A new costume", costume: "Bathroom scale", q: "A scale reads 5 kg heavy, every single time. It is…", options: ["Reliable and valid", "Reliable, not valid", "Valid, not reliable"], answer: 1, tags: ["REL-VALID", null, null], why: "The same reading each time is reliable. Being 5 kg off is a validity problem.", concept: "a2-relvalid" },
+              { kind: "lens", title: "Research lens", body: "<p>Papers report reliability as Cronbach’s α or test–retest r. Above about .80 is good for clinical use.</p><p>Validity is never one number. Look for evidence that the scale agrees with other measures of the same thing.</p>" }
+            ]
+          },
+          "a2-hidden": {
+            steps: [
+              { kind: "hook", title: "Anxiety has no ruler", body: '<p class="hook">You can weigh a client. You can’t weigh their anxiety.</p><p class="dim">So how does a questionnaire measure it?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Why does the GAD-7 ask seven questions, not one?", options: ["To look thorough", "Each item is a noisy window; more windows, clearer view", "To catch liars"], say: "Keep that guess. Let’s test it." },
+              { kind: "play", title: "Add items", mount: targetViz, body: "<p>Each dot is one score. Each score averages some items. The bullseye is the hidden anxiety.</p>" + vz("A target. More items per score pulls the dots toward the true score.", ctl(sl("items", "Items per score", 1, 12, 1)), "items"), so: "Each extra good item averages away some error." },
+              { kind: "notice", title: "What changed?", q: "As the items went up, the dots…", options: ["Gathered toward the bullseye", "Moved away", "Stayed the same"], say: ["Yes. Many small windows give a clearer view.", "Look again: the cluster tightened around the centre.", "Look again: the cluster tightened around the centre."] },
+              { kind: "formalize", title: "A hidden thing", body: "<p>Anxiety is a <b>latent construct</b>: real, but unseen.</p><p>Each item is a small, noisy window onto it.</p>", so: "A questionnaire measures a hidden thing through many small windows." },
+              { kind: "check", title: "Build-check", mount: targetViz, body: vz("A target with an items slider.", ctl(sl("items", "Items per score", 1, 12, 1)), "items"), q: "Make the scores cluster tightly: spread under 3.",
+                goal: function (st) { return st.spread < 3 ? true : "Spread is " + st.spread.toFixed(1) + ". Add more items."; },
+                hints: ["What made the dots gather?", "Watch the spread number as you slide.", "Each item averages away noise. Slide up and watch."], why: "Averaging enough items shrinks the error around the hidden score.", concept: "a2-latent" },
+              { kind: "transfer", title: "A new costume", costume: "Readiness to change", q: "A one-question “How ready are you to change?” score is…", options: ["A clearer view than a 10-item scale", "One noisy window: less precise", "Perfect, because it’s direct"], answer: 1, tags: [null, null, "REL-VALID"], why: "One item is one window. A good multi-item scale averages away more error.", concept: "a2-latent" }
+            ]
+          },
+          "a2-error": {
+            steps: [
+              { kind: "hook", title: "Same client, same week", body: '<p class="hook">Monday: 16. Thursday: 19.</p><p class="dim">Did his anxiety change, or did the score wobble?</p>' },
+              { kind: "predict", title: "Your guess first", q: "If his anxiety didn’t change, the two scores would be…", options: ["Exactly equal", "Close, but not equal", "Wildly different"], say: "Hold that thought." },
+              { kind: "play", title: "Give the scale twice", mount: targetViz, body: "<p>Two scores, same client, same anxiety. The dashed ring is his true score.</p>" + vz("A target with two scores and the true score at the centre.", ctl(sl("noise", "Error size", 1, 10, 5)) + '<div class="x-ctl"><button type="button" class="press" data-again="1">Give it again</button></div>', "two"), so: "The gap between two scores is error made visible." },
+              { kind: "notice", title: "What changed?", q: "When you gave it again with the same anxiety…", options: ["The scores moved anyway", "Nothing moved"], say: ["Yes. The person stayed; the scores wobbled.", "Try “Give it again”: the scores move even though nothing about him changed."] },
+              { kind: "formalize", title: "The equation", body: '<p class="hook">observed = true + error</p><p>The score you see is the true score plus a random nudge.</p>', so: "Every score is the truth plus a nudge you can’t see." },
+              { kind: "fade", title: "Finish the example", q: "True score 17. Monday’s error +2. Fill the last line.", lines: ["observed = true + error", "observed = 17 + 2", "observed = 19"], blank: 2, options: ["observed = 19", "observed = 17", "observed = 15"], answer: 0, why: "17 plus a +2 nudge is 19. Thursday’s nudge might be −1." },
+              { kind: "check", title: "Build-check", mount: targetViz, body: vz("Two scores and the true score.", ctl(sl("noise", "Error size", 1, 10, 5)) + '<div class="x-ctl"><button type="button" class="press" data-again="1">Give it again</button></div>', "two"), q: "Make a scale precise enough that two administrations land within 3 points.",
+                goal: function (st) { return st.gap == null ? "Move the slider first." : st.gap <= 3 ? true : "The gap is " + st.gap.toFixed(1) + ". Shrink the error."; },
+                hints: ["What controls how far the scores wobble?", "Watch the gap number after each change.", "Lower the error size, then give it again."], why: "Small error, small gaps. This is the seed of reliable change later.", concept: "a2-error" },
+              { kind: "transfer", title: "A new costume", costume: "Breathalyser", q: "Two readings a minute apart: .041 and .044. The difference is most likely…", options: ["Real change in a minute", "Measurement error", "A broken device"], answer: 1, tags: [null, null, null], why: "Nothing real changed in a minute. Small gaps like this are error.", concept: "a2-error" }
+            ]
+          },
+          "a2-relvalid": {
+            steps: [
+              { kind: "hook", title: "Consistently wrong", body: '<p class="hook">A risk tool flags the same clients every time.</p><p class="dim">Does that mean it flags the right ones?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Can a measure be reliable but not valid?", options: ["Yes", "No, reliable implies valid"], say: "Let’s see on the target." },
+              { kind: "play", title: "Find all three", mount: targetViz, body: "<p>Make each: tight and off-centre; scattered but centred; tight and centred.</p>" + vz("A target with noise and bias sliders.", ctl(sl("noise", "Noise", 1, 10, 6) + sl("bias", "Bias", 0, 10, 0)), "rv"), so: "Consistency and truth are separate dials." },
+              { kind: "notice", title: "What did you see?", q: "Can a measure be valid on average but unreliable?", options: ["Yes: scattered, centred on the bullseye", "No"], say: ["Yes. Right on average, wrong for any one person.", "Try high noise and zero bias: centred, but scattered."] },
+              { kind: "formalize", title: "Name it", body: "<p>Reliability is necessary for validity, but not enough.</p><p>A scale can give the same wrong answer every time.</p>", so: "Reliable is not valid." },
+              { kind: "check", title: "Build-check", mount: targetViz, body: vz("A target with noise and bias sliders.", ctl(sl("noise", "Noise", 1, 10, 6) + sl("bias", "Bias", 0, 10, 0)), "rv"), q: "Build the scale you’d want: reliable and valid.",
+                goal: function (st) { if (st.spread > 4) return "Too scattered (spread " + st.spread.toFixed(1) + ")."; if (st.off > 3) return "Off-centre by " + st.off.toFixed(1) + ". Remove the bias."; return true; },
+                hints: ["You need both dials right.", "Watch both numbers under the target.", "Low noise first. Then zero bias."], why: "Tight and centred: consistent and on target.", concept: "a2-relvalid" },
+              { kind: "transfer", title: "A new costume", costume: "Risk tool", q: "A risk tool scores clients the same on retest (r = .92). That proves it…", options: ["Predicts reoffending well", "Is consistent; validity needs other evidence", "Is useless"], answer: 1, tags: ["REL-VALID", null, null], why: "Retest agreement shows consistency only. Whether it predicts outcomes needs its own evidence.", concept: "a2-relvalid" }
+            ]
+          },
+          "a3-lotteries": {
+            steps: [
+              { kind: "hook", title: "Two different draws", body: '<p class="hook">A study picks 20 clients, then gives half of them a new programme.</p><p class="dim">That’s two separate choices.</p>' },
+              { kind: "predict", title: "Your guess first", q: "If the 20 were picked at random, is the programme comparison fair?", options: ["Yes", "Not yet: it depends on how they were split"], say: "Let’s run the two machines." },
+              { kind: "play", title: "Run both machines", mount: lotteryViz, body: "<p>Colour shows hidden motivation. First choose who enters. Then deal them into rooms.</p>" + vz("A population drum and two rooms. Dots are coloured by motivation.", ctl(bt("samp", [["rand", "Random sample"], ["vol", "Volunteers"]])) + ctl(bt("assign", [["rand", "Random rooms"], ["self", "Keenest to programme"]])), "both"), so: "Sampling picks who is studied; assignment picks who gets what." },
+              { kind: "notice", title: "What changed?", q: "With a random sample but keenest-to-programme rooms…", options: ["The rooms differed before treatment", "The rooms matched"], say: ["Yes. Random sampling didn’t make the split fair.", "Look again at the room gap number."] },
+              { kind: "formalize", title: "Two lotteries", body: "<p><b>Random sampling</b> buys generalizing: the sample looks like the population.</p><p><b>Random assignment</b> buys cause: the rooms start alike.</p>", so: "Two machines, two jobs. Never merge them." },
+              { kind: "check", title: "Build-check", mount: lotteryViz, body: vz("A population drum and two rooms.", ctl(bt("samp", [["rand", "Random sample"], ["vol", "Volunteers"]])) + ctl(bt("assign", [["rand", "Random rooms"], ["self", "Keenest to programme"]])), "both"), q: "Set both machines so the result generalizes AND the comparison is fair.",
+                goal: function (st) { if (st.samp !== "rand") return "Volunteers don’t look like the population. Fix the first machine."; if (st.assign !== "rand") return "The rooms start unequal. Fix the second machine."; return true; },
+                hints: ["Which machine decides who is studied? Which decides who gets what?", "Look at both readouts: sample vs population, and the room gap.", "Make the first draw random. Then the second."], why: "Random in, random split: it generalizes and the comparison is fair.", concept: "a3-lotteries" },
+              { kind: "transfer", title: "A new costume", costume: "Hospital wards", q: "Patients are randomly selected from all wards, then nurses choose who gets the new protocol. The comparison is…", options: ["Fair, the sample was random", "Not fair: assignment wasn’t random", "Fair if the sample is big"], answer: 1, tags: ["SAMPLE-ASSIGN", null, "SAMPLE-ASSIGN"], why: "Random sampling helps generalize. Only random assignment makes the groups start alike.", concept: "a3-lotteries" }
+            ]
+          },
+          "a3-observe": {
+            steps: [
+              { kind: "hook", title: "Nobody assigned anything", body: '<p class="hook">Clients who joined the group relapsed less.</p><p class="dim">Did the group cause it?</p>' },
+              { kind: "predict", title: "Your guess first", q: "If clients chose to join, the group’s better results might come from…", options: ["The group", "Who chose to join", "Either; we can’t tell yet"], say: "Let’s watch." },
+              { kind: "play", title: "Choose or coin", mount: lotteryViz, body: "<p>Same 20 clients. Let them choose, or flip a coin.</p>" + vz("Twenty clients dealt into two rooms by choice or by coin.", ctl(bt("assign", [["self", "Let them choose"], ["rand", "Flip a coin"]])), "obs"), so: "When people choose, the keen ones cluster together." },
+              { kind: "notice", title: "What changed?", q: "When clients chose, the group room was…", options: ["More motivated before it started", "Just like the other room"], say: ["Yes. The difference was there on day one.", "Look again at the room gap."] },
+              { kind: "formalize", title: "Watched vs assigned", body: "<p>If you assign, it’s an <b>experiment</b>.</p><p>If you only watch, it’s an <b>observational study</b>. It shows togetherness, not cause.</p>", so: "No assignment, no cause: only togetherness." },
+              { kind: "check", title: "Build-check", mount: lotteryViz, body: vz("Twenty clients dealt into two rooms.", ctl(bt("assign", [["self", "Let them choose"], ["rand", "Flip a coin"]])), "obs"), q: "Make the rooms start out alike, so a later difference could be the group’s doing.",
+                goal: function (st) { return st.assign === "rand" ? true : st.assign ? "Choosing piles the keen clients together (gap " + (st.roomGap || 0).toFixed(1) + ")." : "Deal them into rooms first."; },
+                hints: ["Who decides the room?", "Look at the room gap.", "Take the choice away from the clients."], why: "A coin doesn’t care about motivation, so the rooms start alike.", concept: "a3-observe" },
+              { kind: "transfer", title: "A new costume", costume: "Coffee and mood", q: "People who drink more coffee report better mood. This shows…", options: ["Coffee lifts mood", "They go together; cause is unproven", "Mood causes coffee"], answer: 1, tags: ["CORR-CAUSE", null, "CORR-CAUSE"], why: "Nobody assigned coffee. It’s togetherness, not cause.", concept: "a3-observe" }
+            ]
+          },
+          "a3-confound": {
+            steps: [
+              { kind: "hook", title: "A hidden hand", body: '<p class="hook">More group sessions, more days without use.</p><p class="dim">What if something else pulls both strings?</p>' },
+              { kind: "predict", title: "Your guess first", q: "If motivation drives both attendance and sobriety, the chart will show…", options: ["A link, even if sessions do nothing", "No link"], say: "Let’s pull the strings." },
+              { kind: "play", title: "Pull the strings", mount: puppetViz, body: "<p>Colour is hidden motivation. Slide how hard it pulls both.</p>" + vz("A scatter of sessions against days without use, coloured by motivation.", ctl(sl("pull", "Motivation’s pull", 0, 10, 7)) + ctl(bt("hold", [["off", "Everyone"], ["on", "Hold motivation fixed"]]))), so: "A third variable can create a link between two others." },
+              { kind: "notice", title: "What changed?", q: "Holding motivation fixed made the link…", options: ["Nearly vanish", "Grow stronger"], say: ["Yes. The puppeteer made the link.", "Look again at r when motivation is held fixed."] },
+              { kind: "formalize", title: "Confounding", body: "<p>A <b>confounder</b> is a hidden third variable that drives both.</p><p>It makes “the programme worked” a claim, not a reading of a chart.</p>", so: "Before you believe a link, ask who else pulls the strings." },
+              { kind: "check", title: "Build-check", mount: puppetViz, body: vz("A scatter with a confounder.", ctl(sl("pull", "Motivation’s pull", 0, 10, 7)) + ctl(bt("hold", [["off", "Everyone"], ["on", "Hold motivation fixed"]]))), q: "Show that the link is the puppeteer’s: strong pull, link gone once motivation is held fixed.",
+                goal: function (st) { if (st.pull < 6) return "Pull is weak. Make motivation pull hard first."; if (st.hold !== "on") return "Everyone shows r = " + st.r.toFixed(2) + ". Now hold motivation fixed."; return Math.abs(st.rIn) < 0.3 ? true : "r is still " + st.rIn.toFixed(2) + "."; },
+                hints: ["What are you trying to remove?", "Compare r for everyone and r with motivation held.", "Strong pull first, then hold motivation fixed."], why: "With motivation held fixed, the link disappears: it was never sessions.", concept: "a3-confound" },
+              { kind: "transfer", title: "A new costume", costume: "Ice cream and drownings", q: "Ice-cream sales and drownings rise together. The likely puppeteer is…", options: ["Ice cream", "Hot weather", "Drownings"], answer: 1, tags: ["CORR-CAUSE", null, "CORR-CAUSE"], why: "Heat drives both: more ice cream, more swimming.", concept: "a3-confound" }
+            ]
+          },
+          "a4-dist": {
+            steps: [
+              { kind: "hook", title: "One score is a point", body: '<p class="hook">One client scores 9 on the PHQ-9.</p><p class="dim">Is that high? You can’t tell from one.</p>' },
+              { kind: "predict", title: "Your guess first", q: "Fifty clients’ scores will pile up…", options: ["Evenly, 0 to 27", "Mostly low, a few high", "Mostly high"], say: "Let it rain and see." },
+              { kind: "play", title: "Let them rain", mount: rainViz, body: "<p>Each drop is one client. They stack where their score falls.</p>" + vz("Clients fall one at a time into a skyline of score towers.", '<div class="x-ctl"><button type="button" class="press" data-drop="1">Drop 1</button><button type="button" class="press" data-drop="all">Drop all 50</button></div>' + ctl(sl("bw", "Bin width", 1, 7, 3)), "rain"), so: "Many points make a landscape: that landscape is the distribution." },
+              { kind: "notice", title: "What appeared?", q: "As clients piled up, you could see…", options: ["Which scores are common and which are rare", "Nothing new"], say: ["Yes. Where the towers are tall, scores are common.", "Drop all 50 and look at the tall and short towers."] },
+              { kind: "formalize", title: "Three questions", body: "<p>A <b>distribution</b> tells you: what values occur, how often, and in what shape.</p>", so: "A distribution answers what, how often, and what shape." },
+              { kind: "check", title: "Build-check", mount: rainViz, body: vz("A skyline of client scores.", '<div class="x-ctl"><button type="button" class="press" data-drop="1">Drop 1</button><button type="button" class="press" data-drop="all">Drop all 50</button></div>' + ctl(sl("bw", "Bin width", 1, 7, 3)), "rain"), q: "Rain in all 50 clients, then pick a bin width of 2 to 4 so the shape is readable.",
+                goal: function (st) { if (st.n < 50) return "Only " + st.n + " clients so far. Drop them all."; if (st.bw < 2) return "Width 1 is spiky."; if (st.bw > 4) return "Width " + st.bw + " squashes the shape."; return true; },
+                hints: ["What do you need before a shape can appear?", "Look at the count and the bin width readout.", "Drop all 50 first."], why: "Enough clients and a sensible bin width show the landscape clearly.", concept: "a4-dist" },
+              { kind: "transfer", title: "A new costume", costume: "Days of use", q: "Days of use last month for 80 clients form a distribution. It tells you…", options: ["One client’s days", "Which day counts are common, and the shape", "The diagnosis mix"], answer: 1, why: "A distribution is the whole landscape of values: what, how often, what shape.", concept: "a4-dist" }
+            ]
+          }
+        });
+        /* Day 6 holds both halves (6a Shape, 6b Boxplots) in its slot */
+        var SHAPE_STEPS = [
+          { kind: "hook", title: "Part 1 · Shape", body: '<p class="hook">Two caseloads have the same average PHQ-9.</p><p class="dim">Could they still look completely different?</p>' },
+          { kind: "predict", title: "Your guess first", q: "A chart of one clinic shows two humps. Most likely…", options: ["Two different groups are mixed together", "A mistake in the data", "Nothing special"], say: "Keep that in mind." },
+          { kind: "play", title: "Try three shapes", mount: rainViz, body: "<p>Same number of clients, three landscapes.</p>" + vz("Histograms of three shapes: symmetric, skewed, two humps.", ctl(bt("shape", [["sym", "Symmetric"], ["skew", "Skewed"], ["two", "Two humps"]])) + ctl(sl("bw", "Bin width", 1, 7, 3)), "shape"), so: "Shape is information, not decoration." },
+          { kind: "notice", title: "What did you see?", q: "In the skewed shape, most clients were…", options: ["Low, with a long tail of high scores", "Spread evenly"], say: ["Yes. A long tail to the right is called right skew.", "Pick Skewed and look where the tall towers are."] },
+          { kind: "formalize", title: "Shape words", body: "<p><b>Symmetric</b>: both sides match.</p><p><b>Skewed</b>: a long tail on one side.</p><p><b>Two humps</b> (bimodal): usually two groups hiding in one chart.</p>", so: "Name the shape before you summarize it." },
+          { kind: "check", title: "Build-check", mount: rainViz, body: vz("Histograms of three shapes.", ctl(bt("shape", [["sym", "Symmetric"], ["skew", "Skewed"], ["two", "Two humps"]])) + ctl(sl("bw", "Bin width", 1, 7, 3)), "shape"), q: "Show the chart that hints at two groups mixed together, with a bin width that still shows both humps (4 or less).",
+            goal: function (st) { if (st.shape !== "two") return "That shape has one peak."; if (st.bw > 4) return "Width " + st.bw + " blurs the humps together."; return true; },
+            hints: ["Which shape has two peaks?", "Watch the towers as you widen the bins.", "Pick the two-hump shape, then keep the bins narrow."], why: "Two humps usually mean two groups, such as two different programmes in one chart.", concept: "a4-shape" }
+        ];
+        var BOX_STEPS = [
+          { kind: "hook", title: "Part 2 · Boxplots", body: '<p class="hook">Fifteen clients’ session counts.</p><p class="dim">Can one line hold them all?</p>' },
+          { kind: "play", title: "Move the top client", mount: boxViz, body: "<p>The box holds the middle half. The cyan line is the median.</p>" + vz("Dots of 15 session counts above a boxplot.", ctl(sl("top", "Top client’s sessions", 12, 40, 16))), so: "A boxplot is a whole distribution squeezed into one line." },
+          { kind: "notice", title: "What changed?", q: "Moving the top client far out changed…", options: ["The whisker, not the box or median", "The median a lot"], say: ["Yes. The middle half didn’t care.", "Look at the median and Q1–Q3 as you slide."] },
+          { kind: "formalize", title: "Five numbers", body: "<p>min · Q1 · median · Q3 · max.</p><p>The box width is the <b>IQR</b>: the middle half’s width.</p>", so: "Five numbers, one line, the middle half boxed." },
+          { kind: "check", title: "Build-check", mount: boxViz, body: vz("A boxplot of 15 session counts.", ctl(sl("top", "Top client’s sessions", 12, 40, 16))), q: "Move the top client far enough that the boxplot marks them as an outlier.",
+            goal: function (st) { return st.out ? true : "Not past the fence yet (Q3 + 1.5 × IQR). Move further."; },
+            hints: ["How far out does a point need to be?", "Watch the dot turn red.", "The fence is Q3 plus 1.5 IQRs. Slide up."], why: "Past the fence, a point is drawn on its own: an outlier.", concept: "a5-box" },
+          { kind: "transfer", title: "A new costume", costume: "Wait times", q: "Clinic wait times: median 9 days, IQR 6 to 14, one client waited 80. The IQR tells you…", options: ["The middle half waited 6 to 14 days", "Everyone waited 9 days", "The average wait"], answer: 0, tags: [null, "MEAN-TYPICAL", "MEAN-TYPICAL"], why: "The IQR is the middle half’s range. The 80-day client doesn’t move it.", concept: "a5-box" }
+        ];
+        LESSON_CONTENT[6] = { home: ["Shape & boxplots", "what a distribution looks like, and how to compress it."], steps: SHAPE_STEPS.concat(BOX_STEPS) };
+        LESSON_CONTENT["6a"] = { steps: SHAPE_STEPS }; LESSON_CONTENT["6b"] = { steps: BOX_STEPS };
+        /* ============ PHASE 3 · Part A lessons (A1 deepen, A5–A8) ============ */
+        /* DEEPEN Day 1: the existing steps stay exactly as they were; the named steps are appended */
+        LESSON_CONTENT[1].steps = LESSON_CONTENT[1].steps.concat([
+          { kind: "formalize", title: "Two more distinctions", body: "<p><b>Categorical</b> answers sort people into groups (diagnosis). <b>Quantitative</b> answers are amounts (sessions).</p><p>Amounts are <b>discrete</b> (counted: 3 sessions) or <b>continuous</b> (measured: 2.4 hours).</p>", so: "First ask: groups or amounts? Counted or measured?" },
+          { kind: "formalize", title: "The roles a variable plays", body: "<p>The <b>predictor</b> is the variable you think explains something: sessions attended.</p><p>The <b>outcome</b> is what it might explain: days without use.</p>", so: "Predictor on one side, outcome on the other." },
+          { kind: "play", title: "The scale chooses the tools", mount: tableViz, body: "<p>Tap each column and read what is legal.</p>" + vz("An intake table: six clients in rows, four questions in columns", A1_CTL), so: "The kind of question decides which statistics are legal." },
+          { kind: "check", title: "Build-check", mount: tableViz, body: vz("An intake table", A1_CTL), q: "Light up the column whose mean would be a number that means nothing.",
+            goal: function (st) { return st.col === "0" ? true : st.col === "" ? "Tap a column first." : "That column’s mean means something, or at least a median does. Look for codes."; },
+            hints: ["Which column’s numbers are only labels?", "Read the “legal” line under the table for each column.", "Codes like 1 = MDD, 2 = GAD are names, not amounts."], why: "Diagnosis codes are names. Their mean, 2.17, describes nobody.", concept: "a1-scale" },
+          { kind: "transfer", title: "A new costume", costume: "Housing status", q: "Housing is coded 1 = own, 2 = rent, 3 = shelter. The mean code is 1.9. This tells you…", options: ["Most clients nearly rent", "Nothing: the codes are names", "Housing is improving"], answer: 1, tags: ["AVG-NOMINAL", null, "AVG-NOMINAL"], why: "Housing is nominal. Report counts or the mode, never a mean of codes.", concept: "a1-scale" }
+        ]);
+        /* DEEPEN Day 4: the tug-of-war, predicted before it is made */
+        LESSON_CONTENT[4].steps = LESSON_CONTENT[4].steps.concat([
+          { kind: "predict", title: "Tug-of-war: predict first", q: "Drag the top client from 27 down to 11. The mean will…", options: ["Drop a lot", "Barely move", "Rise"], say: "Now make the move." },
+          { kind: "play", title: "Make the move", mount: centerViz, body: LESSON_CONTENT[4].steps[2].body, so: "One extreme client pulls the mean; the median holds still." },
+          { kind: "predict", title: "Predict again", q: "Now drag the top client out to 27 again. The median will…", options: ["Jump up", "Stay put", "Drop"], say: "Make the move and watch the cyan marker." },
+          { kind: "notice", title: "What moved?", q: "Moving one extreme client changed…", options: ["The mean, not the median", "The median, not the mean", "Both equally"], say: ["Yes. The mean is a balance point; the median is the middle person.", "Look again: the cyan median stayed put.", "Look again: only the violet mean moved."] },
+          { kind: "transfer", title: "A new costume", costume: "Income at intake", q: "Monthly incomes: most near $1,200, one client $14,000. “The average client earns $2,300” is…", options: ["A fair summary", "Misleading: report the median", "Wrong maths"], answer: 1, tags: ["MEAN-TYPICAL", null, null], why: "One high earner pulls the mean. The median describes the typical client.", concept: "a5-centre" }
+        ]);
+        var RING_VZ = function () { return vz("Five clients’ session counts around their mean, with a shaded typical-distance band", ctl(sl("spread", "Spread", 2, 20, 10))); };
+        var BELL_PCT = function () { return vz("A bell curve with a client marker; the area to the left is shaded", ctl(sl("raw", "Client’s raw score", 20, 80, 60))); };
+        var COIN_RUN = function (q, opts, judge, why) {
+          return { kind: "run", title: "Run it", q: q, options: opts, need: 100, why: why,
+            init: function () { return { n: 0, h: 0 }; }, trial: function (s) { if (Math.random() < 1 / 6) s.h++; },
+            show: function (s) { return "Rolls <b>" + s.n + "</b> · sixes <b>" + s.h + "</b> · share <b>" + (s.n ? (100 * s.h / s.n).toFixed(1) : "0") + "%</b>"; },
+            bar: function (s) { return s.n ? Math.min(1, s.h / s.n * 3) : 0; }, judge: judge };
+        };
+        Object.assign(LESSON_CONTENT, {
+          5: {
+            home: ["Variance & SD", "how far, typically, a client sits from the mean."],
+            steps: [
+              { kind: "hook", title: "Same mean, different stories", body: '<p class="hook">Two groups both average 8 sessions.</p><p class="dim">In one, everyone came 7 to 9 times. In the other, 1 to 15. Is “8” enough?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Spreading the clients out will make their typical distance from the mean…", options: ["Bigger", "Smaller", "Stay the same"], say: "Slide it and see." },
+              { kind: "play", title: "Breathe the ring", mount: ringViz, body: "<p>Gold lines are each client’s distance from the mean.</p>" + RING_VZ(), so: "Spread is how far clients typically sit from the mean." },
+              { kind: "notice", title: "What changed?", q: "As spread grew, the shaded band…", options: ["Widened", "Stayed fixed", "Shrank"], say: ["Yes. The band is the typical distance.", "Look again at the band as you slide right.", "Look again at the band as you slide right."] },
+              { kind: "formalize", title: "Why square?", body: "<p>Distances left of the mean are negative. Added up, they cancel to zero.</p><p>Squaring makes them all positive. That is the price.</p>", so: "Squaring is the price of keeping distances positive." },
+              { kind: "formalize", title: "The formula, last", body: '<p class="hook">s² = Σ(x − x̄)² / (n − 1)</p><p>Average the squared distances. That is the <b>variance</b>, s².</p><p>Take its square root to return to sessions. That is the <b>SD</b>, s.</p>', so: "SD is the typical distance, back in the original units." },
+              { kind: "fade", title: "Finish the example", q: "Sessions 4, 6, 8, 10, 12. Mean 8.", lines: ["Distances: −4, −2, 0, 2, 4", "Squared: 16, 4, 0, 4, 16 → sum 40", "Divide by n − 1 = 4: variance 10", "Square root: SD ≈ 3.16 sessions"], blank: 3, options: ["Square root: SD ≈ 3.16 sessions", "SD = 10 sessions", "SD = 40 sessions"], answer: 0, why: "The root of 10 is about 3.16, back in sessions." },
+              { kind: "check", title: "Build-check", mount: ringViz, body: RING_VZ(), q: "Set the spread so the SD is between 2 and 3 sessions.",
+                goal: function (st) { return st.sd >= 2 && st.sd <= 3 ? true : "SD is " + st.sd.toFixed(2) + ". " + (st.sd < 2 ? "Spread them more." : "Pull them closer."); },
+                hints: ["Which way moves the SD up?", "Watch the SD number and the band.", "Start near the middle of the slider and nudge."], why: "The band now spans about 2 to 3 sessions each side of the mean.", concept: "a5-sd" },
+              { kind: "transfer", title: "A new costume", costume: "Two counsellors", q: "Both counsellors’ clients average 12 days sober. A’s SD is 2, B’s is 9. This means…", options: ["B’s clients vary far more", "B’s clients do better", "They are the same"], answer: 0, tags: [null, "MEAN-TYPICAL", "MEAN-TYPICAL"], why: "Same centre, different spread. The mean alone hides that.", concept: "a5-sd" },
+              { kind: "lens", title: "Research lens", body: "<p>Papers report <b>M (SD)</b>, for example M = 12.1, SD = 4.3.</p><p>Read the SD before the mean: it tells you whether “typical” describes anyone.</p>" }
+            ]
+          },
+          9: {
+            home: ["Probability & base rates", "long-run chance, and why rare conditions fool good tests."],
+            steps: [
+              { kind: "hook", title: "Part 1 · Long-run chance", body: '<p class="hook">“A one-in-six chance.”</p><p class="dim">What does that actually mean, if it happens or it doesn’t?</p>' },
+              COIN_RUN("Roll a die many times. The share of sixes will…", ["Settle near 17%", "Stay all over the place", "Drift to 50%"], function (s) { return Math.abs(s.h / s.n - 1 / 6) < 0.06 ? 0 : 1; }, "Over many rolls, the share settles near 1 in 6."),
+              { kind: "notice", title: "What changed?", q: "Between 1 roll and 1,000 rolls, the share…", options: ["Jumped around early, then steadied", "Was steady from the start"], say: ["Yes. Probability is what the long run settles on.", "Look again: one roll is either 0% or 100%."] },
+              { kind: "formalize", title: "Name it", body: "<p><b>Probability</b> = favourable outcomes ÷ all outcomes, seen over many trials.</p>", so: "Probability is a long-run fraction." },
+              { kind: "hook", title: "Part 2 · Base rates", body: '<p class="hook">A screen is right for 90% of people who have the condition.</p><p class="dim">Only 2 in 100 clients have it. A client tests positive.</p>' },
+              { kind: "predict", title: "Your guess first", q: "The chance this client has the condition is closest to…", options: ["90%", "About 50%", "About 17%"], say: "Let the city answer." },
+              { kind: "play", title: "Light the city", mount: cityViz, body: "<p>1,000 people. Read the counts off the crowd.</p>" + vz("A city of 1,000 dots: true cases, missed cases, false alarms, and healthy people", ctl(sl("prev", "Prevalence %", 1, 30, 2) + sl("fa", "False alarms %", 1, 20, 9))), so: "When a condition is rare, false alarms can outnumber true cases." },
+              { kind: "notice", title: "What changed?", q: "Raising prevalence made positives…", options: ["More often true", "Less often true"], say: ["Yes. The base rate decides what a positive means.", "Look again at the share that truly have it."] },
+              { kind: "formalize", title: "Base rate", body: "<p>The <b>base rate</b> is how common the condition is before the test.</p><p>Ignore it, and a positive looks far more certain than it is.</p>", so: "A result means nothing until you ask how common it was." },
+              { kind: "check", title: "Build-check", mount: cityViz, body: vz("A city of 1,000 dots", ctl(sl("prev", "Prevalence %", 1, 30, 2) + sl("fa", "False alarms %", 1, 20, 9))), q: "Set the city so most positives are false alarms.",
+                goal: function (st) { return st.fp > st.tp ? true : "True cases (" + st.tp + ") still outnumber false alarms (" + st.fp + "). Make the condition rarer or the alarms more common."; },
+                hints: ["What makes true cases scarce?", "Compare the green and red counts.", "Lower prevalence first, then watch red vs green."], why: "Red outnumbers green: most positives are false.", concept: "a6-base" },
+              { kind: "transfer", title: "A new costume", costume: "Drug screen", q: "A urine screen is 95% accurate. Use is rare in this programme. A positive means…", options: ["95% sure of use", "Less sure than 95%; confirm it", "Certain use"], answer: 1, tags: ["BASE-IGNORE", null, "BASE-IGNORE"], why: "With a low base rate, many positives are false. Confirm before acting.", concept: "a6-base" }
+            ]
+          },
+          "a6-screening": {
+            steps: [
+              { kind: "hook", title: "A room of positives", body: '<p class="hook">You screen 1,000 clients for suicide risk. 100 screen positive.</p><p class="dim">How many are truly at risk?</p>' },
+              { kind: "run", title: "Screen them one by one", q: "Of the people who screen positive, how many truly have the condition? (prevalence 2%, sensitivity 90%, false alarms 9%)", options: ["Most of them", "About half", "Only a small share"], need: 1000,
+                init: function () { return { n: 0, tp: 0, fp: 0 }; },
+                trial: function (s) { var sick = Math.random() < 0.02, pos = sick ? Math.random() < 0.9 : Math.random() < 0.09; if (pos && sick) s.tp++; else if (pos) s.fp++; },
+                show: function (s) { var p = s.tp + s.fp; return "Screened <b>" + s.n + "</b> · positives <b>" + p + "</b> · truly at risk <b>" + s.tp + "</b>" + (p ? " (" + Math.round(100 * s.tp / p) + "%)" : ""); },
+                bar: function (s) { var p = s.tp + s.fp; return p ? s.tp / p : 0; },
+                judge: function (s) { var p = s.tp + s.fp, r = p ? s.tp / p : 0; return r > 0.6 ? 0 : r > 0.35 ? 1 : 2; }, why: "Run 1,000 and the share settles near 17%: most positives are false alarms." },
+              { kind: "notice", title: "What changed?", q: "As you screened more people, the share truly at risk…", options: ["Settled well below half", "Rose toward 90%"], say: ["Yes. A good test, a rare condition, many false alarms.", "Look again after ×1,000."] },
+              { kind: "play", title: "Light the city", mount: cityViz, body: "<p>The same screen across 1,000 people.</p>" + vz("A city of 1,000 dots", ctl(sl("prev", "Prevalence %", 1, 30, 2) + sl("sens", "Sensitivity %", 50, 99, 90)) + ctl(sl("fa", "False alarms %", 1, 20, 9))), so: "Count the crowd: true cases, misses, false alarms." },
+              { kind: "formalize", title: "Two words", body: "<p><b>Sensitivity</b>: of those who have it, the share the test catches.</p><p><b>PPV</b>: of those who test positive, the share who have it.</p>", so: "Sensitivity looks at the sick; PPV looks at the positives." },
+              { kind: "check", title: "Build-check", mount: cityViz, body: vz("A city of 1,000 dots", ctl(sl("prev", "Prevalence %", 1, 30, 2) + sl("sens", "Sensitivity %", 50, 99, 90)) + ctl(sl("fa", "False alarms %", 1, 20, 9))), q: "Make a positive mean at least a 50% chance of truly being at risk.",
+                goal: function (st) { return st.ppv >= 0.5 ? true : "Only " + Math.round(st.ppv * 100) + "% of positives are true. " + (st.prev < 10 ? "Try a higher-risk group, or fewer false alarms." : "Cut the false alarms."); },
+                hints: ["What two things set how many positives are true?", "Watch the % under the city.", "Fewer false alarms, or a group where the condition is more common."], why: "Screening a higher-risk group, or a test with fewer false alarms, makes a positive mean more.", concept: "a6-screening" },
+              { kind: "transfer", title: "A new costume", costume: "Relapse risk tool", q: "A relapse tool flags 30 of 200 clients. Relapse is rare here. You should…", options: ["Treat all 30 as relapsing", "Treat a flag as a reason to look closer", "Ignore the tool"], answer: 1, tags: ["BASE-IGNORE", null, null], why: "With a rare outcome, many flags are false. A flag starts a conversation; it isn’t a verdict.", concept: "a6-screening" }
+            ]
+          },
+          "a6-conditional": {
+            steps: [
+              { kind: "hook", title: "Then you see the clouds", body: '<p class="hook">The chance of rain today was 20%.</p><p class="dim">Then dark clouds roll in. Is it still 20%?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Among people who test positive, the chance of having the condition is…", options: ["The same as for everyone", "Different: we now know more"], say: "Let’s look only at the positives." },
+              { kind: "play", title: "Look only at the positives", mount: cityViz, body: "<p>Tap “Only positives”. The rest of the city fades.</p>" + vz("A city of 1,000 dots", ctl(bt("view", [["all", "Everyone"], ["pos", "Only positives"]])) + ctl(sl("prev", "Prevalence %", 1, 30, 10))), so: "Knowing something shrinks the world you are counting in." },
+              { kind: "notice", title: "What changed?", q: "Among positives only, the share who have it was…", options: ["Much higher than prevalence", "Equal to prevalence"], say: ["Yes. A positive is evidence; it moves the odds.", "Compare the % under the city with the prevalence slider."] },
+              { kind: "formalize", title: "Conditional probability", body: '<p class="hook">P(has it | positive)</p><p>Read “|” as “given”. The chance of having it, given a positive.</p>', so: "Given new information, count only the world where it’s true." },
+              { kind: "check", title: "Build-check", mount: cityViz, body: vz("A city of 1,000 dots", ctl(bt("view", [["all", "Everyone"], ["pos", "Only positives"]])) + ctl(sl("prev", "Prevalence %", 1, 30, 10))), q: "Show only the positives in a city where at least 40% of positives truly have it.",
+                goal: function (st) { if (st.view !== "pos") return "Show only the positives first."; return st.ppv >= 0.4 ? true : "Only " + Math.round(st.ppv * 100) + "% now. Raise the prevalence."; },
+                hints: ["Which world are you counting in?", "Watch the % under the city.", "Show only positives, then raise prevalence."], why: "Inside the positives, the odds are a different, honest number.", concept: "a6-conditional" },
+              { kind: "transfer", title: "A new costume", costume: "Missed sessions", q: "20% of clients drop out. Of clients who miss two sessions in a row, 60% drop out. “Missed two” has…", options: ["Changed the odds", "No effect on the odds"], answer: 0, why: "Given two missed sessions, the honest chance is 60%, not 20%.", concept: "a6-conditional" }
+            ]
+          },
+          8: {
+            home: ["Normal distribution", "a useful model, and when not to trust it."],
+            steps: [
+              { kind: "hook", title: "The bell", body: '<p class="hook">IQ, height, many test scores: they pile up in a bell.</p><p class="dim">Is everything shaped like that?</p>' },
+              { kind: "predict", title: "Your guess first", q: "In a normal model, about how much lies within 2 SDs of the mean?", options: ["About 50%", "About 95%", "100%"], say: "Slide and see." },
+              { kind: "play", title: "Move the mean and SD", mount: bellViz, body: "<p>The shaded band is mean ± 2 SD.</p>" + vz("A bell curve with a shaded band two SDs either side of the mean", ctl(sl("mu", "Mean", 30, 70, 50) + sl("sd", "SD", 4, 15, 10)), "normal"), so: "Mean sets where the bell sits; SD sets how wide." },
+              { kind: "notice", title: "What changed?", q: "Doubling the SD made the bell…", options: ["Wider and flatter", "Taller", "Move right"], say: ["Yes. Same shape, wider ruler.", "Look again as you raise the SD.", "Look again: only the mean moves it sideways."] },
+              { kind: "formalize", title: "68 · 95 · 99.7", body: "<p>About 68% within 1 SD, 95% within 2 SD, 99.7% within 3 SD.</p>", so: "In a normal model, 95% sits within 2 SDs of the mean." },
+              { kind: "formalize", title: "It’s a model", body: "<p>Symptom counts, days of use, incidents: these are often skewed, not bell-shaped.</p><p>Check the shape before you use the bell.</p>", so: "The normal curve is a model to check, never a law to assume." },
+              { kind: "play", title: "Lay it over real data", mount: bellViz, body: "<p>Gold bars are real symptom counts from one clinic.</p>" + vz("A bell curve over a skewed histogram", ctl(bt("skew", [["off", "Bell only"], ["on", "Show real counts"]])), "normal"), so: "When the data are skewed, the bell is the wrong picture." },
+              { kind: "check", title: "Build-check", mount: bellViz, body: vz("A bell curve with mean and SD sliders", ctl(sl("mu", "Mean", 30, 70, 50) + sl("sd", "SD", 4, 15, 10)), "normal"), q: "Set a model where about 95% of clients score between 40 and 60.",
+                goal: function (st) { return Math.abs(st.lo95 - 40) <= 1 && Math.abs(st.hi95 - 60) <= 1 ? true : "Now 95% falls between " + +st.lo95.toFixed(1) + " and " + +st.hi95.toFixed(1) + "."; },
+                hints: ["Where must the centre be?", "Read the 95% range under the bell.", "Centre at 50. Then 2 SDs must reach 10 points."], why: "Mean 50, SD 5: 95% between 40 and 60.", concept: "a7-normal" },
+              { kind: "transfer", title: "A new costume", costume: "Drinks per week", q: "Drinks per week: most 0–3, a few 30+. Using the normal model here is…", options: ["Fine", "Risky: the data are skewed", "Required"], answer: 1, why: "A long right tail isn’t a bell. Check the shape first.", concept: "a7-normal" }
+            ]
+          },
+          7: {
+            home: ["z-scores", "one ruler for every questionnaire."],
+            steps: [
+              { kind: "hook", title: "Two scales, one client", body: '<p class="hook">She scores 24 on the PCL and 15 on the GAD-7.</p><p class="dim">Which is more unusual for her clinic?</p>' },
+              { kind: "predict", title: "Your guess first", q: "A z-score of +1 means the score is…", options: ["1 point above the mean", "1 SD above the mean", "In the top 1%"], say: "Slide the marker and watch." },
+              { kind: "play", title: "Slide the client", mount: bellViz, body: "<p>Clinic mean 18, SD 6. Raw, z and percentile are linked.</p>" + vz("A bell curve with a client marker and linked raw, z and percentile readouts", ctl(sl("raw", "Raw score", 0, 36, 24)), "z"), so: "z counts SDs from the mean." },
+              { kind: "notice", title: "What changed?", q: "At the mean, z was…", options: ["0", "1", "50"], say: ["Yes. At the mean you are zero SDs away.", "Slide to 18 and read z.", "Slide to 18 and read z."] },
+              { kind: "formalize", title: "The translator", body: '<p class="hook">z = (x − mean) / SD</p><p>Subtract the mean. Divide by the SD. Now any scale speaks the same language.</p>', so: "z restates a score as SDs from its own mean." },
+              { kind: "fade", title: "Finish the example", q: "PCL 24, mean 18, SD 6.", lines: ["Distance from the mean: 24 − 18 = 6", "Divide by the SD: 6 ÷ 6", "z = +1"], blank: 2, options: ["z = +1", "z = 6", "z = 24"], answer: 0, why: "She sits one SD above her clinic’s mean." },
+              { kind: "formalize", title: "Translation keeps the shape", body: "<p>Converting to z changes the ruler. It never changes the shape.</p><p>Skewed raw scores give skewed z-scores.</p>", so: "z changes the ruler, never the shape." },
+              { kind: "check", title: "Build-check", mount: bellViz, body: vz("A bell curve with a client marker", ctl(sl("raw", "Raw score", 0, 36, 24)), "z"), q: "Place the client exactly 1.5 SDs below the mean.",
+                goal: function (st) { return Math.abs(st.z + 1.5) < 0.01 ? true : "z is " + st.z.toFixed(2) + "."; },
+                hints: ["Below the mean means a minus sign.", "Read z as you slide.", "1.5 SDs is 9 points. Count down from 18."], why: "18 − 9 = 9: z = −1.5.", concept: "a7-z" },
+              { kind: "transfer", title: "A new costume", costume: "Two exams", q: "Exam A: 80 (mean 70, SD 5). Exam B: 85 (mean 80, SD 10). Which is better relative to the class?", options: ["A: z = +2", "B: higher raw score", "Equal"], answer: 0, why: "A is 2 SDs up; B is only 0.5. The z-score compares across scales.", concept: "a7-z" }
+            ]
+          },
+          "a7-percentiles": {
+            steps: [
+              { kind: "hook", title: "Where does she stand?", body: '<p class="hook">“Her score is at the 84th percentile.”</p><p class="dim">What does that mean to her family?</p>' },
+              { kind: "predict", title: "Your guess first", q: "z = 0 is at which percentile?", options: ["0th", "50th", "100th"], say: "Slide and read it." },
+              { kind: "play", title: "Three costumes, one position", mount: bellViz, body: "<p>Mean 50, SD 10. The shaded area is everyone below her.</p>" + BELL_PCT(), so: "Raw, z and percentile are three names for one spot." },
+              { kind: "notice", title: "What changed?", q: "Moving from z = 0 to z = +1 moved the percentile from 50 to about…", options: ["84", "51", "100"], say: ["Yes. One SD up passes about a third more people.", "Slide to 60 and read it.", "Slide to 60 and read it."] },
+              { kind: "formalize", title: "Percentile", body: "<p>A <b>percentile</b> is the share of people scoring below this one.</p>", so: "Percentile = the share of people below." },
+              { kind: "check", title: "Build-check", mount: bellViz, body: BELL_PCT(), q: "Place the client at about the 16th percentile.",
+                goal: function (st) { var p = Math.round(st.p * 100); return p >= 15 && p <= 17 ? true : "Now at the " + p + "th."; },
+                hints: ["Is the 16th above or below the middle?", "Watch the percentile readout.", "It mirrors the 84th: one SD the other way."], why: "One SD below the mean: about the 16th percentile.", concept: "a7-pct" },
+              { kind: "transfer", title: "A new costume", costume: "Reading level", q: "A client’s reading test: z = +2. That is about the…", options: ["98th percentile", "52nd percentile", "20th percentile"], answer: 0, why: "Two SDs up passes about 98% of people.", concept: "a7-pct" }
+            ]
+          },
+          "a8-means": {
+            steps: [
+              { kind: "hook", title: "Two landscapes", body: '<p class="hook">Clients’ PHQ-9 scores form one landscape.</p><p class="dim">Average them in samples, and a second landscape appears.</p>' },
+              { kind: "predict", title: "Your guess first", q: "Make the samples bigger. Which landscape narrows?", options: ["The clients", "The means", "Both"], say: "Drag n and watch both." },
+              { kind: "play", title: "Drag the sample size", mount: twoDistViz, body: "<p>Left: 400 clients. Right: 300 sample means.</p>" + vz("Two histograms: client scores on the left, sample means on the right", ctl(sl("n", "Sample size n", 1, 100, 5))), so: "Means of bigger samples bunch closer together." },
+              { kind: "notice", title: "What changed?", q: "As n grew, the client landscape…", options: ["Did not move at all", "Narrowed too"], say: ["Yes. The freeze is the lesson.", "Look again: its SD number never changes."] },
+              { kind: "formalize", title: "Two distributions", body: "<p>The <b>data</b> distribution: one dot per client.</p><p>The <b>sampling</b> distribution: one dot per sample mean.</p>", so: "Never confuse the clients with their averages." },
+              { kind: "check", title: "Build-check", mount: twoDistViz, body: vz("Two histograms: clients and sample means", ctl(sl("n", "Sample size n", 1, 100, 5))), q: "Make the means landscape narrow: spread of means under 0.7.",
+                goal: function (st) { return st.meansSD < 0.7 ? true : "Spread of means is " + st.meansSD.toFixed(2) + ". Bigger samples."; },
+                hints: ["Which control narrows the right side?", "Watch the spread-of-means number.", "Slide n up, a lot."], why: "Big samples: the means hug the true mean. The clients still vary as much as ever.", concept: "a8-two" },
+              { kind: "transfer", title: "A new costume", costume: "Programme averages", q: "Twenty programmes each report their average days sober. The spread of those averages is…", options: ["The spread of clients", "Smaller than the spread of clients", "Larger"], answer: 1, tags: ["CLT-DATA", null, null], why: "Averages vary less than individuals.", concept: "a8-two" }
+            ]
+          },
+          10: {
+            home: ["Central Limit Theorem", "why averages behave even when people don’t."],
+            steps: [
+              { kind: "hook", title: "Skewed clients", body: '<p class="hook">Most clients score low; a few score very high.</p><p class="dim">What do their averages look like?</p>' },
+              { kind: "predict", title: "Your guess first", q: "With n = 30, the CLT says what becomes bell-shaped?", options: ["The client scores", "The sample means", "Nothing"], say: "Drag n and look at each side." },
+              { kind: "play", title: "Grow n", mount: twoDistViz, body: "<p>Left: skewed client scores. Right: means of n clients.</p>" + vz("Two histograms: skewed client scores on the left, sample means on the right", ctl(sl("n", "Sample size n", 1, 100, 2))), so: "The means turn bell-shaped; the clients stay skewed." },
+              { kind: "notice", title: "What changed?", q: "At n = 30, the client landscape was…", options: ["Still skewed", "Now a bell"], say: ["Yes. The CLT is about means, never the data.", "Look again at the left side."] },
+              { kind: "formalize", title: "The theorem", body: '<p>Means of samples pile up in a bell around the true mean.</p><p class="hook">spread of means = SD / √n</p>', so: "Means of large samples are close to normal, and narrower by √n." },
+              { kind: "fade", title: "Finish the example", q: "Client SD 6, n = 36.", lines: ["√36 = 6", "Spread of means = 6 ÷ 6", "Spread of means = 1"], blank: 2, options: ["Spread of means = 1", "Spread of means = 6", "Spread of means = 36"], answer: 0, why: "Averaging 36 clients cuts the spread to one sixth." },
+              { kind: "check", title: "Build-check", mount: twoDistViz, body: vz("Two histograms: clients and sample means", ctl(sl("n", "Sample size n", 1, 100, 2))), q: "Halve the spread of means compared with n = 4 (pick the n that does it).",
+                goal: function (st) { return st.n >= 14 && st.n <= 18 ? true : "Halving the spread needs four times the sample size. Now n = " + st.n + "."; },
+                hints: ["The spread shrinks with √n.", "Watch the spread-of-means number.", "To halve it, √n must double: try 4 × 4."], why: "n = 16: √16 is twice √4, so the spread halves.", concept: "a8-clt" },
+              { kind: "transfer", title: "A new costume", costume: "Session counts", q: "Session counts are skewed. With n = 50 per sample, the CLT says…", options: ["Session counts become normal", "Mean session counts are near-normal", "Nothing applies"], answer: 1, tags: ["CLT-DATA", null, null], back: 2, why: "The means are near-normal. The counts stay skewed.", concept: "a8-clt" },
+              { kind: "formalize", title: "The bridge", body: "<p>Every confidence interval and p-value you meet next is this narrowing landscape, used.</p>", so: "Inference stands on the means landscape." }
+            ]
+          }
+        });
+        /* Day 9 holds both halves (9a, 9b) in its slot */
+        LESSON_CONTENT["9a"] = { steps: LESSON_CONTENT[9].steps.slice(0, 4) };
+        LESSON_CONTENT["9b"] = { steps: LESSON_CONTENT[9].steps.slice(4) };
+        var KIND = { hook: "Hook", concept: "Concept", intuition: "Intuition", formula: "Key rule", example: "Worked example", quiz: "Quiz", lens: "Lens",
+          predict: "Predict", run: "Run it", play: "Manipulate", notice: "Notice", formalize: "So", check: "Build-check", transfer: "Transfer", fade: "Finish the example" };
+        /* C1 lesson anatomy: a strip appears only on lessons built with the new step kinds; existing lessons look as before */
+        var ANAT = ["Hook", "Predict", "Run", "Notice", "So", "Check", "Transfer"];
+        var ANAT_OF = { hook: 0, predict: 1, run: 2, play: 2, notice: 3, formalize: 4, formula: 4, example: 4, fade: 5, quiz: 5, check: 5, transfer: 6 };
+        var CHECKS = { quiz: 1, check: 1, transfer: 1, fade: 1 };
+        var RUNG = ["Nudge", "Look here", "First move"];
         function isMastered(d) { return (prefs.mastered || []).indexOf(d) > -1; }
-        function isOpen(d) { return !!LESSON_CONTENT[d] && (d === 1 || isMastered(d - 1)); }
+        /* a lesson opens once the one before it is mastered: the Day before it, or the lesson before it on its pillar path
+           (so Day 25, moved to A2, opens after Day 1). New Foundations lessons are never locked. */
+        function pathPrev(d) {
+          var where = DAY_PATH[d]; if (!where) return null;
+          var P = PILLARS.filter(function (x) { return x.id === where.pillar; })[0], i = where.pos - 1;
+          if (i > 0) return P.items[i - 1];
+          var pre = PILLAR_PREREQ[P.id] || [], last = pre.length ? PILLARS.filter(function (x) { return x.id === pre[0]; })[0] : null;
+          return last ? last.items[last.items.length - 1] : null;
+        }
+        function isDone(it) { return typeof it === "number" ? isMastered(it) : SPLITS[it] ? isMastered(SPLITS[it].day) : isMastered(it); }
+        function isOpen(d) {
+          if (!LESSON_CONTENT[d]) return false;
+          if (typeof d === "string") return true;
+          var pp = pathPrev(d);
+          return d === 1 || isMastered(d - 1) || (pp != null && pp !== d && isDone(pp));
+        }
+        function pillarOf(id) { var hit = PILLARS.filter(function (x) { return x.items.indexOf(id) > -1; })[0]; return hit ? hit.id : null; }
+        /* new Foundations lessons that have content, in path order (A1 → A8) */
+        function newLessons() {
+          var out = [];
+          PILLARS.forEach(function (P) { P.items.forEach(function (it) { if (typeof it === "string" && NEW_LESSONS[it] && LESSON_CONTENT[it]) out.push({ day: it, title: NEW_LESSONS[it], level: "foundations", isNew: true, pillar: P.id, ord: out.length }); }); });
+          return out;
+        }
+        function lessonOf(id) { return typeof id === "number" ? LESSONS[id - 1] : { day: id, title: NEW_LESSONS[id] || id, level: "foundations", isNew: true }; }
         function nextDay() {
           for (var d = 1; LESSON_CONTENT[d]; d++) if (!isMastered(d)) return d;
           return d - 1;
@@ -4057,34 +5050,146 @@
 
         var Player = {
           open: function (day) {
-            var L = LESSON_CONTENT[day], info = LESSONS[day - 1], opener = doc.activeElement;
+            var L = LESSON_CONTENT[day], info = typeof day === "number" && LESSONS[day - 1] ? LESSONS[day - 1] : { title: NEW_LESSONS[day] || L.title || String(day) }, opener = doc.activeElement;
             /* resume where this lesson was left, with its quiz answers */
             prefs.pos = prefs.pos || {};
             prefs.answers = prefs.answers || {};
-            var P = { day: day, i: Math.min(prefs.pos[day] || 0, L.steps.length - 1), answers: prefs.answers[day] || {}, folds: {} };
+            var P = { day: day, i: Math.min(prefs.pos[day] || 0, L.steps.length - 1), answers: prefs.answers[day] || {}, folds: {}, hints: {}, pred: {}, ran: {}, sim: {}, state: {} };
+            var anat = L.steps.some(function (s) { return /^(predict|run|notice|formalize|transfer|check|fade)$/.test(s.kind); }) ? (function () {
+              var ph = 0; return L.steps.map(function (s) { if (ANAT_OF[s.kind] != null) ph = ANAT_OF[s.kind]; return ph; });
+            })() : null;
+            var cidOf = function (s) { return s.concept || "day" + day; };
+            var lbl = typeof day === "number" ? "Day " + day : (pillarOf(day) || "New");
+            /* C2: three rungs, never the answer. Rung 2 highlights the step's model (or, with no model, the question). */
+            function hlTarget(s, card) {
+              var vis = function (t) { return t && t.getClientRects().length ? t : null; };
+              return vis(s.hl && (card.querySelector(s.hl) || el.querySelector(s.hl))) || vis(card.querySelector(".x-viz, .x-mini, .x-run__out, .x-fade, figure, svg, canvas, .rows")) ||
+                vis($("#pl-vis .x-viz", el)) || vis(card.querySelector(".x-q, p"));
+            }
+            function rungText(s, k, card) {
+              if (s.hints && s.hints[k]) return s.hints[k];
+              return k === 0 ? "What is the question really asking you to compare or decide?"
+                : k === 1 ? "Look at the highlighted part again: what in it changes, or what does it count?"
+                : "Start by naming what is being measured and who it is measured on; then reread the options with that in mind.";
+            }
+            function pulse(t) {
+              if (!t) return;
+              t.classList.remove("x-hl"); void t.offsetWidth; t.classList.add("x-hl");
+              if (t.scrollIntoView) t.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+              setTimeout(function () { t.classList.remove("x-hl"); }, 2600);
+            }
+            function ladder(card, s) {
+              var box = $(".x-ladder", card); if (!box) return;
+              var n = P.hints[P.i] || 0, r = "";
+              for (var k = 0; k < n; k++) r += '<p class="x-rung"><b>' + RUNG[k] + "</b>" + esc(rungText(s, k, card)) + "</p>";
+              if (n < 3 && P.answers[P.i] == null) r += '<button type="button" class="x-ladder__btn press" data-pl="hint" aria-label="Hint ' + (n + 1) + " of 3: " + RUNG[n] + '">Hint · ' + (n + 1) + "/3</button>";
+              box.innerHTML = r;
+            }
+            function optsHTML(s, a, mode) {
+              return s.options.map(function (o, k) {
+                var cls = a == null ? "" : mode === "pick" ? (k === a ? " is-picked" : "") : k === s.answer ? " is-right" : k === a ? " is-wrong" : "";
+                return '<button type="button" class="qopt press' + cls + '" data-opt="' + k + '"' + (a != null ? " disabled" : "") + ">" + esc(o) + "</button>";
+              }).join("");
+            }
+            /* C3: the step that attacks the error: s.back (a step index), else the nearest visual step before this one */
+            function backOf(s) {
+              if (typeof s.back === "number" && L.steps[s.back]) return s.back;
+              for (var j = P.i - 1; j >= 0; j--) {
+                var t = L.steps[j];
+                if (/^(run|play|predict|notice)$/.test(t.kind) || t.mount || /<svg|x-viz|data-scene/.test(t.body || "")) return j;
+              }
+              return Math.max(0, P.i - 1);
+            }
+            /* misconception feedback: names THAT error; never a generic "try again" */
+            function trapHTML(s, a) {
+              var code = a != null && a !== s.answer && s.tags && s.tags[a], m = code && MISCONCEPTIONS[code];
+              if (!m) return "";
+              var say = (s.say && s.say[a]) || m.say || m.t;
+              return '<div class="x-trap" role="status" data-mis="' + esc(code) + '"><span class="x-trap__code">' + esc(code) + '</span><p><b>That’s a common trap:</b> ' + esc(say) + "</p>" +
+                (s.scene ? '<button type="button" class="x-ladder__btn press" data-scene="' + esc(s.scene) + '"' + (s.sceneStep ? ' data-step="' + esc(s.sceneStep) + '"' : "") + ">Show me in the Lab</button>"
+                  : '<button type="button" class="x-ladder__btn press" data-pl="back">Show me in the model</button>') + "</div>";
+            }
+            /* Predict-before-Run: Run stays locked until a prediction is committed; 1 / 10 / 1,000 runs at increasing speed */
+            function runHTML(s) {
+              var a = P.pred[P.i];
+              return '<p class="x-q">' + esc(s.q) + "</p>" + s.options.map(function (o, k) {
+                return '<button type="button" class="qopt press' + (a === k ? " is-picked" : "") + '" data-pred="' + k + '"' + (a != null ? " disabled" : "") + ">" + esc(o) + "</button>";
+              }).join("") +
+                '<div class="x-run"><p class="x-run__lock" id="pl-lock"' + (a != null ? " hidden" : "") + ">Commit a prediction to unlock Run.</p>" +
+                '<div class="x-run__btns">' + [1, 10, 1000].map(function (n) { return '<button type="button" class="press" data-runs="' + n + '"' + (a == null ? " disabled" : "") + ">Run ×" + (n === 1000 ? "1,000" : n) + "</button>"; }).join("") + "</div>" +
+                '<div class="x-run__out" aria-live="polite" id="pl-runout">' + (P.sim[P.i] ? s.show(P.sim[P.i]) : "No runs yet.") + "</div>" +
+                (P.sim[P.i] && P.sim[P.i].n ? '<div class="x-run__bar"><b style="--w:' + Math.round(100 * (s.bar ? s.bar(P.sim[P.i]) : 0)) + '%"></b></div>' : "") +
+                '<div id="pl-rungap"></div></div>';
+            }
+            function runGap(s, card) {
+              var st = P.sim[P.i], a = P.pred[P.i], box = $("#pl-rungap", card);
+              if (!box || !st || (st.n || 0) < (s.need || 100) || a == null) return;
+              var truth = s.judge(st);
+              box.innerHTML = a === truth ? '<p class="why"><b>Your prediction held.</b> ' + esc(s.why || "") + "</p>"
+                : '<p class="x-gap">You predicted “' + esc(s.options[a]) + "” — the model says “" + esc(s.options[truth]) + "”. That gap is where the learning is.</p>" + (s.why ? '<p class="why">' + esc(s.why) + "</p>" : "");
+            }
+            function doRuns(s, n, card) {
+              var st = P.sim[P.i] = P.sim[P.i] || s.init(), out = $("#pl-runout", card), bar = $(".x-run__bar b", card), at = P.i;
+              card.querySelectorAll("[data-runs]").forEach(function (b) { b.disabled = true; });
+              var left = n, per = n === 1 ? 1 : n === 10 ? 1 : 50, gap = n === 1 ? 0 : n === 10 ? 90 : 16;
+              (function tick() {
+                if (!card.isConnected || P.i !== at) return;
+                for (var k = 0; k < per && left > 0; k++, left--) { s.trial(st); st.n = (st.n || 0) + 1; }
+                if (out) out.innerHTML = s.show(st);
+                if (!bar && s.bar) { $(".x-run", card).insertAdjacentHTML("beforeend", '<div class="x-run__bar"><b></b></div>'); bar = $(".x-run__bar b", card); var g = $("#pl-rungap", card); if (g) $(".x-run", card).appendChild(g); }
+                if (bar && s.bar) bar.style.setProperty("--w", Math.round(100 * s.bar(st)) + "%");
+                if (left > 0 && !reduce) return setTimeout(tick, gap);
+                if (left > 0) return tick();
+                card.querySelectorAll("[data-runs]").forEach(function (b) { b.disabled = false; });
+                P.ran[P.i] = true;
+                $("[data-pl=next]", el).disabled = false;
+                runGap(s, card);
+              })();
+            }
             prefs.answers[day] = P.answers;
             prefs.lesson = day;
             var el = doc.createElement("div");
             el.className = "player";
             el.setAttribute("role", "dialog");
             el.setAttribute("aria-modal", "true");
-            el.setAttribute("aria-label", "Day " + day + " lesson");
+            el.setAttribute("aria-label", lbl + " lesson");
             el.innerHTML = '<div class="player__in"><div class="player__top"><button type="button" class="iconbtn press" data-pl="close" aria-label="Close lesson">✕</button>' +
-              '<span class="mark">Day ' + day + " · " + esc(info.title) + '</span><span class="eyebrow" id="pl-count"></span></div>' +
+              '<span class="mark">' + esc(lbl) + " · " + esc(info.title) + '</span><span class="eyebrow" id="pl-count"></span>' +
+              (anat ? '<ol class="x-anat" aria-label="Lesson phases">' + ANAT.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ol>" : "") + "</div>" +
               '<div class="rail" aria-hidden="true">' + L.steps.map(function () { return "<span></span>"; }).join("") + "</div>" +
               '<div class="stage" id="pl-stage" aria-live="polite"></div>' +
               '<div class="x-pl-vis" id="pl-vis"></div>' +
               '<div class="pnav"><button type="button" class="prev press" data-pl="prev">Prev</button><button type="button" class="next press" data-pl="next">Next</button></div></div>';
             function paint() {
               var s = L.steps[P.i], last = P.i === L.steps.length - 1, body;
-              if (s.kind === "quiz") {
-                var a = P.answers[P.i];
-                body = "<p>" + esc(s.q) + "</p>" + s.options.map(function (o, k) {
-                  var cls = a == null ? "" : k === s.answer ? " is-right" : k === a ? " is-wrong" : "";
-                  return '<button type="button" class="qopt press' + cls + '" data-opt="' + k + '"' + (a != null ? " disabled" : "") + ">" + esc(o) + "</button>";
-                }).join("") + (a != null ? '<p class="why' + (a === s.answer ? "" : " is-bad") + '"><b>' + (a === s.answer ? "Correct. " : "Not quite. ") + "</b>" + esc(s.why) + "</p>" : "");
+              var a = P.answers[P.i];
+              if (s.goal) {
+                var ok = a === "ok";
+                body = (s.body || "") + '<p class="x-q">' + esc(s.q) + "</p>" +
+                  '<button type="button" class="start press x-verify" data-pl="verify"' + (ok ? " disabled" : "") + ">" + (ok ? "Solved" : "Check my model") + "</button>" +
+                  '<div class="x-verdict" role="status">' + (ok ? '<p class="why"><b>Yes. </b>' + esc(s.why || "") + "</p>" : "") + "</div>" + '<div class="x-ladder"></div>';
+              } else if (s.kind === "quiz" || s.kind === "check" || s.kind === "transfer") {
+                var trap = trapHTML(s, a);
+                body = (s.body || "") + "<p" + (s.kind === "quiz" ? "" : ' class="x-q"') + ">" + esc(s.q) + "</p>" + optsHTML(s, a, "check") +
+                  (a != null ? '<p class="why' + (a === s.answer ? "" : " is-bad") + '"><b>' + (a === s.answer ? "Correct. " : trap ? "Not this one. " : "Not quite. ") + "</b>" + esc(s.why) + "</p>" : "") +
+                  trap + '<div class="x-ladder"></div>';
+              } else if (s.kind === "fade") {
+                body = (s.body || "") + (s.q ? '<p class="x-q">' + esc(s.q) + "</p>" : "") + '<ol class="x-fade">' + s.lines.map(function (t, k) {
+                  return k !== s.blank ? "<li>" + esc(t) + "</li>" : a == null ? '<li class="is-blank">? Which line goes here?</li>' : '<li class="is-filled">' + esc(s.lines[s.blank]) + "</li>";
+                }).join("") + "</ol>" + optsHTML(s, a, "check") +
+                  (a != null ? '<p class="why' + (a === s.answer ? "" : " is-bad") + '"><b>' + (a === s.answer ? "That’s the line. " : "Here’s the line. ") + "</b>" + esc(s.why || "") + "</p>" : "") + trapHTML(s, a) + '<div class="x-ladder"></div>';
+              } else if (s.kind === "predict" || s.kind === "notice") {
+                body = (s.body || "") + '<p class="x-q">' + esc(s.q || "What changed?") + "</p>" + optsHTML(s, a, "pick") +
+                  (a != null && s.say ? '<p class="why">' + esc(typeof s.say === "string" ? s.say : s.say[a] || "") + "</p>" : "");
+              } else if (s.kind === "run") {
+                body = (s.body || "") + runHTML(s);
+              } else if (s.kind === "formalize") {
+                body = (s.body || "") + (s.so ? '<p class="x-so"><b>So:</b> ' + esc(String(s.so).replace(/^\s*So:\s*/i, "")) + "</p>" : "");
               } else body = s.body;
-              var head = '<p class="eyebrow">' + KIND[s.kind] + "</p>";
+              if (s.so && s.kind !== "formalize") body += '<p class="x-so"><b>So:</b> ' + esc(String(s.so).replace(/^\s*So:\s*/i, "")) + "</p>";
+              if (s.lab) body += '<button type="button" class="x-ladder__btn press x-labbtn" data-scene="' + esc(s.lab) + '">See it in the Lab</button>';
+              var chips = (s.kind === "transfer" ? '<span class="chip">New costume</span>' : "") + (s.costume ? '<span class="chip">' + esc(s.costume) + "</span>" : "") + (s.fresh ? '<span class="chip">Keeping it fresh</span>' : "");
+              var head = '<p class="eyebrow">' + KIND[s.kind] + "</p>" + (chips ? '<p class="x-tags">' + chips + "</p>" : "");
               if (s.kind === "formula" || s.kind === "lens") {
                 var on = !!P.folds[P.i];
                 body = head + '<button type="button" class="fold__h press" data-pl="fold" aria-expanded="' + on + '" aria-controls="pl-fb"><h2>' + esc(s.title) + '</h2><span class="chev">' + I.chev + "</span></button>" +
@@ -4096,14 +5201,25 @@
               vis.innerHTML = "";
               if (vz && WIDE.matches) vis.appendChild(vz);
               else vis.innerHTML = '<div class="x-pl-art glass" aria-hidden="true"><p class="eyebrow">' + KIND[s.kind] + '</p><p class="x-pl-art__n">' + (P.i + 1) + "<span> / " + L.steps.length + '</span></p><p class="x-pl-art__t">' + esc(info.title) + "</p></div>";
-              if (s.mount) s.mount(vz || card);
+              var at = P.i;
+              if (s.mount) s.mount(vz || card, { report: function (st) { P.state[at] = st; }, solved: P.answers[at] === "ok" });
+              if (CHECKS[s.kind]) ladder(card, s);
+              if (s.kind === "run") runGap(s, card);
+              if (anat) Array.prototype.forEach.call(el.querySelectorAll(".x-anat li"), function (li, k) {
+                li.classList.toggle("is-past", k < anat[P.i]); li.classList.toggle("is-cur", k === anat[P.i]);
+                if (k === anat[P.i]) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
+              });
               $("#pl-count", el).textContent = P.i + 1 + " / " + L.steps.length;
               Array.prototype.forEach.call(el.querySelectorAll(".rail span"), function (r, k) { r.classList.toggle("is-on", k <= P.i); });
               $("[data-pl=prev]", el).disabled = P.i === 0;
               $("[data-pl=next]", el).textContent = last ? "Complete lesson" : "Next";
+              /* a predict step waits for a committed prediction; a run step for at least one run */
+              $("[data-pl=next]", el).disabled = blocked();
             }
+            function blocked() { var s = L.steps[P.i]; return (s.kind === "predict" && P.answers[P.i] == null) || (s.kind === "run" && !P.ran[P.i]); }
             function move(d) {
               var n = P.i + d;
+              if (d > 0 && blocked()) return;
               if (n < 0 || n >= L.steps.length) return;
               P.i = n;
               prefs.pos[day] = n;
@@ -4125,7 +5241,7 @@
               History.closeTop();
               go("home");
               if (first) confetti();
-              UI.toast(first ? "+50 XP · Day " + day + " mastered" + (isOpen(day + 1) ? " · Day " + (day + 1) + " unlocked" : "") : "Day " + day + " reviewed · XP already earned");
+              UI.toast(first ? "+50 XP · " + (typeof day === "number" ? "Day " + day : info.title) + " mastered" + (typeof day === "number" && isOpen(day + 1) && !isMastered(day + 1) ? " · Day " + (day + 1) + " unlocked" : "") : (typeof day === "number" ? "Day " + day : info.title) + " reviewed · XP already earned");
             }
             el.addEventListener("click", function (e) {
               var b = e.target.closest("button");
@@ -4136,7 +5252,37 @@
               if (a === "prev") return move(-1);
               if (a === "next") return P.i === L.steps.length - 1 ? complete() : move(1);
               if (a === "fold") { P.folds[P.i] = !P.folds[P.i]; paint(); return $("[data-pl=fold]", el).focus(); }
-              if (b.dataset.opt != null && P.answers[P.i] == null) { P.answers[P.i] = +b.dataset.opt; savePrefs(); paint(); }
+              var st = L.steps[P.i], cid = cidOf(st), card = $("#pl-stage .scard", el);
+              if (b.dataset.scene) return openScene(b.dataset.scene);
+              if (a === "hint") {
+                var n = P.hints[P.i] = Math.min(3, (P.hints[P.i] || 0) + 1);
+                Learn.hint(cid, n);
+                ladder(card, st);
+                if (n === 2) pulse(hlTarget(st, card));
+                var nb = $("[data-pl=hint]", card); if (nb) nb.focus();
+                return;
+              }
+              if (a === "verify") {
+                var r = st.goal(P.state[P.i] || {}), vd = $(".x-verdict", card);
+                if (r === true) {
+                  P.answers[P.i] = "ok"; Learn.bump(cid, 20); savePrefs();
+                  vd.innerHTML = '<p class="why"><b>Yes. </b>' + esc(st.why || "") + "</p>";
+                  b.disabled = true; b.textContent = "Solved"; ladder(card, st);
+                } else {
+                  Learn.miss(cid);
+                  vd.innerHTML = '<p class="why is-bad"><b>Not yet. </b>' + esc(r || "The model doesn’t show it yet.") + "</p>";
+                }
+                return;
+              }
+              if (a === "back") { P.i = backOf(st); prefs.pos[day] = P.i; savePrefs(); paint(); $("#pl-stage", el).scrollTop = 0; return; }
+              if (b.dataset.pred != null && P.pred[P.i] == null) { P.pred[P.i] = +b.dataset.pred; Learn.predict(day + ":" + P.i, +b.dataset.pred); paint(); return; }
+              if (b.dataset.runs) { if (P.pred[P.i] != null) doRuns(st, +b.dataset.runs, card); return; }
+              if (b.dataset.opt != null && P.answers[P.i] == null) {
+                var pick = P.answers[P.i] = +b.dataset.opt;
+                if (st.kind === "predict") Learn.predict(day + ":" + P.i, pick);
+                else if (CHECKS[st.kind] && st.answer != null) { if (pick === st.answer) Learn.bump(cid, 20); else Learn.miss(cid); }
+                savePrefs(); paint();
+              }
             });
             el.addEventListener("keydown", function (e) {
               if (e.target.tagName === "INPUT" || e.target.closest(".x-viz")) return;
@@ -4164,6 +5310,8 @@
             $("[data-pl=next]", el).focus();
           }
         };
+
+        window.Sigmind = { version: "phase3", content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
         function confetti() {
           if (reduce) return;
@@ -4206,7 +5354,7 @@
         }
 
         function openLesson(day) {
-          var l = LESSONS[day - 1];
+          var l = lessonOf(day);
           if (!isOpen(day)) return lockedCard(l);
           prefs.recent = [day].concat((prefs.recent || []).filter(function (d) { return d !== day; }));
           savePrefs();
@@ -4226,7 +5374,7 @@
           }
           if (t.dataset.go) return go(t.dataset.go);
           if (t.dataset.scene) return openScene(t.dataset.scene);
-          if (t.dataset.lesson) return openLesson(+t.dataset.lesson);
+          if (t.dataset.lesson) return openLesson(/^\d+$/.test(t.dataset.lesson) ? +t.dataset.lesson : t.dataset.lesson);
           if (t.dataset.fold) {
             State.open = State.open === t.dataset.fold ? null : t.dataset.fold;
             Views.render();
@@ -4248,6 +5396,7 @@
             return Views.render();
           }
           if (t.id && t.id.indexOf("bk-") === 0) return Backup.click(t);
+          if (t.id && t.id.indexOf("ac-") === 0) return Acct.click(t);
           if (t.id === "note-ok") {
             Save.noteSeen = true;
             Views.render();
@@ -4350,6 +5499,7 @@
         try { showApp(); }
         catch (x) { if (window.console) console.error("showApp failed", x); $("#app").hidden = false; }
         Splash.ready();
+        try { Acct.begin(); } catch (x) { if (window.console) console.warn("sync start", x); }
       })();
     </script>
   </body>
