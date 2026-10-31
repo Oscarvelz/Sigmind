@@ -344,6 +344,16 @@
       .why.is-bad { border-left-color: var(--bad); }
       .x-viz { margin-top: 12px; }
       .x-viz canvas { display: block; width: 100%; height: 200px; border-radius: var(--r-s); background: var(--surface-2); border: 1px solid var(--border); }
+      .x-kit { grid-column: 1 / -1; display: grid; gap: 10px; padding: 10px 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+      .x-kit__h { margin: 0 0 6px; font-size: 14px; line-height: 1.45; }
+      .x-kit .x-btns { flex-wrap: wrap; }
+      .x-kit .x-btns button { border-radius: 14px; flex: 1 1 8rem; white-space: normal; text-align: center; line-height: 1.3; padding: 8px 12px; min-height: var(--tap); }
+      .x-kit button:disabled { opacity: 0.45; }
+      .x-kit__gap, .x-kit__v { margin: 6px 0 0; font-size: 13px; line-height: 1.45; color: var(--dim); min-height: 1em; }
+      .x-kit__gap:empty, .x-kit__v:empty { display: none; }
+      .x-kit__t { padding: 10px 12px; border-radius: var(--r-s); background: var(--surface-2); border: 1px solid var(--border); font-size: 14px; line-height: 1.5; }
+      .x-kit__t p { margin: 0; }
+      .x-kit__rv .rows { margin-top: 8px; }
       .x-ctl { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
       .x-ctl button { flex: 1; min-height: var(--tap); padding: 0 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); font-weight: 500; }
       .x-ctl button[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--bg); }
@@ -3835,14 +3845,14 @@
           lab: function () {
             var tile = function (s, soon) {
               return '<button type="button" class="x-tile glass press"' + (soon ? ' aria-disabled="true"' : ' data-scene="' + s.id + '"') + ' style="--h1:' + s.hue[0] + ";--h2:" + s.hue[1] + '">' +
-                '<span class="x-tile__glow" aria-hidden="true"></span><span class="eyebrow">Day ' + s.day + " · " + esc(LESSONS[s.day - 1].title) + "</span>" +
+                '<span class="x-tile__glow" aria-hidden="true"></span><span class="eyebrow">' + (s.lid ? "L" + s.lid + " · " + esc(s.pillar) + " · New" : "Day " + s.day + " · " + esc(LESSONS[s.day - 1].title)) + "</span>" +
                 '<span class="x-tile__t">' + esc(s.name) + '</span><span class="x-tile__i">' + esc(s.idea) + "</span>" +
                 (s.useLine ? '<span class="x-tile__i"><b>Use:</b> ' + esc(s.useLine) + "</span>" : "") +
                 (soon ? '<span class="chip">Coming soon</span>' : "") + "</button>";
             };
             var all = SCENES.map(function (s) { return { s: s, soon: false }; }).concat(SOON.map(function (s) { return { s: s, soon: true }; }));
             return '<div><h1 class="greet">The Lab</h1><p class="dim">See statistics move.</p></div>' + GROUPS.map(function (g) {
-              var items = all.filter(function (o) { return (o.s.level || LESSONS[o.s.day - 1].level) === g.v; }).sort(function (a, b) { return a.s.day - b.s.day; });
+              var items = all.filter(function (o) { return (o.s.level || LESSONS[o.s.day - 1].level) === g.v; }).sort(function (a, b) { return (a.s.lid || 0) - (b.s.lid || 0) || a.s.day - b.s.day; });
               return items.length ? '<section aria-label="' + g.t + '"><div class="grpname"><h2 class="mark" style="--fs:18px">' + g.t + '</h2><span class="eyebrow">' + g.s + '</span></div><div class="x-gal">' +
                 items.map(function (o) { return tile(o.s, o.soon); }).join("") + "</div></section>" : "";
             }).join("");
@@ -5011,6 +5021,399 @@
         /* Day 9 holds both halves (9a, 9b) in its slot */
         LESSON_CONTENT["9a"] = { steps: LESSON_CONTENT[9].steps.slice(0, 4) };
         LESSON_CONTENT["9b"] = { steps: LESSON_CONTENT[9].steps.slice(4) };
+        /* ============ PHASE 4 · Lab contract kit for L21+ (Predict → Run ×1/×10/×1,000 → challenge → takeaway) ============ */
+        function labKit(env, ctl, sc, o) {
+          var T = env.THREE, k = { pred: null, solved: false, stage: 0, runs: 0 };
+          var box = doc.createElement("section"); box.className = "x-kit"; box.setAttribute("aria-label", "Experiment steps");
+          var html = "";
+          if (o.predict) html += '<div class="x-kit__p"><p class="x-kit__h"><b>1 · Predict</b> ' + esc(o.predict.q) + '</p><div class="x-btns" role="group" aria-label="Your prediction">' +
+            o.predict.options.map(function (t, i) { return '<button type="button" class="press" data-kp="' + i + '" aria-pressed="false">' + esc(t) + "</button>"; }).join("") + "</div></div>";
+          if (o.run) html += '<div class="x-kit__r"><p class="x-kit__h"><b>2 · Run</b> ' + esc(o.run.label || "Watch it happen.") + '</p><div class="x-btns x-kit__runs">' +
+            [1, 10, 1000].map(function (n) { return '<button type="button" class="press" data-kr="' + n + '" disabled>Run ×' + (n === 1000 ? "1,000" : n) + "</button>"; }).join("") +
+            '</div><p class="x-kit__gap" role="status"></p></div>';
+          html += '<div class="x-kit__c"><p class="x-kit__h"><b>' + (o.run ? "3" : "2") + ' · Challenge</b> <span class="x-kit__ct"></span></p>' +
+            (o.explain ? '<div class="x-kit__e" hidden><p class="x-kit__h">' + esc(o.explain.q) + '</p><div class="x-btns x-kit__eb">' + o.explain.options.map(function (t, i) { return '<button type="button" class="press" data-ke="' + i + '" aria-pressed="false">' + esc(t) + "</button>"; }).join("") + "</div></div>" : "") +
+            '<div class="x-btns"><button type="button" class="press x-kit__chk" data-kc="1"' + (o.predict ? " disabled" : "") + '>Check</button></div><p class="x-kit__v" role="status"></p></div>' +
+            '<div class="x-kit__t" hidden><p><b>Takeaway.</b> ' + esc(o.takeaway) + "</p>" + (o.reveal ? '<div class="x-kit__rv"></div>' : "") + "</div>" +
+            (sc.learn && LESSON_CONTENT[sc.learn] ? '<div class="x-btns"><button type="button" class="press x-kit__learn" data-lesson="' + esc(String(sc.learn)) + '">Learn this · ' + esc(NEW_LESSONS[sc.learn] || (LESSONS[sc.learn - 1] || {}).title || "") + "</button></div>" : "");
+          box.innerHTML = html;
+          ctl.insertBefore(box, ctl.firstChild);
+          var q = function (s) { return box.querySelector(s); }, qa = function (s) { return Array.prototype.slice.call(box.querySelectorAll(s)); };
+          var stageText = function () { var c = o.challenge[k.stage]; q(".x-kit__ct").textContent = (o.challenge.length > 1 ? "Part " + (k.stage + 1) + " of " + o.challenge.length + ": " : "") + c.text; };
+          stageText();
+          qa("[data-kp]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              if (k.pred != null) return;
+              k.pred = +b.dataset.kp; b.setAttribute("aria-pressed", "true");
+              qa("[data-kp]").forEach(function (x) { x.disabled = true; });
+              Learn.predict(sc.id, k.pred);
+              qa("[data-kr]").forEach(function (x) { x.disabled = false; });
+              q("[data-kc]").disabled = false;
+              if (o.predict.after) o.predict.after(k.pred);
+              if (o.run) q(".x-kit__gap").textContent = "Prediction saved. Now run it.";
+              if (!o.run) q(".x-kit__v").textContent = "Prediction saved. Now try the challenge.";
+            });
+          });
+          /* 1 / 10 / 1,000 runs at increasing speed: the long run is watched, not asserted */
+          var busy = false;
+          qa("[data-kr]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              if (busy || k.pred == null) return;
+              var n = +b.dataset.kr, done = 0, per = n === 1 ? 1 : n === 10 ? 1 : 40, wait = n === 1 ? 0 : n === 10 ? 90 : 16;
+              busy = true; qa("[data-kr]").forEach(function (x) { x.disabled = true; });
+              (function step() {
+                if (!box.isConnected) return;
+                for (var i = 0; i < per && done < n; i++, done++) { o.run.trial(); k.runs++; }
+                o.run.show();
+                if (done < n) return wait ? setTimeout(step, wait) : step();
+                busy = false; qa("[data-kr]").forEach(function (x) { x.disabled = false; });
+                if (o.run.judge && o.predict) {
+                  var m = o.run.judge();
+                  q(".x-kit__gap").innerHTML = m == null ? "" : m === k.pred ? "Your prediction matches the model." :
+                    "You predicted “" + esc(o.predict.options[k.pred]) + "” — the model says “" + esc(o.predict.options[m]) + "”. That gap is where the learning is.";
+                }
+              })();
+            });
+          });
+          var eChoice = null;
+          qa("[data-ke]").forEach(function (b) { b.addEventListener("click", function () { eChoice = +b.dataset.ke; qa("[data-ke]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); }); });
+          q("[data-kc]").addEventListener("click", function () {
+            var v = q(".x-kit__v"), r = o.challenge[k.stage].check(k);
+            if (r !== true) { Learn.miss(sc.id); v.innerHTML = "<b>Not yet.</b> " + esc(r); return; }
+            if (k.stage < o.challenge.length - 1) { k.stage++; stageText(); v.innerHTML = "<b>Yes.</b> " + esc(o.challenge[k.stage - 1].ok || "") + " Now part " + (k.stage + 1) + "."; return; }
+            if (o.explain) {
+              var e = q(".x-kit__e");
+              if (e.hidden) { e.hidden = false; v.innerHTML = "<b>The model shows it.</b> Before the reveal, pick the reason in one sentence."; return; }
+              if (eChoice == null) { v.textContent = "Pick a sentence first."; return; }
+              if (eChoice !== o.explain.answer) { Learn.miss(sc.id); v.innerHTML = "<b>Not quite.</b> " + esc(o.explain.no || "Look at the counts again."); return; }
+            }
+            k.solved = true; q("[data-kc]").disabled = true; q("[data-kc]").textContent = "Solved";
+            v.innerHTML = "<b>Yes.</b> " + esc(o.challenge[k.stage].ok || "");
+            q(".x-kit__t").hidden = false; if (o.reveal) q(".x-kit__rv").innerHTML = o.reveal();
+            Learn.bump(sc.id, 25);
+          });
+          k.ready = function () { return k.pred != null; };
+          return k;
+        }
+        function sdOf(a) { var n = a.length, m = a.reduce(function (t, v) { return t + v; }, 0) / n; return Math.sqrt(a.reduce(function (t, v) { return t + (v - m) * (v - m); }, 0) / n); }
+        function meanOf(a) { return a.reduce(function (t, v) { return t + v; }, 0) / (a.length || 1); }
+        function corrOf(xs, ys) {
+          var n = xs.length, mx = meanOf(xs), my = meanOf(ys), sxy = 0, sx = 0, sy = 0;
+          for (var i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sx += (xs[i] - mx) * (xs[i] - mx); sy += (ys[i] - my) * (ys[i] - my); }
+          return sxy / Math.sqrt(sx * sy || 1);
+        }
+        /* a set of glowing particles whose positions and colours can be rewritten in place */
+        function livePoints(env, n, size) {
+          var pos = new Float32Array(n * 3), col = new Float32Array(n * 3), g = env.glow(pos, col, size);
+          env.scene.add(g);
+          return {
+            g: g, pos: pos, col: col,
+            set: function (i, x, y, z, c) { pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z; if (c) { col[i * 3] = c[0]; col[i * 3 + 1] = c[1]; col[i * 3 + 2] = c[2]; } },
+            flush: function () { g.children.forEach(function (p) { p.geometry.attributes.position.needsUpdate = true; p.geometry.attributes.color.needsUpdate = true; }); }
+          };
+        }
+        function ringLine(env, r, color, op, y) {
+          var N = 96, p = new Float32Array(N * 3);
+          for (var i = 0; i < N; i++) { var a = (i / N) * 6.2832; p[i * 3] = Math.cos(a) * r; p[i * 3 + 1] = y || 0; p[i * 3 + 2] = Math.sin(a) * r; }
+          var l = env.line(p, color, op, true); env.scene.add(l); return l;
+        }
+        function hexRGB(h) { return [((h >> 16) & 255) / 255, ((h >> 8) & 255) / 255, (h & 255) / 255]; }
+        /* tower landscape: one glowing box per bin, heights eased toward targets */
+        function towers(env, nb, x0, w, color) {
+          var T = env.THREE, geo = new T.BoxGeometry(1, 1, 1); geo.translate(0, 0.5, 0);
+          var eg = new T.EdgesGeometry(geo), mat = new T.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.38, blending: T.AdditiveBlending, depthWrite: false });
+          var lm = new T.LineBasicMaterial({ color: color, transparent: true, opacity: 0.95, blending: T.AdditiveBlending });
+          var list = [];
+          for (var i = 0; i < nb; i++) { var m = new T.Mesh(geo, mat); m.add(new T.LineSegments(eg, lm)); m.scale.set(w / nb * 0.9, 0.001, 0.8); m.position.x = x0 + (i + 0.5) * w / nb; env.scene.add(m); list.push({ m: m, h: 0.001, th: 0.001 }); }
+          env.tick(function (dt) { var e = Math.min(1, dt * 6); list.forEach(function (t) { t.h += (t.th - t.h) * e; t.m.scale.y = Math.max(0.001, t.h); t.m.visible = t.h > 0.004; }); });
+          return { list: list, set: function (hs, maxH, fixedMax) {
+            var mx = fixedMax || Math.max.apply(null, hs.concat([1])), bw = w / hs.length;
+            list.forEach(function (t, i) { var on = i < hs.length; t.th = on ? Math.max(0.001, (hs[i] / mx) * maxH) : 0.001; if (on) { t.m.position.x = x0 + (i + 0.5) * bw; t.m.scale.x = bw * 0.9; } else t.h = t.th; });
+          } };
+        }
+        /* ============ PHASE 4 · New Lab experiments L21–L27 (same Three.js engine, existing visual types) ============ */
+        var NEW_SCENES = [
+          {
+            id: "l21", lid: 21, name: "True-Score Target", pillar: "A2", learn: "a2-relvalid", day: 25, level: "foundations", hue: ["#3fd8ff", "#ffc85a"],
+            idea: "Consistency and aim, separated in your hands.",
+            why: "A tight cluster is a reliable measure. A cluster on the bullseye is a valid one. Seeing both dials apart shows they are different virtues.",
+            use: "Judging a questionnaire or risk tool: does it agree with itself, and does it hit the thing you mean?",
+            useLine: "judging whether a questionnaire is consistent, accurate, or both.",
+            cap: "The rings are a target seen from above. The ghost at the centre is one client's true score, which you never see in real life. Each glowing shot is one administration of the scale: an observed score.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, r = seeded(21), N = 14, st = { cons: 3, aim: 0 }, off = [], at = [];
+              for (var i = 0; i < N; i++) off.push([gauss(r), gauss(r)]);
+              [1, 2, 3, 4].forEach(function (rad, i) { ringLine(env, rad, i === 0 ? 0xffc85a : 0x8f86d8, 0.55, 0); });
+              var ghost = livePoints(env, 1, 0.5); ghost.set(0, 0, 0.05, 0, [1, 1, 1]); ghost.flush(); ghost.g.children[0].material.opacity = 0.35;
+              var gl = labSprite(T, "#e8e4ff", 0.3).text("true score"); gl.position.set(0, 0.55, 0); env.scene.add(gl);
+              var shots = livePoints(env, N, 0.34);
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "A scale gives nearly the same score every time. It is…", options: ["Valid, too", "Reliable, maybe not valid", "Neither"] },
+                challenge: [
+                  { text: "Build a measure that is reliable but NOT valid.", check: function () { if (st.spread > 0.55) return "The shots still scatter. Tighten consistency."; if (st.off < 1.6) return "They sit near the true score. Aim it off."; at = [st.cons]; return true; }, ok: "Tight, and consistently wrong." },
+                  { text: "Now fix only its validity: leave consistency where it is.", check: function () { if (st.cons !== at[0]) return "Consistency moved. Fix the aim only."; if (st.off > 0.3) return "Still off the true score by " + st.off.toFixed(2) + "."; return true; }, ok: "Same consistency, now on target: validity was a separate dial." }
+                ],
+                takeaway: "Reliable means consistent; valid means on target. A scale can give the same wrong answer every time."
+              });
+              function update() {
+                var sd = (11 - st.cons) * 0.16, bx = st.aim * 0.32, bz = -st.aim * 0.18, xs = [], zs = [];
+                off.forEach(function (o, i) { var x = bx + o[0] * sd, z = bz + o[1] * sd; xs.push(x); zs.push(z); shots.set(i, x, 0.12, z, hexRGB(0x3fd8ff)); });
+                shots.flush();
+                var mx = meanOf(xs), mz = meanOf(zs);
+                st.spread = Math.sqrt(sdOf(xs) * sdOf(xs) + sdOf(zs) * sdOf(zs)); st.off = Math.sqrt(mx * mx + mz * mz);
+                env.read.innerHTML = "spread <b>" + st.spread.toFixed(2) + "</b> (reliability) · off-centre <b>" + st.off.toFixed(2) + "</b> (validity)";
+              }
+              env.slider("Consistency", 1, 10, 1, st.cons, String, function (v) { st.cons = v; update(); });
+              env.slider("Aim offset", 0, 10, 1, st.aim, String, function (v) { st.aim = v; update(); });
+              env.spin = false; env.view(0.2, 0.95); env.frame(0, 9, 1);
+              update();
+            }
+          },
+          {
+            id: "l22", lid: 22, name: "The Two Lotteries", pillar: "A3", learn: "a3-lotteries", day: 2, level: "foundations", hue: ["#a06bff", "#3fd8ff"],
+            idea: "One machine picks who is studied; another picks who gets the programme.",
+            why: "Random sampling and random assignment look alike but do different jobs. Running each alone shows which claim each one buys.",
+            use: "Reading a programme evaluation: can it generalize to your clients, and can it claim the programme caused the change?",
+            useLine: "checking what a programme study can honestly claim.",
+            cap: "Left: the population drum, coloured by hidden motivation (cyan low, magenta high). Middle: the clients drawn into the study. Right: the two rooms, programme and usual care. The two claims light up when the runs earn them.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, r = seeded(22), NP = 240, pop = [];
+              for (var i = 0; i < NP; i++) pop.push({ m: Math.max(0, Math.min(10, 5 + gauss(r) * 2)), a: r() * 6.283, h: r(), rr: Math.sqrt(r()) });
+              var popMu = meanOf(pop.map(function (p) { return p.m; }));
+              var col = function (m) { return new T.Color(0x3fd8ff).lerp(new T.Color(0xff4fc0), m / 10); };
+              var drum = livePoints(env, NP, 0.2), room = livePoints(env, 20, 0.36);
+              pop.forEach(function (p, i) { var c = col(p.m); drum.set(i, -4.2 + Math.cos(p.a) * p.rr * 1.4, 0.2 + p.h * 2.6, Math.sin(p.a) * p.rr * 1.4, [c.r, c.g, c.b]); }); drum.flush();
+              ringLine(env, 1.5, 0x8f86d8, 0.6, 0).position.x = -4.2; ringLine(env, 1.5, 0x8f86d8, 0.6, 2.9).position.x = -4.2;
+              [[1.4, "Programme"], [4.2, "Usual care"]].forEach(function (rm) {
+                var e = env.line(new Float32Array([rm[0] - 1.1, 0, -1.1, rm[0] + 1.1, 0, -1.1, rm[0] + 1.1, 0, 1.1, rm[0] - 1.1, 0, 1.1]), 0x8f86d8, 0.7, true); env.scene.add(e);
+                var l = labSprite(T, "#c8c0ff", 0.3).text(rm[1]); l.position.set(rm[0], 0.1, 1.55); env.scene.add(l);
+              });
+              var dl = labSprite(T, "#c8c0ff", 0.3).text("Population"); dl.position.set(-4.2, 3.3, 0); env.scene.add(dl);
+              var gen = labSprite(T, "#5be3a0", 0.42), cau = labSprite(T, "#5be3a0", 0.42); gen.position.set(-1.6, 3.6, 0); cau.position.set(2.8, 3.6, 0); env.scene.add(gen, cau);
+              var st = { samp: "rand", assign: "rand", runs: 0, sGap: 0, rGap: 0 };
+              function reset() { st.runs = 0; st.sGap = 0; st.rGap = 0; light(); room.g.visible = false; env.read.innerHTML = "Pick both machines, then run studies."; }
+              function study() {
+                var pool = pop.map(function (_, i) { return i; }); if (st.samp === "vol") pool = pool.filter(function (i) { return pop[i].m > 5.8; });
+                var pick = []; while (pick.length < 20) pick.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+                var rooms = st.assign === "rand" ? pick.slice().sort(function () { return Math.random() - 0.5; }) : pick.slice().sort(function (a, b) { return pop[b].m - pop[a].m; });
+                var mm = function (a) { return meanOf(a.map(function (i) { return pop[i].m; })); };
+                st.runs++; st.sGap += (Math.abs(mm(pick) - popMu) - st.sGap) / st.runs; st.rGap += (Math.abs(mm(rooms.slice(0, 10)) - mm(rooms.slice(10))) - st.rGap) / st.runs;
+                rooms.forEach(function (pi, j) { var c = col(pop[pi].m), x0 = j < 10 ? 1.4 : 4.2, k = j % 10; room.set(j, x0 - 0.8 + (k % 5) * 0.4, 0.25, -0.4 + Math.floor(k / 5) * 0.8, [c.r, c.g, c.b]); });
+                room.g.visible = true;
+              }
+              function light() {
+                var g = st.runs >= 10 && st.sGap < 0.6, c = st.runs >= 10 && st.rGap < 0.9;
+                st.gen = g; st.cause = c;
+                gen.text(st.runs < 10 ? "Generalize ?" : g ? "Generalize ✓" : "Generalize ✗"); cau.text(st.runs < 10 ? "Cause ?" : c ? "Cause ✓" : "Cause ✗");
+                gen.material.opacity = g ? 1 : 0.4; cau.material.opacity = c ? 1 : 0.4;
+              }
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Random sample, but clients choose their room. Can the study claim the programme caused the change?", options: ["Yes, the sample was random", "No, the rooms start unequal", "Only with more clients"] },
+                run: { label: "Each run is one whole study.", trial: study, show: function () { room.flush(); light(); env.read.innerHTML = "studies <b>" + st.runs + "</b> · sample vs population motivation, avg gap <b>" + st.sGap.toFixed(2) + "</b> · room gap before treatment, avg <b>" + st.rGap.toFixed(2) + "</b>"; },
+                  judge: function () { return st.samp === "rand" && st.assign === "self" ? 1 : null; } },
+                challenge: [
+                  { text: "Set up a study that can generalize but can NOT claim cause. Run at least 10 studies.", check: function () { if (st.runs < 10) return "Run at least 10 studies so the claims can light."; if (!st.gen) return "The sample doesn’t look like the population."; if (st.cause) return "The rooms start alike, so cause is still claimable."; return true; }, ok: "Random sample, chosen rooms: it generalizes, but can’t claim cause." },
+                  { text: "Now one that can claim cause for its sample only.", check: function () { if (st.runs < 10) return "Run at least 10 studies."; if (!st.cause) return "The rooms start unequal."; if (st.gen) return "This one also generalizes. Make the sample unlike the population."; return true; }, ok: "Volunteers, coin-flip rooms: cause holds, but only for people like these volunteers." }
+                ],
+                takeaway: "Random sampling buys generalizing. Random assignment buys cause. They are two lotteries with two jobs."
+              });
+              labRadio(env, ctl, [{ v: "rand", t: "Random draw" }, { v: "vol", t: "Volunteers" }], st.samp, "Who is studied", function (v) { st.samp = v; reset(); });
+              labRadio(env, ctl, [{ v: "rand", t: "Coin flip" }, { v: "self", t: "They choose" }], st.assign, "Who gets the programme", function (v) { st.assign = v; reset(); });
+              env.spin = false; env.view(0, 0.5); env.frame(1.4, 9, 1.6);
+              reset();
+            }
+          },
+          {
+            id: "l23", lid: 23, name: "The Confounder Puppeteer", pillar: "A3", learn: "a3-confound", day: 2, level: "foundations", hue: ["#ff4fc0", "#ffc85a"],
+            idea: "A hidden third figure pulls both strings.",
+            why: "Two variables can move together only because a third drives both. Watching the strings makes confounding something you can see.",
+            use: "Before believing “clients who attend more do better”, asking what else (motivation, support) pulls both.",
+            useLine: "asking what hidden factor drives two things that move together.",
+            cap: "Each glowing client floats at their sessions attended (left to right) and improvement (up). Colour is hidden motivation. The puppeteer above holds both strings; its pull sets how strongly motivation drives both.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, r = seeded(23), N = 160, P = [], st = { pull: 7, hold: false };
+              for (var i = 0; i < N; i++) P.push({ z: gauss(r), a: gauss(r), b: gauss(r), d: (r() - 0.5) * 2 });
+              var pts = livePoints(env, N, 0.24);
+              env.scene.add(env.line(new Float32Array([-3.5, 0, 0, 3.5, 0, 0]), 0x8f86d8, 0.6), env.line(new Float32Array([-3.5, 0, 0, -3.5, 4.4, 0]), 0x8f86d8, 0.6));
+              var lx = labSprite(T, "#c8c0ff", 0.26).text("sessions attended →"); lx.position.set(0, -0.4, 0); var ly = labSprite(T, "#c8c0ff", 0.26).text("improvement ↑"); ly.position.set(-3.5, 4.75, 0); env.scene.add(lx, ly);
+              var pup = livePoints(env, 1, 0.9); pup.set(0, 0, 6.2, 0, hexRGB(0xffc85a)); pup.flush();
+              var pl = labSprite(T, "#ffc85a", 0.3).text("motivation (hidden)"); pl.position.set(0, 6.9, 0); env.scene.add(pl);
+              var s1 = env.line(new Float32Array([0, 6.2, 0, -2.2, 0.1, 0]), 0xffc85a, 0.7), s2 = env.line(new Float32Array([0, 6.2, 0, -3.4, 2.2, 0]), 0xffc85a, 0.7); env.scene.add(s1, s2);
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "If the puppeteer lets go of both strings, the link between sessions and improvement will…", options: ["Stay strong", "Mostly vanish", "Reverse"] },
+                challenge: [{ text: "Make the correlation vanish (|r| under 0.15) without touching either marionette.", check: function () { var v = st.hold ? st.rIn : st.r; return Math.abs(v) < 0.15 ? true : "r is " + v.toFixed(2) + ". Work on the hidden figure, not the marionettes."; }, ok: "The link was the puppeteer’s all along." }],
+                takeaway: "A confounder can create a link between two things that never touch. “It worked” is a claim until you rule out who else pulls the strings."
+              });
+              function update() {
+                var w = st.pull / 10, xs = [], ys = [], xi = [], yi = [];
+                P.forEach(function (p, i) {
+                  var sx = w * p.z + p.a * 0.75, sy = w * p.z + p.b * 0.75, inLayer = Math.abs(p.z) < 0.3, show = !st.hold || inLayer;
+                  var c = new T.Color(0x3fd8ff).lerp(new T.Color(0xff4fc0), Math.max(0, Math.min(1, (p.z + 2) / 4)));
+                  var k = show ? 1 : 0.08;
+                  pts.set(i, sx * 1.2, 2.2 + sy * 0.9, p.d, [c.r * k, c.g * k, c.b * k]);
+                  xs.push(sx); ys.push(sy); if (inLayer) { xi.push(sx); yi.push(sy); }
+                });
+                pts.flush(); st.r = corrOf(xs, ys); st.rIn = corrOf(xi, yi);
+                s1.material.opacity = s2.material.opacity = 0.15 + 0.7 * w;
+                env.read.innerHTML = st.hold ? "same-motivation layer only · r = <b>" + st.rIn.toFixed(2) + "</b>" : "all clients · r = <b>" + st.r.toFixed(2) + "</b>";
+              }
+              env.slider("Puppeteer’s pull", 0, 10, 1, st.pull, String, function (v) { st.pull = v; update(); });
+              env.buttons([{ t: "Hold motivation fixed", on: false, fn: function (on) { st.hold = on; update(); } }]);
+              env.spin = false; env.view(0, 0.12); env.frame(3, 10, 1.1);
+              update();
+            }
+          },
+          {
+            id: "l24", lid: 24, name: "One Person at a Time", pillar: "A4", learn: "a4-dist", day: 3, level: "foundations", hue: ["#3fd8ff", "#a06bff"],
+            idea: "Clients drop one by one; noise becomes a landscape.",
+            why: "Five scores are noise; fifty are a shape; five hundred are a smooth terrain. Watching it grow shows what a distribution is.",
+            use: "Knowing how many clients you need before a caseload chart tells you anything real.",
+            useLine: "knowing when a caseload chart has enough clients to trust.",
+            cap: "Each drop is one client's PHQ-9 (0–27) landing in its tower. The first ten are already in. The bin width slider re-casts the same clients into wider or narrower towers.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, r = seeded(24), POOL = [], st = { n: 10, bw: 3, h: 4 };
+              for (var i = 0; i < 1000; i++) POOL.push(Math.max(0, Math.min(27, Math.round(3 + Math.abs(gauss(r)) * 5.5 + r() * 3))));
+              var W = 9, x0 = -4.5, tw = towers(env, 28, x0, W, 0xa06bff);
+              env.scene.add(env.line(new Float32Array([x0 - 0.2, 0, 0, x0 + W + 0.2, 0, 0]), 0x8f86d8, 0.6));
+              [0, 9, 18, 27].forEach(function (v) { var l = labSprite(T, "#c8c0ff", 0.26).text(String(v)); l.position.set(x0 + (v + 0.5) / 28 * W, -0.35, 0.6); env.scene.add(l); });
+              var drop = livePoints(env, 1, 0.5), dy = -1, dx = 0; drop.g.visible = false;
+              env.tick(function (dt) { if (dy < 0) return; dy -= dt * 12; drop.set(0, dx, Math.max(0, dy), 0, hexRGB(0xffc85a)); drop.flush(); if (dy <= 0) { dy = -1; drop.g.visible = false; } });
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Here are the first 10 clients. At 50, the shape will be…", options: ["Piled low, long tail to the right", "Symmetric bell", "Two humps"] },
+                run: { label: "Each run drops one more client.", trial: function () { if (st.n < 1000) st.n++; }, show: function () { var v = POOL[st.n - 1]; dx = x0 + (v + 0.5) / 28 * W; dy = 5; drop.g.visible = true; update(); }, judge: function () { return st.n >= 50 ? 0 : null; } },
+                challenge: [{ text: "Predict the shape at 50 from the first 10, then watch until at least 50 have landed.", check: function () { return st.n >= 50 ? true : "Only " + st.n + " clients so far."; }, ok: "At 50 the landscape is readable: most low, a tail of high scores." }],
+                takeaway: "One score is a point. Many scores are a landscape. That landscape, its values, how often, and its shape, is the distribution."
+              });
+              function update() {
+                var hs = []; for (var s = 0; s <= 27; s += st.bw) { var c = 0; for (var i = 0; i < st.n; i++) if (POOL[i] >= s && POOL[i] < s + st.bw) c++; hs.push(c); }
+                tw.set(hs, st.h);
+                env.read.innerHTML = "clients <b>" + st.n + "</b> · bins of <b>" + st.bw + "</b> points · tallest tower <b>" + Math.max.apply(null, hs) + "</b>";
+              }
+              env.slider("Bin width", 1, 7, 1, st.bw, String, function (v) { st.bw = v; update(); });
+              env.slider("Tower height", 2, 6, 1, st.h, String, function (v) { st.h = v; update(); });
+              env.spin = false; env.view(0.3, 0.3); env.frame(2, 8, 1.4);
+              update();
+            }
+          },
+          {
+            id: "l25", lid: 25, name: "Typical-Distance Rings", pillar: "A5", learn: 5, day: 5, level: "foundations", hue: ["#ffc85a", "#3fd8ff"],
+            idea: "A glowing ring at one SD breathes as the data spread.",
+            why: "The SD is a typical distance from the mean. Seeing clients stand inside or outside a ring makes that distance physical.",
+            use: "Telling whether “average 8 sessions” describes most clients or almost none of them.",
+            useLine: "checking whether an average describes most clients.",
+            cap: "Clients stand on a plain around the mean's flagpole, each at their distance from the mean. The glowing ring's radius is one SD: most clients stand inside it.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, BASE = [4, 6, 7, 8, 8, 9, 10, 12, 5, 11], N = BASE.length, m0 = meanOf(BASE), st = { k: 1, sh: 0 };
+              var sd0 = sdOf(BASE), S = 0.42, pts = livePoints(env, N, 0.4), ring = ringLine(env, 1, 0xffc85a, 0.9, 0.02);
+              var cg = new T.CylinderGeometry(0.05, 0.05, 3, 12); cg.translate(0, 1.5, 0); var pole = new T.Mesh(cg, new T.MeshBasicMaterial({ color: 0xfff0c8 })); env.scene.add(pole);
+              var ml = labSprite(T, "#ffe6a8", 0.32); env.scene.add(ml);
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Stretch everyone’s distance from the mean to twice as far. The SD will…", options: ["Double", "Stay the same", "Square (×4)"] },
+                challenge: [{ text: "Double the SD without moving the mean.", check: function () { if (Math.abs(st.mean - m0) > 0.05) return "The mean moved to " + st.mean.toFixed(2) + " (it started at " + m0.toFixed(2) + ")."; var ratio = st.sd / sd0; return Math.abs(ratio - 2) < 0.05 ? true : "The SD is " + ratio.toFixed(2) + "× where it started."; }, ok: "Twice as far from the same mean: the ring doubled." }],
+                takeaway: "The SD is a typical distance from the mean. Stretching distances stretches the SD; sliding everyone moves the mean, not the spread."
+              });
+              function update() {
+                var vals = BASE.map(function (v) { return m0 + st.sh + st.k * (v - m0); }); st.mean = meanOf(vals); st.sd = sdOf(vals);
+                vals.forEach(function (v, i) { var d = (v - st.mean) * S, a = (i / N) * 6.2832; pts.set(i, Math.cos(a) * Math.abs(d), 0.2, Math.sin(a) * Math.abs(d), hexRGB(Math.abs(v - st.mean) <= st.sd ? 0x3fd8ff : 0xff4fc0)); });
+                pts.flush(); ring.scale.set(st.sd * S, 1, st.sd * S);
+                pole.position.x = 0; ml.text("mean " + st.mean.toFixed(2)); ml.position.set(0, 3.4, 0);
+                var inside = vals.filter(function (v) { return Math.abs(v - st.mean) <= st.sd; }).length;
+                env.read.innerHTML = "mean <b>" + st.mean.toFixed(2) + "</b> · SD <b>" + st.sd.toFixed(2) + "</b> · inside the ring <b>" + inside + "</b> of " + N;
+              }
+              env.slider("Stretch", 0.5, 3, 0.1, st.k, function (v) { return v.toFixed(1); }, function (v) { st.k = v; update(); });
+              env.slider("Slide everyone", -4, 4, 0.5, st.sh, function (v) { return (v > 0 ? "+" : "") + v; }, function (v) { st.sh = v; update(); });
+              env.spin = false; env.view(0.4, 0.75); env.frame(0.6, 8, 1);
+              update();
+            }
+          },
+          {
+            id: "l26", lid: 26, name: "Screening City of 1,000", pillar: "A6", learn: "a6-screening", day: 9, level: "foundations", hue: ["#5be3a0", "#ff5a6a"],
+            idea: "A good test, a rare condition, and a city of false alarms.",
+            why: "Counting real people beats a percentage. At low prevalence, the red false alarms visibly outnumber the green true cases.",
+            use: "Reading a positive on a suicide-risk screen, a drug screen or a relapse tool: how sure can you be?",
+            useLine: "reading what a positive screen really means for one client.",
+            cap: "1,000 people seen from above. Grey: not screened yet. Green: true cases caught. Gold: true cases missed. Red: false alarms. Dim: correctly cleared.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, N = 1000, COLS = 40, r = seeded(26), st = { prev: 1, acc: 95, done: 0 }, order = [], u1 = [], u2 = [];
+              for (var i = 0; i < N; i++) { order.push(i); u1.push(r()); u2.push(r()); }
+              for (i = N - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = order[i]; order[i] = order[j]; order[j] = t; }
+              var rank = []; order.forEach(function (p, k) { rank[p] = k; });
+              var city = livePoints(env, N, 0.26), seen = new Uint8Array(N);
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Prevalence 1%, a 95%-accurate test. Of everyone who tests positive, how many truly have it?", options: ["Most of them", "About half", "A small share"] },
+                run: { label: "Each run screens one more person.", trial: function () { if (st.done < N) { seen[order[st.done]] = 1; st.done++; } }, show: function () { update(); },
+                  judge: function () { if (st.done < N) return null; var p = st.tp / Math.max(1, st.tp + st.fp); return p > 0.6 ? 0 : p > 0.35 ? 1 : 2; } },
+                challenge: [{ text: "With a test at least 95% accurate, make the positives mostly FALSE. Screen the whole city.", check: function () {
+                  if (st.acc < 95) return "This test is only " + st.acc + "% accurate. The challenge needs 95% or better.";
+                  if (st.done < N) return "Only " + st.done + " of 1,000 screened. Run the screening.";
+                  if (st.fp <= st.tp) return "Close: " + st.fp + " false alarms vs " + st.tp + " true cases. False alarms must outnumber them.";
+                  return true; }, ok: "Red outnumbers green: most positives are false, even with a 95% test." }],
+                explain: { q: "Why? Pick one sentence.", options: ["The test is broken", "So few have the condition that 5% of the many healthy outnumber the few true cases", "Positives are random"], answer: 1, no: "Count the healthy people the 5% applies to." },
+                reveal: function () { return '<div class="rows"><div class="row"><span>Positives that are true</span><span>' + st.tp + "</span></div><div class=\"row\"><span>False alarms</span><span>" + st.fp + "</span></div><div class=\"row\"><span>Missed cases</span><span>" + st.fn + "</span></div><div class=\"row\"><span>Correctly cleared</span><span>" + st.tn + "</span></div><div class=\"row\"><span>Chance a positive is real</span><span>" + Math.round(100 * st.tp / Math.max(1, st.tp + st.fp)) + "%</span></div></div>"; },
+                takeaway: "A positive means nothing until you ask how common the condition was. When it is rare, false alarms can outnumber true cases."
+              });
+              function update() {
+                var cut = N * st.prev / 100, a = st.acc / 100; st.tp = st.fp = st.fn = st.tn = 0;
+                for (var p = 0; p < N; p++) {
+                  var sick = rank[p] < cut, pos = sick ? u1[p] < a : u2[p] < 1 - a, c;
+                  if (!seen[p]) c = [0.3, 0.28, 0.42];
+                  else if (sick && pos) { st.tp++; c = hexRGB(0x5be3a0); } else if (sick) { st.fn++; c = hexRGB(0xffc85a); } else if (pos) { st.fp++; c = hexRGB(0xff5a6a); } else { st.tn++; c = [0.12, 0.14, 0.32]; }
+                  city.set(p, ((p % COLS) - COLS / 2 + 0.5) * 0.24, 0.05, (Math.floor(p / COLS) - 12) * 0.24, c);
+                }
+                city.flush();
+                env.read.innerHTML = "screened <b>" + st.done + "</b> · <span style=\"color:#5be3a0\">caught</span> <b>" + st.tp + "</b> · <span style=\"color:#ffc85a\">missed</span> <b>" + st.fn + "</b> · <span style=\"color:#ff5a6a\">false alarms</span> <b>" + st.fp + "</b>";
+              }
+              env.slider("Prevalence %", 0.5, 30, 0.5, st.prev, function (v) { return v + "%"; }, function (v) { st.prev = v; update(); });
+              env.slider("Test accuracy %", 80, 99, 1, st.acc, function (v) { return v + "%"; }, function (v) { st.acc = v; update(); });
+              env.spin = false; env.view(0, 1.2); env.frame(0, 11, 1.7);
+              update();
+            }
+          },
+          {
+            id: "l27", lid: 27, name: "Two Distributions — Don't Confuse Them", pillar: "A8", learn: "a8-means", day: 10, level: "foundations", hue: ["#3fd8ff", "#a06bff"],
+            idea: "Clients on the left, padlocked; means of samples on the right.",
+            why: "The data and the sampling distribution are different landscapes. Only the means narrow with n; the clients never move.",
+            use: "Reading a study's confidence interval: it narrows with sample size, while clients stay just as varied.",
+            useLine: "remembering that bigger studies sharpen averages, not people.",
+            cap: "Left: 400 clients' PHQ-9 scores, locked. Right: the means of samples of n clients, one tower block per run. The gold markers on the right show the target spread.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, r = seeded(27), st = { n: 5, shape: "skew" }, means = [], TARGET = 0.6;
+              var mk = function (shape) { var rr = seeded(270), a = []; for (var i = 0; i < 400; i++) a.push(shape === "skew" ? Math.max(0, Math.min(27, 3 + Math.abs(gauss(rr)) * 6 + rr() * 2)) : Math.max(0, Math.min(27, 13.5 + gauss(rr) * 4))); return a; };
+              var POP = mk(st.shape), L = towers(env, 28, -9, 8, 0x3fd8ff), R = towers(env, 28, 1, 8, 0xa06bff);
+              env.scene.add(env.line(new Float32Array([-9.2, 0, 0, -0.8, 0, 0]), 0x8f86d8, 0.6), env.line(new Float32Array([0.8, 0, 0, 9.2, 0, 0]), 0x8f86d8, 0.6));
+              var lock = labSprite(T, "#3fd8ff", 0.36).text("clients · locked"); lock.position.set(-5, 5.2, 0); var ml = labSprite(T, "#c3a0ff", 0.36).text("means of n"); ml.position.set(5, 5.2, 0); env.scene.add(lock, ml);
+              var tg1 = env.line(new Float32Array(6), 0xffc85a, 0.95), tg2 = env.line(new Float32Array(6), 0xffc85a, 0.95); env.scene.add(tg1, tg2);
+              function hist(a) { var b = new Array(28).fill(0); a.forEach(function (v) { b[Math.min(27, Math.floor(v))]++; }); return b; }
+              function draw1() { var s = 0; for (var j = 0; j < st.n; j++) s += POP[Math.floor(Math.random() * 400)]; return s / st.n; }
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Make the samples bigger. Which landscape narrows?", options: ["The clients", "The means", "Both"] },
+                run: { label: "Each run draws one sample and plants its mean.", trial: function () { means.push(draw1()); }, show: function () { update(); }, judge: function () { return means.length >= 10 ? 1 : null; } },
+                challenge: [{ text: "Get the means’ spread inside the gold markers using only n. Plant at least 100 means.", check: function () { if (means.length < 100) return "Only " + means.length + " means planted."; var s = sdOf(means); return s < TARGET ? true : "The means still spread wider than the markers."; }, ok: "The means hug the centre." }],
+                explain: { q: "Why didn’t the clients’ landscape change? Pick one sentence.", options: ["n changes how many clients we average, not the clients themselves", "The padlock is just decoration", "The clients became normal"], answer: 0, no: "Look at what n controls: the averaging, or the people?" },
+                takeaway: "Bigger samples narrow the landscape of MEANS. The clients’ own landscape never moves. Inference stands on the means."
+              });
+              function update() {
+                L.set(hist(POP), 4.5); R.set(hist(means), 4.5);
+                var mu = meanOf(POP), x = function (v) { return 1 + (v / 28) * 8; };
+                tg1.geometry.attributes.position.array.set([x(mu - TARGET * 2), 0, 0.6, x(mu - TARGET * 2), 4.6, 0.6]); tg2.geometry.attributes.position.array.set([x(mu + TARGET * 2), 0, 0.6, x(mu + TARGET * 2), 4.6, 0.6]);
+                tg1.geometry.attributes.position.needsUpdate = tg2.geometry.attributes.position.needsUpdate = true;
+                st.clientSD = sdOf(POP).toFixed(3);
+                env.read.innerHTML = "clients’ spread SD <b>" + st.clientSD + "</b> (locked) · means planted <b>" + means.length + "</b>" + (means.length > 1 ? " · means’ spread SD <b>" + sdOf(means).toFixed(2) + "</b>" : "");
+              }
+              /* moving n re-draws the same number of means at the new n, so the landscape visibly narrows */
+              env.slider("Sample size n", 1, 100, 1, st.n, String, function (v) { st.n = v; var c = means.length; means = []; for (var i = 0; i < c; i++) means.push(draw1()); update(); });
+              labRadio(env, ctl, [{ v: "skew", t: "Skewed clients" }, { v: "sym", t: "Symmetric clients" }], st.shape, "Client shape", function (v) { st.shape = v; POP = mk(v); means = []; update(); });
+              env.spin = false; env.view(0, 0.25); env.frame(2.2, 12, 2.2);
+              update();
+            }
+          }
+        ];
+        Array.prototype.push.apply(SCENES, NEW_SCENES);
+        /* two-way links: each new experiment's lesson gets "See it in the Lab" on its visual step */
+        [["a2-relvalid", "l21"], [25, "l21"], ["a3-lotteries", "l22"], ["a3-confound", "l23"], ["a4-dist", "l24"], [5, "l25"], ["a6-screening", "l26"], [9, "l26"], ["a8-means", "l27"], [10, "l27"]].forEach(function (p) {
+          var L = LESSON_CONTENT[p[0]]; if (!L) return;
+          var s = L.steps.filter(function (x) { return x.kind === "play"; })[0]; if (s && !s.lab) s.lab = p[1];
+        });
         var KIND = { hook: "Hook", concept: "Concept", intuition: "Intuition", formula: "Key rule", example: "Worked example", quiz: "Quiz", lens: "Lens",
           predict: "Predict", run: "Run it", play: "Manipulate", notice: "Notice", formalize: "So", check: "Build-check", transfer: "Transfer", fade: "Finish the example" };
         /* C1 lesson anatomy: a strip appears only on lessons built with the new step kinds; existing lessons look as before */
@@ -5311,7 +5714,7 @@
           }
         };
 
-        window.Sigmind = { version: "phase3", content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
+        window.Sigmind = { version: "phase4", scenes: SCENES, openScene: function (id) { return openScene(id); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
         function confetti() {
           if (reduce) return;
