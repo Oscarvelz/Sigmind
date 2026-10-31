@@ -750,6 +750,42 @@
       #fb-comfort .x-btns button { min-height: var(--tap); padding: 0 16px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
       #fb-comfort .x-btns button[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent); }
       #fb-comfort .tgl { margin-bottom: 12px; }
+      /* ---------- Deep Review ---------- */
+      .x-dr__h { margin: 14px 0 6px; font-size: 14px; color: var(--text); }
+      .x-dr__h b { font-weight: 600; }
+      .x-dr__ta { width: 100%; box-sizing: border-box; min-height: 64px; padding: 10px 12px; border-radius: var(--r-s); border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; font-size: 15px; line-height: 1.45; resize: vertical; }
+      .x-dr__ta:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+      .x-dr__chip.is-right { border-color: var(--ok, #5be3a0); box-shadow: inset 0 0 0 1px var(--ok, #5be3a0); }
+      .x-dr__chip.is-wrong { border-color: var(--bad, #ff6b8a); opacity: .75; }
+      .x-dr .x-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+      .x-dr .x-btns button { min-height: var(--tap); padding: 6px 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font: inherit; font-size: 14px; line-height: 1.25; white-space: normal; text-align: center; }
+      .x-dr .x-btns button[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent); }
+      .x-dr__fc { grid-template-columns: repeat(7, 1fr); }
+      .x-dr__peek { background: none; border: 0; padding: 6px 0; color: var(--primary); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }
+      .x-dr__hook { margin: 6px 0 0; font-size: 14px; }
+      .x-dr__cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+      .x-dr__cmp > div { padding: 10px 12px; border-radius: var(--r-s); background: rgba(127,120,200,.08); min-width: 0; }
+      .x-dr__you, .x-dr__ans { margin: 4px 0 0; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+      .x-dr__ans { font-weight: 600; }
+      .x-dr__grades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0 4px; }
+      .x-dr__g { display: grid; gap: 2px; justify-items: center; padding: 10px 4px; border-radius: var(--r-s); border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; min-width: 0; }
+      .x-dr__g b { font-size: 15px; }
+      .x-dr__g span { font-size: 11px; color: var(--dim); text-align: center; }
+      .x-dr__g .x-dr__nx { color: var(--text); font-weight: 600; }
+      .x-dr__g--again { border-color: rgba(255,107,138,.55); }
+      .x-dr__g--easy { border-color: rgba(91,227,160,.55); }
+      .x-dr__g:disabled { opacity: .35; }
+      .x-dr__note, .x-dr__fb { font-size: 13px; margin: 6px 0; }
+      .x-dr__fb { padding: 10px 12px; border-radius: var(--r-s); border: 1px solid var(--primary); font-size: 14px; }
+      .x-dr__fb.is-bad { border-color: var(--bad, #ff6b8a); }
+      .x-dr__stick { margin: 12px 0 4px; }
+      .x-dr__stick summary { cursor: pointer; font-size: 14px; color: var(--primary); }
+      .x-dr__lb { display: grid; gap: 6px; margin-top: 10px; font-size: 13px; color: var(--dim); }
+      .x-dr__cal { display: grid; grid-template-columns: 6.5em 1fr 5.5em; gap: 10px; align-items: center; font-size: 13px; margin: 6px 0; }
+      .x-dr__calb { display: block; height: 10px; border-radius: 5px; background: rgba(127,120,200,.14); overflow: hidden; }
+      .x-dr__calb b { display: block; height: 100%; width: var(--w); background: var(--primary); border-radius: 5px; }
+      .x-dr__fc .x-box__l { white-space: nowrap; }
+      @media (max-width: 380px) { .x-dr__grades { grid-template-columns: repeat(2, 1fr); } .x-dr__cmp { grid-template-columns: 1fr; } }
     </style>
     <script>
       /* before first paint: the saved theme, and no splash if it already ran this session */
@@ -7996,10 +8032,240 @@
         ];
         /* L35–L38 sit before L39 in the Lab list */
         (function () { var at = SCENES.map(function (x) { return x.id; }).indexOf("l39"); if (at < 0) at = SCENES.length; Array.prototype.splice.apply(SCENES, [at, 0].concat(L35_38)); })();
+        /* ============ DEEP REVIEW (2026-10-31) · recall over recognition, additive over the spaced deck ============
+           Deep recall (default): name the idea → answer from memory (typed) → confidence → reveal → grade yourself.
+           Scheduler: SM-2 style ease per card, gaps grow ~3 → 7 → 16 → 30+ days; Again relearns inside the session.
+           Interleaved sessions, lesson source hidden until the reveal, confidence calibration, personal hooks and
+           plain-words explanations saved on the card. Quick check (the original multiple-choice session) stays one tap away. */
+        var DR_GR = [["again", "Again", "forgot"], ["hard", "Hard", "got it, with effort"], ["good", "Good", "recalled it"], ["easy", "Easy", "instant"]];
+        var DR_CONF = ["Guessing", "Unsure", "Fairly sure", "Certain"];
+        function drPillarOf(lid) { var p = PILLARS.filter(function (x) { return x.items.some(function (i) { return String(i) === String(lid); }); })[0]; return p || null; }
+        function drMode() { return (prefs.review && prefs.review.mode) || "deep"; }
+        function drBox(ivl) { return ivl <= 1 ? 1 : ivl <= 2 ? 2 : ivl <= 4 ? 3 : ivl <= 8 ? 4 : ivl <= 16 ? 5 : 6; }
+        function drModel(s) { return s.kind === "fade" ? s.lines[s.blank] : s.options[s.answer]; }
+        /* the next gap, in days, for a grade (no side effects: used for the preview on each grade button too) */
+        function drNext(c, g) {
+          var ease = c.ease || 2.3, ivl = c.ivl || (c.reps ? RV_INT[(c.box || 1) - 1] : 0), reps = c.reps || 0;
+          if (g === "again") return { ivl: 1, ease: Math.max(1.3, ease - 0.2), reps: 0 };
+          if (g === "hard") return { ivl: Math.max(1, Math.round((ivl || 1) * 1.2)), ease: Math.max(1.3, ease - 0.15), reps: reps + 1 };
+          if (g === "good") return { ivl: reps === 0 ? 3 : Math.max(Math.round(ivl * ease), (ivl || 1) + 1), ease: ease, reps: reps + 1 };
+          return { ivl: reps === 0 ? 5 : Math.max(Math.round(ivl * ease * 1.3), (ivl || 1) + 2), ease: ease + 0.15, reps: reps + 1 };
+        }
+        function drFmtDays(d) { return d <= 1 ? "1 day" : d < 31 ? d + " days" : d < 365 ? Math.round(d / 30) + " mo" : Math.round(d / 365 * 10) / 10 + " yr"; }
+        var DeepReview = {
+          grade: function (id, g, conf, extra, now) {
+            var c = Review.st().cards[id]; if (!c) return null;
+            now = now || Date.now();
+            var n = drNext(c, g), ok = g !== "again";
+            c.ease = Math.round(n.ease * 100) / 100; c.ivl = n.ivl; c.reps = n.reps; c.box = drBox(n.ivl);
+            c.seen = (c.seen || 0) + 1; if (ok) c.ok = (c.ok || 0) + 1; else c.lapses = (c.lapses || 0) + 1;
+            c.due = rvDay(n.ivl, now); c.last = now;
+            if (conf != null) {
+              var r = Review.st(); r.cal = r.cal || {}; var b = r.cal[conf] = r.cal[conf] || [0, 0]; b[0]++; if (ok) b[1]++;
+              if (conf >= 2 && !ok) r.illusions = (r.illusions || 0) + 1;
+              r.calAt = now;
+            }
+            if (extra && extra.sorted != null) { var rs = Review.st(); rs.sort = rs.sort || [0, 0]; rs.sort[0]++; if (extra.sorted) rs.sort[1]++; }
+            savePrefs();
+            return c;
+          },
+          /* interleave: no two cards in a row from the same pillar when another pillar can go between */
+          interleave: function (ids) {
+            var cards = Review.cards(), left = ids.slice(), out = [], last = null;
+            while (left.length) {
+              var k = left.findIndex(function (id) { var p = drPillarOf(cards[id].l); return !p || !last || p.id !== last; });
+              if (k < 0) k = 0;
+              var id = left.splice(k, 1)[0], p = drPillarOf(cards[id].l); last = p ? p.id : null; out.push(id);
+            }
+            return out;
+          },
+          forecast: function () {
+            var c = Review.cards(), d0 = rvDay(0), f = [0, 0, 0, 0, 0, 0, 0];
+            Object.keys(c).forEach(function (id) { var d = Math.round((rvDay(0, c[id].due) - d0) / 864e5); if (d < 7) f[Math.max(0, d)]++; });
+            return f;
+          }
+        };
+        /* Quick check (the original session) keeps the gap fields in step with its boxes */
+        (function () {
+          var ans0 = Review.answer;
+          Review.answer = function (id, ok, now) { var c = ans0.apply(Review, arguments); if (c) { c.ivl = RV_INT[c.box - 1]; c.reps = ok ? (c.reps || 0) + 1 : 0; if (!ok) c.ease = Math.max(1.3, (c.ease || 2.3) - 0.2); savePrefs(); } return c; };
+          var merge0 = Review.merge;
+          Review.merge = function (a, b) {
+            var out = merge0.apply(Review, arguments); if (!out || !b || !a) return out;
+            ["cal", "sort", "illusions", "mode"].forEach(function (k) { var src = (b.calAt || 0) > (a.calAt || 0) ? b : a; if (src[k] != null) out[k] = JSON.parse(JSON.stringify(src[k])); });
+            out.calAt = Math.max(a.calAt || 0, b.calAt || 0);
+            return out;
+          };
+        })();
+        /* a fresh option order every time a card is shown, so position never carries the answer */
+        function drPerm(n, seed) { var r = seeded(seed), a = []; for (var k = 0; k < n; k++) a.push(k); for (k = n - 1; k > 0; k--) { var j = Math.floor(r() * (k + 1)), t = a[k]; a[k] = a[j]; a[j] = t; } if (n > 1 && a.every(function (v, k) { return v === k; })) a.push(a.shift()); return a; }
+        function drShuffleBtns(html, seed) {
+          var cut = html.indexOf('<button type="button" class="qopt'); if (cut < 0) return html;
+          var head = html.slice(0, cut), btns = html.slice(cut).split(/(?=<button type="button" class="qopt)/), tail = "";
+          var last = btns[btns.length - 1], e = last.indexOf("</button>") + 9; tail = last.slice(e); btns[btns.length - 1] = last.slice(0, e);
+          var p = drPerm(btns.length, seed); return head + p.map(function (k) { return btns[k]; }).join("") + tail;
+        }
+        /* same idea, new frame: another question from the same idea (concept, else lesson) stands in for the card */
+        function drVariant(c) {
+          var L = LESSON_CONTENT[c.l]; if (!L) return c.i;
+          var base = L.steps[c.i], key = base && base.concept;
+          var pool = []; L.steps.forEach(function (s, k) { if (k !== c.i && rvIsQ(s) && s.kind !== "fade" && (!key || !s.concept || s.concept === key)) pool.push(k); });
+          if (!pool.length || (c.seen || 0) % 2 === 0) return c.i;
+          return pool[(c.seen || 0) % pool.length];
+        }
+        (function () {
+          var q0 = rvQHTML;
+          rvQHTML = function (s, a) { var h = q0.apply(this, arguments); if (!RS) return h; RS.seed = RS.seed || (Date.now() % 100000); return drShuffleBtns(h, RS.seed + RS.i * 17); };
+        })();
+        var DS = null;
+        function drSortOpts(lid) {
+          var p = drPillarOf(lid); if (!p) return null;
+          var others = PILLARS.filter(function (x) { return x.id !== p.id; }), r = seeded((String(lid).length * 31 + (DS ? DS.i : 0)) * 7 + 3), pick = [];
+          while (pick.length < 2) { var o = others[Math.floor(r() * others.length)]; if (pick.indexOf(o) < 0) pick.push(o); }
+          var all = pick.concat([p]); all.sort(function (x, y) { return (x.t > y.t) - (x.t < y.t); });
+          return { ans: p.id, opts: all };
+        }
+        function drFront(s, c, id) {
+          var ctx = s.body && !s.mount && !/x-viz|<canvas|<svg|data-scene|x-cq|x-wk/.test(s.body) ? '<div class="x-rv__ctx">' + s.body + "</div>" : s.caseText ? '<p class="x-rv__ctx x-clinic__case">' + (s.measure ? '<span class="chip">' + esc(s.measure) + "</span> " : "") + esc(s.caseText) + "</p>" : "";
+          var lines = s.kind === "fade" ? '<ol class="x-fade">' + s.lines.map(function (t, k) { return k !== s.blank ? "<li>" + esc(t) + "</li>" : '<li class="is-blank">? Fill in this line from memory</li>'; }).join("") + "</ol>" : "";
+          var so = DS.sortQ, sortHTML = so ? '<div class="x-dr__sort"><p class="x-dr__h"><b>1 · Name the idea.</b> What kind of problem is this?</p><div class="x-btns" role="group">' + so.opts.map(function (o) {
+            var st = DS.sorted == null ? "" : o.id === so.ans ? " is-right" : DS.sortPick === o.id ? " is-wrong" : "";
+            return '<button type="button" class="press x-dr__chip' + st + '" data-drs="' + o.id + '"' + (DS.sorted != null ? " disabled" : "") + ">" + esc(o.t) + "</button>";
+          }).join("") + "</div></div>" : "";
+          var n = so ? 2 : 1;
+          return ctx + (s.q ? '<p class="x-q">' + esc(s.q) + "</p>" : "") + lines + sortHTML +
+            '<div class="x-dr__recall"><p class="x-dr__h"><b>' + n + " · Answer from memory.</b> Type it before you see anything.</p>" +
+            '<textarea class="x-dr__ta" rows="3" data-drt="1" placeholder="In your own words…" aria-label="Your answer from memory">' + esc(DS.typed || "") + "</textarea>" +
+            (c.hook && !DS.peek ? '<button type="button" class="linkbtn press x-dr__peek" data-dr="peek">Stuck? Peek at your hook (counts as a hint)</button>' : "") +
+            (DS.peek && c.hook ? '<p class="x-dr__hook"><b>Your hook:</b> ' + esc(c.hook) + "</p>" : "") + "</div>" +
+            '<div class="x-dr__conf"><p class="x-dr__h"><b>' + (n + 1) + " · How sure are you?</b></p><div class=\"x-btns\" role=\"group\" aria-label=\"Confidence\">" + DR_CONF.map(function (t, k) {
+              return '<button type="button" class="press" data-drc="' + k + '" aria-pressed="' + (DS.conf === k) + '">' + t + "</button>";
+            }).join("") + "</div></div>" +
+            '<div class="x-bk"><button type="button" class="start press" data-dr="reveal"' + (DS.conf == null ? " disabled" : "") + ">" + (DS.conf == null ? "Rate your confidence to reveal" : "Reveal the answer") + "</button>" +
+            '<button type="button" class="danger press" data-dr="choices">I need the choices</button></div>';
+        }
+        function drBack(s, c, id) {
+          var model = drModel(s), typed = (DS.typed || "").trim();
+          var head = '<div class="x-dr__cmp"><div><p class="eyebrow">You wrote</p><p class="x-dr__you">' + (typed ? esc(typed) : '<span class="dim">(recalled in your head)</span>') + '</p></div>' +
+            '<div><p class="eyebrow">Answer</p><p class="x-dr__ans">' + esc(model) + "</p></div></div>" +
+            '<p class="why"><b>Why. </b>' + esc(s.why || "") + "</p>";
+          var hint = DS.peek || DS.choice != null;
+          var cap = DS.choice != null ? (DS.choice === s.answer ? "hard" : "again") : null;
+          var mis = DS.choice != null && DS.choice !== s.answer && s.tags && s.tags[DS.choice] && MISCONCEPTIONS[s.tags[DS.choice]];
+          var grades = DS.graded ? "" : cap ? '<div class="x-bk"><button type="button" class="start press" data-drg="' + cap + '">' + (cap === "again" ? "Relearn it: back in 1 day" : "Counted as Hard: back in " + drFmtDays(drNext(c, "hard").ivl)) + "</button></div>" :
+            '<p class="x-dr__h"><b>Grade yourself honestly.</b> Compare what you wrote with the answer.</p><div class="x-dr__grades" role="group" aria-label="Grade">' + DR_GR.map(function (g) {
+              var dis = hint && (g[0] === "good" || g[0] === "easy");
+              return '<button type="button" class="press x-dr__g x-dr__g--' + g[0] + '" data-drg="' + g[0] + '"' + (dis ? " disabled" : "") + "><b>" + g[1] + "</b><span>" + g[2] + "</span><span class=\"x-dr__nx\">" + drFmtDays(drNext(c, g[0]).ivl) + "</span></button>";
+            }).join("") + "</div>" + (hint ? '<p class="dim x-dr__note">You used a hint, so Good and Easy are off for this card.</p>' : "");
+          var fb = "";
+          if (DS.graded) {
+            var illusion = DS.conf >= 2 && DS.graded === "again", lucky = DS.conf === 0 && DS.graded !== "again";
+            fb = '<p class="x-dr__fb' + (illusion ? " is-bad" : "") + '">' + (illusion ? "<b>Illusion of competence caught.</b> You felt sure and missed it: this is exactly the card that teaches you most. It comes back later in this session." :
+              lucky ? "<b>Right, but you were guessing.</b> Trust it a little more next time; the schedule will check again soon." :
+              DS.graded === "again" ? "<b>Back to relearning.</b> You’ll see it again before this session ends, then tomorrow." :
+              "<b>Next review in " + drFmtDays(c.ivl) + ".</b> Waiting until just before you’d forget is what makes it stick.") + "</p>";
+          }
+          var lab = labOf(c.l);
+          var stick = '<details class="x-dr__stick"' + (DS.graded && !c.hook && !c.ex ? " open" : "") + '><summary>Make it stick (optional)</summary>' +
+            '<label class="x-dr__lb">Your hook: a mnemonic, image or analogy<textarea rows="2" class="x-dr__ta" data-drh="hook" placeholder="e.g. “p is the surprise meter, not the truth meter”">' + esc(c.hook || "") + "</textarea></label>" +
+            '<label class="x-dr__lb">Explain it to a client in one plain sentence<textarea rows="2" class="x-dr__ta" data-drh="ex" placeholder="No jargon. If you can’t say it simply, open the lesson.">' + esc(c.ex || "") + "</textarea></label></details>";
+          return (mis ? '<div class="x-trap" role="status"><span class="x-trap__code">' + esc(s.tags[DS.choice]) + "</span><p><b>That’s a common trap:</b> " + esc(mis.t) + "</p></div>" : "") +
+            head + '<p class="x-rv__from">from ' + esc(lessonLabel(c.l)) + (DS.sortQ ? " · " + esc(drPillarOf(c.l).t) : "") + "</p>" + grades + fb + stick +
+            (DS.graded ? '<div class="x-bk"><button type="button" class="start press" data-dr="next">' + (DS.i + 1 < DS.q.length ? "Next card" : "Finish") + "</button>" +
+              '<button type="button" class="danger press" data-lesson="' + esc(c.l) + '">Open the lesson</button>' + (lab ? '<button type="button" class="danger press" data-scene="' + esc(lab) + '">See it in the Lab</button>' : "") + "</div>" : "");
+        }
+        function drChoicesHTML(s) {
+          return '<p class="dim">Choices turn recall into recognition, so this card counts as Hard at best. Their order changes every time.</p>' + drPerm(s.options.length, DS.seed).map(function (k) { return '<button type="button" class="qopt press" data-drq="' + k + '">' + esc(s.options[k]) + "</button>"; }).join("");
+        }
+        (function () {
+          var view0 = Views.review;
+          Views.review = function () {
+            if (RS) return view0.apply(this, arguments);
+            var head = '<div><h1 class="greet">Review</h1><p class="dim">Recall, don’t recognise: answer from memory, rate your confidence, then grade yourself. Gaps grow as you remember.</p></div>';
+            if (DS && DS.q.length) {
+              if (DS.i >= DS.q.length) {
+                var cal = DS.stat;
+                return head + '<section class="empty glass x-rv-done"><div class="empty__ring">' + I.check.replace(/width="20" height="20"/, 'width="32" height="32"') + "</div>" +
+                  "<h3>Session done</h3><p>" + cal.ok + " of " + cal.n + " recalled" + (cal.ill ? " · " + cal.ill + " illusion" + (cal.ill === 1 ? "" : "s") + " caught" : "") + (cal.sortN ? " · named the idea " + cal.sortOk + " of " + cal.sortN : "") + ". " +
+                  (Review.due().length ? Review.due().length + " still due." : "Nothing else is due today.") + "</p>" +
+                  '<button type="button" class="start press" data-dr="end">Back to the deck</button></section>';
+              }
+              Review.harvest();
+              var id = DS.q[DS.i], c = Review.cards()[id], s = c && LESSON_CONTENT[c.l] && LESSON_CONTENT[c.l].steps[DS.si != null ? DS.si : c.i];
+              if (!s) { DS.i++; drCard(); return Views.review(); }
+              var body = DS.stage === "back" ? drBack(s, c, id) : DS.stage === "choices" ? (s.q ? '<p class="x-q">' + esc(s.q) + "</p>" : "") + drChoicesHTML(s) : drFront(s, c, id);
+              return head + '<section class="scard glass x-rv x-dr" aria-label="Review card">' +
+                '<div class="x-rv__top"><p class="eyebrow">Card ' + (DS.i + 1) + " of " + DS.q.length + (DS.again[id] ? " · relearning" : "") + (DS.si !== c.i ? " · same idea, new frame" : "") + "</p><p class=\"x-rv__from\">mixed practice</p></div>" +
+                '<div class="x-rv__bar" aria-hidden="true"><b style="--w:' + Math.round(100 * DS.i / DS.q.length) + '%"></b></div>' +
+                "<h2>" + esc(s.title || "Recall") + "</h2>" + body + "</section>";
+            }
+            var h = view0.apply(this, arguments), deep = drMode() === "deep";
+            if (deep) {
+              h = h.replace('<p class="dim">Spaced out so it sticks: right moves a card up a box, wrong sends it back to box 1.</p>', '<p class="dim">Recall, don’t recognise: answer from memory, rate your confidence, then grade yourself. Gaps grow as you remember.</p>');
+              h = h.replace('data-rv="start">Start review', 'data-dr="start">Start deep recall');
+              h = h.replace("Boxes come back after 1, 2, 4, 8, 16 and 32 days.", "Each bar is a gap length. Remembered cards come back after about 3, then 7, 16 and 30+ days; forgotten ones relearn today.");
+            }
+            if (!Object.keys(Review.cards()).length) return h;
+            var r = Review.st(), cal = r.cal || {}, sort = r.sort || [0, 0], f = DeepReview.forecast(), fm = Math.max.apply(null, f.concat([1]));
+            var calRows = DR_CONF.map(function (t, k) { var b = cal[k] || [0, 0]; return b[0] ? '<div class="x-dr__cal"><span>' + t + '</span><span class="x-box__b x-dr__calb"><b style="--w:' + Math.round(100 * b[1] / b[0]) + '%"></b></span><span>' + Math.round(100 * b[1] / b[0]) + "% · " + b[0] + "</span></div>" : ""; }).join("");
+            var extra = '<section class="panel glass x-dr-mode"><h3>How you review</h3><div class="x-btns" role="group" aria-label="Review mode">' +
+              '<button type="button" class="press" data-drm="deep" aria-pressed="' + deep + '">Deep recall</button><button type="button" class="press" data-drm="quick" aria-pressed="' + !deep + '">Quick check</button></div>' +
+              '<p class="dim">' + (deep ? "Deep recall: name the idea, type your answer, rate your confidence, then grade. Topics are mixed and the lesson stays hidden until the reveal." : "Quick check: the original multiple-choice session. Fast, but it tests recognition more than recall.") + "</p></section>" +
+              '<section class="panel glass"><h3>Calibration</h3>' + (calRows ? '<p class="dim">How often you actually remembered, by how sure you felt.</p>' + calRows +
+                (r.illusions ? '<p class="dim">' + r.illusions + " illusion" + (r.illusions === 1 ? "" : "s") + " of competence caught so far (felt sure, missed it).</p>" : "") +
+                (sort[0] ? '<p class="dim">Named the idea correctly ' + Math.round(100 * sort[1] / sort[0]) + "% of the time.</p>" : "")
+                : '<p class="dim">After a few deep-recall cards, this shows whether your feeling of knowing matches what you really recall.</p>') + "</section>" +
+              '<section class="panel glass"><h3>Next 7 days</h3><div class="x-boxes x-dr__fc" role="img" aria-label="Cards due each of the next 7 days: ' + f.join(", ") + '">' + f.map(function (v, i) {
+                return '<div class="x-box"><span class="x-box__b"><b style="--h:' + Math.round(100 * v / fm) + '%"></b></span><span class="x-box__n">' + v + '</span><span class="x-box__l">' + (i ? "+" + i + "d" : "now") + "</span></div>";
+              }).join("") + "</div></section>";
+            return h + extra;
+          };
+        })();
+        function drStart() {
+          var ids = DeepReview.interleave(Review.due().slice(0, Review.size()));
+          DS = { q: ids, i: 0, stage: "front", again: {}, stat: { n: 0, ok: 0, ill: 0, sortN: 0, sortOk: 0 } };
+          drCard();
+        }
+        function drCard() {
+          DS.stage = "front"; DS.typed = ""; DS.conf = null; DS.peek = false; DS.choice = null; DS.graded = null; DS.sorted = null; DS.sortPick = null;
+          var id = DS.q[DS.i], c = id && Review.cards()[id]; DS.sortQ = c ? drSortOpts(c.l) : null; DS.si = c ? drVariant(c) : 0; DS.seed = (Date.now() % 100000) + DS.i * 13;
+        }
+        doc.addEventListener("input", function (e) {
+          var t = e.target; if (!DS) return;
+          if (t.dataset.drt) DS.typed = t.value;
+          if (t.dataset.drh) { var c = Review.cards()[DS.q[DS.i]]; if (c) { c[t.dataset.drh] = t.value.slice(0, 400); c.last = Date.now(); clearTimeout(DS.sv); DS.sv = setTimeout(savePrefs, 500); } }
+        });
+        doc.addEventListener("click", function (e) {
+          var t = e.target.closest("button"); if (!t) return;
+          if (t.dataset.drm) { Review.st().mode = t.dataset.drm; Review.st().calAt = Date.now(); savePrefs(); return Views.render(); }
+          if (t.dataset.dr === "start") { RS = null; drStart(); Views.render(); var ta = $(".x-dr .x-dr__chip, .x-dr__ta"); if (ta) ta.focus({ preventScroll: true }); return; }
+          if (!DS) return;
+          var id = DS.q[DS.i], c = Review.cards()[id], s = c && LESSON_CONTENT[c.l] && LESSON_CONTENT[c.l].steps[DS.si != null ? DS.si : c.i];
+          var keep = function () { var y = window.scrollY; Views.render(); window.scrollTo(0, y); };
+          if (t.dataset.drs && DS.sorted == null) { DS.sortPick = t.dataset.drs; DS.sorted = t.dataset.drs === DS.sortQ.ans; DS.stat.sortN++; if (DS.sorted) DS.stat.sortOk++; keep(); var ta2 = $(".x-dr__ta"); if (ta2) ta2.focus({ preventScroll: true }); return; }
+          if (t.dataset.drc != null) { DS.conf = +t.dataset.drc; return keep(); }
+          if (t.dataset.dr === "peek") { DS.peek = true; return keep(); }
+          if (t.dataset.dr === "reveal" && DS.conf != null) { DS.stage = "back"; return keep(); }
+          if (t.dataset.dr === "choices") { DS.stage = "choices"; return keep(); }
+          if (t.dataset.drq != null && DS.stage === "choices") { DS.choice = +t.dataset.drq; if (DS.choice !== s.answer) Learn.miss(s.concept || "day" + c.l); DS.stage = "back"; return keep(); }
+          if (t.dataset.drg && !DS.graded) {
+            var g = t.dataset.drg, sorted = DS.sorted;
+            DeepReview.grade(id, g, DS.conf, { sorted: sorted });
+            DS.graded = g; DS.stat.n++; if (g !== "again") DS.stat.ok++; else { Learn.miss(s.concept || "day" + c.l); if (DS.conf >= 2) DS.stat.ill++; if (!DS.again[id]) { DS.again[id] = 1; DS.q.push(id); } }
+            if (g !== "again") Learn.bump(s.concept || "day" + c.l, 10);
+            return keep();
+          }
+          if (t.dataset.dr === "next") { DS.i++; drCard(); Views.render(); window.scrollTo({ top: 0, behavior: "auto" }); var f = $(".x-dr .x-dr__chip, .x-dr__ta") || $("[data-dr=end]"); if (f) f.focus({ preventScroll: true }); return; }
+          if (t.dataset.dr === "end") { DS = null; return Views.render(); }
+        });
+        (function () {
+          var tabs1 = paintTabs;
+          paintTabs = function () { if (State.tab !== "review") DS = null; return tabs1.apply(null, arguments); };
+        })();
 
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
-        Object.assign(window.Psygma, { v2: true, review: Review, studytime: StudyTime, labFull: labFull, comfort: Comfort, advanced: ADVANCED });
+        Object.assign(window.Psygma, { v2: true, review: Review, studytime: StudyTime, labFull: labFull, comfort: Comfort, advanced: ADVANCED, deepReview: DeepReview });
 
         function confetti() {
           if (reduce) return;
