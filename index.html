@@ -724,6 +724,32 @@
       .x-full__b button { flex: 1 1 7rem; min-height: 52px; padding: 8px 12px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); font: 600 14px/1.25 var(--sans); }
       .x-full__b button[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 50%, transparent); }
       @media (prefers-reduced-motion: reduce) { .x-wk__l li.is-new { animation: none; } }
+      @media (min-width: 960px) {
+        .x-lab__fs { right: calc(var(--side) + 126px); }
+        .x-lab.has-fs .x-lab__top { right: calc(var(--side) + 184px); }
+        .x-lab.is-full .x-lab__cv { right: 0; }
+        .x-lab.is-full .x-lab__rc { right: 14px; }
+        .x-lab.is-full .x-lab__top { right: 72px; }
+        .x-lab.is-full .x-lab__panel { visibility: hidden; }
+      }
+      /* Psygma 2.0 · Comfort: text size, reduce motion, accents (default "theme" = the current look) */
+      [data-text="s"] #view, [data-text="s"] .player .stage { zoom: 0.92; }
+      [data-text="l"] #view, [data-text="l"] .player .stage { zoom: 1.12; }
+      [data-motion="reduce"] *, [data-motion="reduce"] *::before, [data-motion="reduce"] *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+      html[data-accent="ember"][data-theme="night"] { --primary: #ffa36e; --glow-a: rgba(255, 140, 80, 0.36); --glow-b: rgba(255, 196, 92, 0.2); }
+      html[data-accent="ocean"][data-theme="night"] { --primary: #45d6f2; --glow-a: rgba(56, 200, 240, 0.34); --glow-b: rgba(80, 120, 255, 0.24); }
+      html[data-accent="forest"][data-theme="night"] { --primary: #6fd8a2; --glow-a: rgba(80, 210, 150, 0.3); --glow-b: rgba(60, 160, 200, 0.2); }
+      html[data-accent="rose"][data-theme="night"] { --primary: #f69acb; --glow-a: rgba(244, 114, 182, 0.34); --glow-b: rgba(167, 139, 250, 0.22); }
+      html[data-accent="ember"][data-theme="day"] { --primary: #c2410c; --glow-a: rgba(234, 120, 60, 0.16); }
+      html[data-accent="ocean"][data-theme="day"] { --primary: #0e7490; --glow-a: rgba(14, 150, 190, 0.16); }
+      html[data-accent="forest"][data-theme="day"] { --primary: #2f7a4e; --glow-a: rgba(47, 122, 78, 0.16); }
+      html[data-accent="rose"][data-theme="day"] { --primary: #be185d; --glow-a: rgba(219, 39, 119, 0.14); }
+      .x-sw { display: inline-block; width: 14px; height: 14px; margin-right: 8px; border-radius: 999px; vertical-align: -2px; border: 1px solid var(--border); background: var(--primary); }
+      .x-sw[data-swatch="ember"] { background: #ffa36e; } .x-sw[data-swatch="ocean"] { background: #45d6f2; } .x-sw[data-swatch="forest"] { background: #6fd8a2; } .x-sw[data-swatch="rose"] { background: #f69acb; }
+      #fb-comfort .x-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+      #fb-comfort .x-btns button { min-height: var(--tap); padding: 0 16px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+      #fb-comfort .x-btns button[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent); }
+      #fb-comfort .tgl { margin-bottom: 12px; }
     </style>
     <script>
       /* before first paint: the saved theme, and no splash if it already ran this session */
@@ -736,6 +762,18 @@
           if (p.day) r.setAttribute("data-day", p.day);
         } catch (e) {}
         try { if (sessionStorage.getItem("sm.splash") === "1") r.classList.add("no-splash"); } catch (e) {}
+      })();
+    </script>
+    <script>
+      /* Psygma 2.0 · Comfort settings before first paint (text size, accent, motion) */
+      (function () {
+        var r = document.documentElement;
+        try {
+          var p = JSON.parse(localStorage.getItem("sm.prefs") || "{}"), sys = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+          r.setAttribute("data-text", p.textSize || "m");
+          r.setAttribute("data-accent", p.accent || "theme");
+          r.setAttribute("data-motion", (typeof p.reduceMotion === "boolean" ? p.reduceMotion : sys) ? "reduce" : "full");
+        } catch (e) {}
       })();
     </script>
   </head>
@@ -7176,9 +7214,517 @@
           };
         })();
 
+        /* ============ PSYGMA 2.0 · Part B: Advanced bank (Days 23, 26, 28, 29, 30 + clinical significance), Lab L39–L42, Comfort ============ */
+        /* --- 2D visuals for the advanced lessons --- */
+        function modViz(stage, api) {
+          var st = { int: 2, base: 4 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var L = 34, R = c.w - 20, T = 22, B = c.h - 34, y = function (v) { return B - (v / 14) * (B - T); };
+            var low = st.base, high = st.base + st.int;
+            ctx.strokeStyle = c.dim; ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(L, B); ctx.lineTo(R, B); ctx.stroke();
+            txt(ctx, c, "waitlist", L + 30, c.h - 14); txt(ctx, c, "CBT", R - 20, c.h - 14); txt(ctx, c, "drop in PHQ-9", L + 4, 12, c.dim, "left");
+            [[0, PX.cy, "mild at intake"], [1, PX.vio, "severe at intake"]].forEach(function (g) {
+              var d = g[0] ? high : low, y0 = y(1), y1 = y(1 + d);
+              ctx.strokeStyle = g[1]; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(L + 30, y0); ctx.lineTo(R - 20, y1); ctx.stroke(); ctx.lineWidth = 1;
+              ctx.fillStyle = g[1]; ctx.beginPath(); ctx.arc(R - 20, y1, 5, 0, 6.2832); ctx.fill();
+              txt(ctx, c, g[2] + " · +" + d, R - 28, y1 - 10, g[1], "right", "600");
+            });
+            st.ratio = high / Math.max(0.01, low);
+            return "CBT effect · mild <b>" + low + "</b> points · severe <b>" + high + "</b> points · interaction (difference in effects) <b>" + st.int + "</b>";
+          });
+        }
+        var FA_ITEMS = [["worry", 0], ["on edge", 0], ["can’t relax", 0], ["restless", 0], ["low mood", 1], ["no interest", 1], ["hopeless", 1], ["sleep", 2]];
+        function factorViz(stage, api) {
+          var st = { fc: 6, cross: 5 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var S = Math.min(c.w - 60, c.h - 50), ox = 40, oy = c.h - 30, r = st.fc / 10, x = st.cross / 10, clean = 0;
+            ctx.strokeStyle = c.dim; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + S, oy); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy - S); ctx.stroke();
+            txt(ctx, c, "loads on Anxiety →", ox + S, oy + 18, PX.cy, "right", "600"); txt(ctx, c, "↑ loads on Depression", ox + 4, oy - S - 6, PX.vio, "left", "600");
+            FA_ITEMS.forEach(function (it, i) {
+              var a = it[1] === 0 ? 0.78 - (i % 2) * 0.06 : it[1] === 1 ? r * 0.5 : x, d = it[1] === 1 ? 0.8 - (i % 2) * 0.05 : it[1] === 0 ? r * 0.45 : x;
+              var px = ox + a * S, py = oy - d * S, ok = Math.min(a, d) <= 0.3;
+              if (ok) clean++;
+              ctx.fillStyle = it[1] === 0 ? PX.cy : it[1] === 1 ? PX.vio : PX.gold; ctx.beginPath(); ctx.arc(px, py, 6, 0, 6.2832); ctx.fill();
+              if (!ok) { ctx.strokeStyle = PX.bad; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, 10, 0, 6.2832); ctx.stroke(); ctx.lineWidth = 1; }
+              txt(ctx, c, it[0], px + 9, py + 4, c.text, "left");
+            });
+            st.clean = clean;
+            return "<b>" + clean + "</b> of 8 items load cleanly on one factor · factors correlate <b>" + r.toFixed(1) + "</b> · “sleep” cross-loads <b>" + x.toFixed(1) + "</b>";
+          });
+        }
+        function nestViz(stage, api) {
+          var st = { icc: 10, m: 10 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var K = 20, icc = st.icc / 100, m = st.m, rnd = seeded(28), cols = Math.min(K, 10), cw = (c.w - 20) / cols;
+            for (var t = 0; t < cols; t++) {
+              var te = gauss(rnd) * Math.sqrt(icc) * 3, x0 = 10 + t * cw + cw / 2;
+              ctx.fillStyle = c.dim; ctx.globalAlpha = 0.15; ctx.fillRect(10 + t * cw + 3, 14, cw - 6, c.h - 40); ctx.globalAlpha = 1;
+              for (var k = 0; k < Math.min(m, 40); k++) {
+                var v = te + gauss(rnd) * Math.sqrt(1 - icc) * 3, py = c.h / 2 - 6 - v * 12;
+                ctx.fillStyle = PX.cy; ctx.beginPath(); ctx.arc(x0 + (rnd() - 0.5) * (cw - 12), Math.max(18, Math.min(c.h - 30, py)), 3, 0, 6.2832); ctx.fill();
+              }
+              txt(ctx, c, "T" + (t + 1), x0, c.h - 12);
+            }
+            var N = K * m, de = 1 + (m - 1) * icc; st.eff = N / de; st.de = de;
+            return "20 therapists × <b>" + m + "</b> clients = <b>" + N + "</b> · design effect <b>" + de.toFixed(2) + "</b> · effective n <b>" + Math.round(st.eff) + "</b>";
+          });
+        }
+        /* a fixed little literature: true effect 0.45; se per study; tau spreads the true effects */
+        var META_SE = [0.32, 0.18, 0.25, 0.12, 0.28, 0.2, 0.15, 0.3, 0.22, 0.14, 0.26, 0.17], META_G = [0.4, -1.1, 0.9, 0.2, -0.6, 1.3, -0.3, 0.7, -1.4, 0.1, 1.0, -0.2], META_E = [-0.5, 0.8, 0.3, -0.9, 1.2, -0.2, 0.6, -1.0, 0.4, 0.1, -0.7, 0.9];
+        function metaStudies(k, tau, shift) {
+          var out = [];
+          for (var i = 0; i < k; i++) { var se = META_SE[i], e = shift ? Math.sin(i * 12.9898 + shift * 78.233) * 1.4 : META_E[i]; out.push({ d: 0.45 + tau * META_G[i] + se * e, se: se }); }
+          return out;
+        }
+        function metaPool(S) {
+          var w = S.map(function (s) { return 1 / (s.se * s.se); }), sw = w.reduce(function (a, b) { return a + b; }, 0);
+          var fe = S.reduce(function (a, s, i) { return a + w[i] * s.d; }, 0) / sw, Q = S.reduce(function (a, s, i) { return a + w[i] * (s.d - fe) * (s.d - fe); }, 0), df = S.length - 1;
+          var C = sw - w.reduce(function (a, b) { return a + b * b; }, 0) / sw, t2 = Math.max(0, (Q - df) / (C || 1));
+          var wr = S.map(function (s) { return 1 / (s.se * s.se + t2); }), swr = wr.reduce(function (a, b) { return a + b; }, 0);
+          var re = S.reduce(function (a, s, i) { return a + wr[i] * s.d; }, 0) / swr, se = Math.sqrt(1 / swr);
+          return { d: re, lo: re - 1.96 * se, hi: re + 1.96 * se, I2: Q > df && Q > 0 ? (Q - df) / Q : 0, w: wr, k: S.length };
+        }
+        function forestViz(stage, api) {
+          var st = { k: 4, tau: 0 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var S = metaStudies(st.k, st.tau / 100), P = metaPool(S), lo = -0.6, hi = 1.6, px = function (v) { return 70 + (v - lo) / (hi - lo) * (c.w - 90); };
+            var rowH = Math.min(18, (c.h - 60) / (S.length + 1)), mw = Math.max.apply(null, P.w);
+            ctx.strokeStyle = c.dim; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(px(0), 8); ctx.lineTo(px(0), c.h - 22); ctx.stroke(); ctx.setLineDash([]);
+            txt(ctx, c, "no effect", px(0), c.h - 8, c.dim);
+            S.forEach(function (s, i) {
+              var y = 16 + i * rowH; txt(ctx, c, "Study " + (i + 1), 8, y + 4, c.dim, "left");
+              ctx.strokeStyle = c.text; ctx.beginPath(); ctx.moveTo(px(s.d - 1.96 * s.se), y); ctx.lineTo(px(s.d + 1.96 * s.se), y); ctx.stroke();
+              var z = 3 + 5 * P.w[i] / mw; ctx.fillStyle = PX.cy; ctx.fillRect(px(s.d) - z, y - z, 2 * z, 2 * z);
+            });
+            var yd = 16 + S.length * rowH + 8;
+            ctx.fillStyle = PX.vio; ctx.beginPath(); ctx.moveTo(px(P.lo), yd); ctx.lineTo(px(P.d), yd - 8); ctx.lineTo(px(P.hi), yd); ctx.lineTo(px(P.d), yd + 8); ctx.closePath(); ctx.fill();
+            txt(ctx, c, "pooled", 8, yd + 4, PX.vio, "left", "600");
+            st.P = P;
+            return "pooled d <b>" + P.d.toFixed(2) + "</b> [" + P.lo.toFixed(2) + ", " + P.hi.toFixed(2) + "] · diamond width <b>" + (P.hi - P.lo).toFixed(2) + "</b> · I² <b>" + Math.round(P.I2 * 100) + "%</b>";
+          });
+        }
+        function bayesViz(stage, api) {
+          var st = { prior: 10, lr: 4 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var p = st.prior / 100, odds = p / (1 - p) * st.lr, post = odds / (1 + odds), W = c.w - 40;
+            [[p, "before the result (prior)", c.dim, 30], [post, "after a positive result (posterior)", PX.vio, 92]].forEach(function (b) {
+              ctx.fillStyle = c.dim; ctx.globalAlpha = 0.18; ctx.fillRect(20, b[3], W, 26); ctx.globalAlpha = 1;
+              ctx.fillStyle = b[2]; ctx.fillRect(20, b[3], W * b[0], 26);
+              txt(ctx, c, b[1] + " · " + Math.round(b[0] * 100) + "%", 20, b[3] - 6, c.text, "left", "600");
+            });
+            txt(ctx, c, "× likelihood ratio " + st.lr, c.w / 2, 76, PX.gold, "center", "600");
+            st.post = post;
+            return "prior <b>" + st.prior + "%</b> · odds × <b>" + st.lr + "</b> · posterior <b>" + Math.round(post * 100) + "%</b>";
+          });
+        }
+        var APA_PARTS = [["dir", "Direction in words"], ["df", "Degrees of freedom"], ["p", "Exact p"], ["es", "Effect size"], ["ci", "95% CI"]];
+        function apaViz(stage, api) {
+          var st = { dir: "off", df: "off", p: "off", es: "off", ci: "off" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var on = function (k) { return st[k] === "on"; }, n = APA_PARTS.filter(function (x) { return on(x[0]); }).length;
+            var s = (on("dir") ? "CBT clients reported lower anxiety than waitlist clients, " : "The result was significant, ") + "t" + (on("df") ? "(58)" : "") + " = 2.50, " + (on("p") ? "p = .015" : "p < .05") + (on("es") ? ", d = 0.65" : "") + (on("ci") ? ", 95% CI [0.12, 1.17]" : "") + ".";
+            ctx.fillStyle = c.text; ctx.font = "italic 15px Fraunces, Georgia, serif"; ctx.textAlign = "left";
+            var words = s.split(" "), line = "", y = 34;
+            words.forEach(function (w) { var t = line + w + " "; if (ctx.measureText(t).width > c.w - 30 && line) { ctx.fillText(line, 14, y); line = w + " "; y += 22; } else line = t; });
+            ctx.fillText(line, 14, y);
+            ctx.fillStyle = PX.ok; ctx.fillRect(14, c.h - 22, (c.w - 28) * n / 5, 8); ctx.strokeStyle = c.dim; ctx.strokeRect(14, c.h - 22, c.w - 28, 8);
+            st.n = n;
+            return "<b>" + n + "</b> of 5 APA elements reported";
+          });
+        }
+        var CS_PRE = 28, CS_RCI = 6, CS_CUT = 10;
+        function csViz(stage, api) {
+          var st = { post: 18, pre: CS_PRE };
+          bindViz(stage, api, st, function (c, ctx) {
+            var px = function (v) { return 16 + (v / 27) * (c.w - 32); }, y = c.h / 2;
+            ctx.fillStyle = PX.ok; ctx.globalAlpha = 0.16; ctx.fillRect(px(0), 10, px(CS_CUT) - px(0), c.h - 40); ctx.globalAlpha = 1;
+            txt(ctx, c, "functional range (< 10)", px(CS_CUT / 2), 24, PX.ok, "center", "600");
+            ctx.fillStyle = PX.gold; ctx.globalAlpha = 0.2; ctx.fillRect(px(Math.max(0, st.pre - CS_RCI)), y - 26, px(Math.min(27, st.pre + CS_RCI)) - px(Math.max(0, st.pre - CS_RCI)), 52); ctx.globalAlpha = 1;
+            txt(ctx, c, "change < 6 could be noise", px(Math.max(4, st.pre - CS_RCI / 2)), y + 42, PX.gold, "center", "600");
+            ctx.strokeStyle = c.dim; ctx.beginPath(); ctx.moveTo(px(0), c.h - 22); ctx.lineTo(px(27), c.h - 22); ctx.stroke();
+            [0, 5, 10, 15, 20, 27].forEach(function (t) { txt(ctx, c, String(t), px(t), c.h - 8); });
+            var chg = st.pre - st.post, rel = chg >= CS_RCI, worse = chg <= -CS_RCI, inF = st.post < CS_CUT;
+            st.cls = worse ? "Deteriorated" : !rel ? "No reliable change" : inF ? "Recovered" : "Improved, not recovered";
+            [[st.pre, c.text, "pre"], [st.post, st.cls === "Recovered" ? PX.ok : PX.vio, "post"]].forEach(function (m, i) {
+              ctx.fillStyle = m[1]; ctx.beginPath(); ctx.arc(px(m[0]), y + (i ? 10 : -10), 8, 0, 6.2832); ctx.fill(); txt(ctx, c, m[2], px(m[0]), y + (i ? 30 : -22), m[1], "center", "600");
+            });
+            return "PHQ-9 pre <b>" + st.pre + "</b> → post <b>" + st.post + "</b> · change <b>" + chg + "</b> · <b>" + st.cls + "</b>";
+          });
+        }
+        var MOD_VZ = function () { return vz("Two lines: the CBT effect for clients mild and severe at intake", ctl(sl("int", "Extra effect for severe clients", 0, 8, 2) + sl("base", "Effect for mild clients", 0, 6, 4))); };
+        var FA_VZ = function () { return vz("A loading plot: eight items placed by how strongly they load on an anxiety factor and a depression factor", ctl(sl("fc", "How alike the two factors are (×.1)", 0, 9, 6) + sl("cross", "“Sleep” cross-loading (×.1)", 0, 8, 5))); };
+        var NEST_VZ = function () { return vz("Clients drawn as dots inside therapist columns", ctl(sl("icc", "Therapist effect (ICC %)", 0, 30, 10) + sl("m", "Clients per therapist", 2, 40, 10))); };
+        var FOREST_VZ = function () { return vz("A forest plot: each study's effect and interval, with the pooled diamond at the bottom", ctl(sl("k", "Studies (k)", 2, 12, 4) + sl("tau", "Between-study spread τ (×.01)", 0, 60, 0, 5))); };
+        var BAYES_VZ = function () { return vz("Two bars: probability before and after a positive result", ctl(sl("prior", "Prior probability %", 1, 50, 10) + sl("lr", "Likelihood ratio", 1, 20, 4))); };
+        var APA_VZ = function () { return vz("An APA results sentence that grows as you add elements", ctl(APA_PARTS.map(function (x) { return bt(x[0], [["on", "+ " + x[1]], ["off", "−"]]); }).join(""))); };
+        var CS_VZ = function () { return vz("A PHQ-9 line with the client's pre and post scores, a reliable-change band and the functional range", ctl(sl("post", "Post score", 0, 27, 18) + sl("pre", "Pre score", 10, 27, CS_PRE))); };
+
+        var ADV_NEW = { "adv-clinsig": "Clinical Significance" };
+        Object.assign(NEW_LESSONS, ADV_NEW);
+        var PART_B_LESSONS = {
+          23: {
+            home: ["Moderation & mediation", "for whom a treatment works, and through what."],
+            steps: [
+              { kind: "hook", title: "For whom, and how?", body: '<p class="hook">CBT lowers depression. Two follow-up questions make you a scientist-practitioner: <b>for whom</b> does it work best, and <b>through what</b>?</p>' },
+              { kind: "predict", title: "Your guess first", q: "If CBT helps severe clients more than mild ones, intake severity is a…", options: ["Moderator", "Mediator", "Confounder"], say: "Hold the guess. Change the lines." },
+              { kind: "play", title: "Two lines, one treatment", mount: modViz, lab: "l40", body: "<p>Each line is the CBT effect for one kind of client. When the lines are not parallel, the effect depends on who you treat.</p>" + MOD_VZ(), so: "Non-parallel lines mean the effect depends on a third variable: moderation." },
+              { kind: "notice", title: "What changed?", q: "With the extra effect at 0, the two lines are…", options: ["Parallel: no moderation", "Crossed", "Gone"], say: ["Yes. Same effect for everyone.", "Look at the slopes again with the slider at 0."] },
+              { kind: "formalize", title: "Two different questions", body: "<p><b>Moderation (for whom):</b> the X→Y effect changes with W; tested by the X × W interaction term.</p><p><b>Mediation (through what):</b> X → M → Y; the indirect effect is a × b, tested with a bootstrap confidence interval.</p>", so: "Moderators change the size of an effect; mediators carry it." },
+              workedStep("d23", { problem: "CBT → fewer negative automatic thoughts (a = 0.5); fewer thoughts → less depression (b = 0.6). Bootstrap 95% CI for a × b is [0.12, 0.51]. Is there an indirect effect?", lines: ["Indirect effect = a × b = 0.5 × 0.6", "= 0.30", "The bootstrap CI [0.12, 0.51] excludes 0"], answer: "Yes: a significant indirect effect of 0.30 through automatic thoughts. With cross-sectional data, the causal order is still an assumption." }),
+              { kind: "check", title: "Build-check", mount: modViz, body: MOD_VZ(), q: "Make the CBT effect for severe clients at least twice the effect for mild clients, with a mild effect of at least 2 points.",
+                goal: function (s) { if ((s.base || 0) < 2) return "Give mild clients an effect of at least 2 points first."; return s.ratio >= 2 ? true : "Severe clients’ effect is only " + (s.ratio || 0).toFixed(1) + "× the mild effect."; }, why: "A strong interaction: the treatment effect depends on intake severity." },
+              { kind: "check", title: "Which test?", q: "To test whether alliance changes CBT’s effect, you add…", options: ["The CBT × alliance interaction term", "The indirect effect a × b", "A chi-square"], answer: 0, why: "Moderation is tested with the interaction (product) term.", tags: [null, "MED-PROOF", null] },
+              { kind: "transfer", title: "New costume", q: "One cross-sectional survey finds a significant indirect effect of mindfulness on stress through rumination. The fair conclusion is…", options: ["Rumination may carry the effect; the order needs a longitudinal or experimental test", "Mindfulness works by reducing rumination: proven", "There is no relationship"], answer: 0, why: "One cross-sectional mediation result is consistent with a mechanism; it does not prove it.", tags: [null, "MED-PROOF", null] }
+            ]
+          },
+          26: {
+            home: ["Validity & factor analysis", "does your scale measure what you think it measures?"],
+            steps: [
+              { kind: "hook", title: "What is this scale really measuring?", body: '<p class="hook">Does your depression scale measure depression, or just distress, or the wish to look well?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Anxiety items and depression items correlate strongly. In a factor analysis they will…", options: ["Pull toward one factor", "Split cleanly into two", "Vanish"], say: "Hold the guess. Move the factors." },
+              { kind: "play", title: "The loading plot", mount: factorViz, body: "<p>Each dot is an item, placed by how strongly it loads on an anxiety factor (right) and a depression factor (up). Red rings mark items that load on both.</p>" + FA_VZ(), so: "Items that load on one factor support a clean structure; cross-loaders blur it." },
+              { kind: "notice", title: "What changed?", q: "When the two factors became more alike, the items…", options: ["Drifted toward the diagonal", "Stayed on their axes", "Disappeared"], say: ["Yes. Similar constructs blur the structure.", "Watch the dots as the first slider rises."] },
+              { kind: "formalize", title: "Validity is an argument", body: "<p>Validity is built from evidence: content, response process, <b>internal structure</b> (factor analysis), relations with other measures (convergent and discriminant), and consequences.</p><p><b>EFA</b> explores structure; <b>CFA</b> tests a structure you specified first. Good CFA fit: CFI ≥ .95, RMSEA ≤ .06.</p>", so: "A factor analysis is one piece of validity evidence: does the scale’s structure match the theory?" },
+              workedStep("d26", { problem: "A CFA of a two-factor anxiety/depression scale gives CFI = .97 and RMSEA = .045. Verdict?", lines: ["CFI ≥ .95? .97: yes", "RMSEA ≤ .06? .045: yes", "Both indices meet the cut-offs"], answer: "Good fit: the two-factor structure is supported, one piece of validity evidence." }),
+              { kind: "check", title: "Build-check", mount: factorViz, body: FA_VZ(), q: "Make all 8 items load cleanly on one factor each.",
+                goal: function (s) { return s.clean === 8 ? true : "Only " + (s.clean || 0) + " of 8 items load cleanly. Make the factors more distinct, and pull “sleep” off both."; }, why: "Distinct constructs and no cross-loading item: a clean two-factor structure." },
+              { kind: "check", title: "Convergent or discriminant?", q: "Your new anxiety scale correlates .70 with the GAD-7. That is evidence of…", options: ["Convergent validity", "Discriminant validity", "Test–retest reliability"], answer: 0, why: "High agreement with another measure of the same construct is convergent evidence.", tags: [null, null, "REL-VALID"] },
+              { kind: "transfer", title: "New costume", q: "You plan to use an English-normed anxiety scale with Spanish-speaking clients. Before comparing groups, you need…", options: ["Evidence of measurement invariance across languages", "A higher alpha only", "Nothing: the scale is validated"], answer: 0, why: "Without invariance, group differences may come from the instrument, not the clients." }
+            ]
+          },
+          28: {
+            home: ["Multilevel models", "clients nested in therapists, sessions nested in clients."],
+            steps: [
+              { kind: "hook", title: "Nobody is independent here", body: '<p class="hook">Sessions are nested in clients, clients in therapists. Ignore that and your p-values are too optimistic.</p>' },
+              { kind: "predict", title: "Your guess first", q: "200 clients seen by 20 therapists, with a small therapist effect. Your effective sample is…", options: ["About 200", "Smaller than 200", "Larger than 200"], say: "Hold the guess. Turn up the therapist effect." },
+              { kind: "play", title: "Clients in therapist columns", mount: nestViz, body: "<p>Each column is a therapist and each dot a client. As the therapist effect (ICC) rises, a therapist’s clients look more like each other.</p>" + NEST_VZ(), so: "Clients of the same therapist share information, so they count as less than independent clients." },
+              { kind: "notice", title: "What changed?", q: "Adding more clients per therapist, with ICC at 10%, made the design effect…", options: ["Grow", "Shrink", "Stay at 1"], say: ["Yes. Bigger clusters, more overlap.", "Watch the design-effect number as the second slider rises."] },
+              { kind: "formalize", title: "The design effect", body: '<p class="hook">DE = 1 + (m − 1) × ICC</p><p>Effective n = N / DE. Multilevel (mixed) models handle the nesting, missing sessions and each client’s own growth curve. Therapist effects are typically about 5% of outcome variance.</p>', so: "Model the nesting, or your study pretends to have more independent clients than it does." },
+              workedStep("d28", { problem: "Therapist ICC = .05; each therapist sees 20 clients. What is the design effect?", lines: ["DE = 1 + (m − 1) × ICC", "= 1 + 19 × 0.05", "= 1.95"], answer: "DE ≈ 1.95: ignoring the nesting roughly halves your real sample size." }),
+              { kind: "check", title: "Build-check", mount: nestViz, body: NEST_VZ(), q: "At a therapist effect of 10%, reach an effective n of at least 100 with no more than 12 clients per therapist.",
+                goal: function (s) { if (s.icc !== 10) return "Set the therapist effect to 10% first."; if (s.m > 12) return "That’s more than 12 clients per therapist."; return s.eff >= 100 ? true : "Effective n is only " + Math.round(s.eff || 0) + "."; }, why: "Small clusters keep the design effect low, so more of your clients count." },
+              { kind: "check", title: "Why multilevel?", q: "Clients nested in therapists mainly violate the assumption of…", options: ["Independence", "Linearity", "Normality"], answer: 0, why: "Clients of one therapist resemble each other, so their scores are not independent." },
+              { kind: "transfer", title: "New costume", q: "Your outcome-monitoring data have clients with 3, 7 and 12 sessions. The better choice is…", options: ["A multilevel growth model that uses every session", "Repeated-measures ANOVA on complete cases only", "Averaging each client into one score"], answer: 0, why: "Multilevel models use all available sessions (under missing-at-random) and model each client’s trajectory." }
+            ]
+          },
+          29: {
+            home: ["Meta-analysis", "one study is a whisper; a meta-analysis is the choir."],
+            steps: [
+              { kind: "hook", title: "The choir, not the whisper", body: '<p class="hook">One study of a therapy is a whisper. Many studies, weighted by how precise each is, are the choir.</p>' },
+              { kind: "predict", title: "Your guess first", q: "Add more studies of the same therapy. The pooled diamond becomes…", options: ["Narrower", "Wider", "No different"], say: "Hold the guess. Add studies." },
+              { kind: "play", title: "The forest plot", mount: forestViz, lab: "l41", body: "<p>Each row is a study: its effect (square, sized by weight) and its interval. The diamond is the pooled effect and its interval.</p>" + FOREST_VZ(), so: "Precise studies weigh more; more studies narrow the diamond, unless the true effects really differ." },
+              { kind: "notice", title: "What changed?", q: "When τ (real differences between studies) rose, the diamond…", options: ["Widened, and I² rose", "Narrowed", "Moved to zero"], say: ["Yes. Real heterogeneity adds uncertainty.", "Raise τ and watch the diamond’s width and I²."] },
+              { kind: "formalize", title: "Weights and heterogeneity", body: "<p>Each study is weighted by its precision (1 / variance). A <b>random-effects</b> model assumes true effects vary between studies; <b>I²</b> is the share of variation that is real rather than chance.</p><p>Check for publication bias (funnel plots, Egger’s test): small null studies often go missing.</p>", so: "A meta-analysis pools precision-weighted effects and tells you how much they truly vary." },
+              workedStep("d29", { problem: "Two studies: d = 0.6 (variance .04) and d = 0.2 (variance .01). Fixed-effect pooled d?", lines: ["Weights = 1 / variance: 25 and 100", "Pooled = (25 × 0.6 + 100 × 0.2) / 125", "= (15 + 20) / 125 = 0.28"], answer: "d = 0.28: the more precise study dominates." }),
+              { kind: "check", title: "Build-check", mount: forestViz, body: FOREST_VZ(), q: "With no real heterogeneity (τ = 0), make the diamond narrower than 0.30.",
+                goal: function (s) { if ((s.tau || 0) !== 0) return "Set τ to 0 first."; var P = s.P; return P && P.hi - P.lo < 0.3 ? true : "The diamond is " + (P ? (P.hi - P.lo).toFixed(2) : "?") + " wide. Add studies."; }, why: "More studies of the same effect give a more precise pooled estimate." },
+              { kind: "check", title: "Read the statistic", q: "I² mainly tells you…", options: ["How much the studies’ true effects differ", "The pooled effect size", "Whether there is publication bias"], answer: 0, why: "I² is the share of between-study variation beyond chance." },
+              { kind: "transfer", title: "New costume", q: "Psychotherapy for depression shows g ≈ 0.7 overall but ≈ 0.4 in high-quality studies. This means…", options: ["Study quality moderates the effect; trust the high-quality estimate more", "The two numbers cancel out", "Low-quality studies should be weighted more"], answer: 0, why: "A moderator analysis by quality shows weaker designs inflate effects." }
+            ]
+          },
+          "30a": {
+            steps: [
+              { kind: "hook", title: "Update like a good clinician", body: '<p class="hook">Prior knowledge plus new evidence gives a revised judgment. That is Bayes’ rule, and you already use it at intake.</p>' },
+              { kind: "predict", title: "Your guess first", q: "A rare condition (10%) and a fairly good test (likelihood ratio 4). After a positive result, the probability is…", options: ["Below 50%", "About 90%", "Exactly 40%"], say: "Hold the guess. Move the bars." },
+              { kind: "play", title: "Prior × evidence", mount: bayesViz, body: "<p>The top bar is your belief before the result; the bottom bar after a positive result. The likelihood ratio says how much more likely that result is if the condition is present.</p>" + BAYES_VZ(), so: "Posterior odds = prior odds × likelihood ratio." },
+              { kind: "notice", title: "What changed?", q: "With a prior of 1%, even a likelihood ratio of 20 gives a posterior that is…", options: ["Still under 20%", "Near 100%", "Exactly 20%"], say: ["Yes. Low priors are hard to overturn.", "Set the prior to 1% and the ratio to 20."] },
+              { kind: "formalize", title: "Bayes in one line", body: "<p><b>Posterior ∝ likelihood × prior.</b> A 95% credible interval says the parameter is in it with 95% probability, given the model and prior. Bayes factors can show evidence <i>for</i> no difference, which a p-value cannot.</p>", so: "Start from the base rate; let the evidence move you by its likelihood ratio." },
+              workedStep("d30a", { problem: "Prior odds of a disorder are 1 : 9. A test result has likelihood ratio 6. What is the posterior probability?", lines: ["Posterior odds = 6 × 1/9 = 6 : 9", "= 2 : 3", "Probability = 2 / (2 + 3) = 0.40"], answer: "40%: more likely than before, still not likely." }),
+              { kind: "check", title: "Build-check", mount: bayesViz, body: BAYES_VZ(), q: "With a 10% prior, find the smallest likelihood ratio that makes a positive result at least 50% likely.",
+                goal: function (s) { if (s.prior !== 10) return "Set the prior to 10% first."; if ((s.post || 0) < 0.5) return "Posterior is " + Math.round((s.post || 0) * 100) + "%."; return s.lr === 9 ? true : "That works, but a smaller ratio also gets you to 50%."; }, why: "Prior odds 1 : 9 need a ratio of 9 to reach even odds." },
+              { kind: "check", title: "Read the result", q: "BF₀₁ = 8 comparing two therapies means…", options: ["The data are 8× more likely under “no difference”", "The therapies differ, 8 to 1", "p = .08"], answer: 0, why: "BF₀₁ is evidence for the null over the alternative.", tags: [null, null, "P-IS-H0"] }
+            ]
+          },
+          "30b": {
+            steps: [
+              { kind: "hook", title: "Write it so it can be checked", body: '<p class="hook">A results sentence should let any reader, including future you, verify what happened.</p>' },
+              { kind: "predict", title: "Your guess first", q: "“The result was significant (t = 2.5, p < .05).” What is missing?", options: ["df, exact p, effect size, CI and direction", "Nothing", "Only the sample size"], say: "Build the sentence and see." },
+              { kind: "play", title: "Build the sentence", mount: apaViz, body: "<p>Add each element and watch the sentence become checkable.</p>" + APA_VZ(), so: "Direction in words, df, exact p, effect size and its CI: the full APA sentence." },
+              { kind: "formalize", title: "APA 7 and open science", body: "<p>Italicize statistical symbols, report exact p (p = .032; p < .001, never p = .000), effect sizes with confidence intervals, two decimals (three for p).</p><p>Pre-registration, open data and code, and reporting every measure protect against p-hacking and HARKing (hypothesizing after results are known).</p>", so: "Report so others can verify; register so others can trust." },
+              workedStep("d30b", { problem: "Fix: “The result was significant (t = 2.5, p < .05).” CBT n = 30, waitlist n = 30, d = 0.65, 95% CI [0.12, 1.17], p = .015.", lines: ["Say the direction: CBT clients reported lower anxiety than waitlist clients", "Add df: t(58) = 2.50", "Exact p and effect size: p = .015, d = 0.65, 95% CI [0.12, 1.17]"], answer: "CBT clients reported lower anxiety than waitlist clients, t(58) = 2.50, p = .015, d = 0.65, 95% CI [0.12, 1.17]." }),
+              { kind: "check", title: "Build-check", mount: apaViz, body: APA_VZ(), q: "Build the full APA sentence: all five elements.", goal: function (s) { return s.n === 5 ? true : "Only " + (s.n || 0) + " of 5 elements are in the sentence."; }, why: "Now any reader can check the result and judge its size." },
+              { kind: "check", title: "Report p", q: "Your software prints p = .000. You report…", options: ["p < .001", "p = .000", "p = 0"], answer: 0, why: "A p-value is never exactly zero." },
+              { kind: "transfer", title: "New costume", q: "You add a hypothesis to your dissertation after seeing which subscale was significant, and present it as planned. That is…", options: ["HARKing", "Pre-registration", "A robustness check"], answer: 0, why: "Presenting a post hoc hypothesis as a priori is HARKing; pre-registration prevents it." }
+            ]
+          },
+          "adv-clinsig": {
+            steps: [
+              { kind: "hook", title: "Better, or recovered?", body: '<p class="hook">Statistics can say a group improved. Your client wants to know: am I better, and am I well?</p>' },
+              { kind: "predict", title: "Your guess first", q: "PHQ-9 falls from 28 to 12. Reliable-change threshold 6; functional cutoff 10. The client is…", options: ["Reliably improved, not yet recovered", "Recovered", "Unchanged"], say: "Hold the guess. Move the post score." },
+              { kind: "play", title: "Two tests, one client", mount: csViz, body: "<p>The gold band is change small enough to be measurement error. The green zone is the functional range. Recovery needs both: out of the band, and into the zone.</p>" + CS_VZ(), so: "Clinically significant change = reliable change + moving into the functional range (Jacobson & Truax)." },
+              { kind: "notice", title: "What changed?", q: "A post score of 8 from a pre score of 12 counts as…", options: ["Not reliable: under 6 points of change", "Recovered", "Deteriorated"], say: ["Yes. Below the cutoff, but within the noise band.", "Set pre 12 and post 8 and read the label."] },
+              { kind: "formalize", title: "Four outcomes", body: "<p><b>Recovered:</b> reliable change and now in the functional range. <b>Improved:</b> reliable change, still above the cutoff. <b>Unchanged:</b> change within measurement error. <b>Deteriorated:</b> reliable change for the worse.</p><p>Group statistics can be significant while few clients recover; report both.</p>", so: "Judge each client against measurement error and against a functional norm." },
+              workedStep("dcs", { problem: "Pre 28, post 12 on the PHQ-9. RCI threshold 6 points; functional cutoff 10. Classify.", lines: ["Change = 28 − 12 = 16 points", "16 > 6: reliable change", "Post 12 is not under 10: not in the functional range"], answer: "Reliably improved, not yet recovered: keep going, and say so plainly." }),
+              { kind: "check", title: "Build-check", mount: csViz, body: CS_VZ(), q: "From a pre score of 28, find the highest post score that still counts as Recovered.", goal: function (s) { if (s.pre !== CS_PRE) return "Keep the pre score at 28."; if (s.cls !== "Recovered") return "That is “" + (s.cls || "") + "”."; return s.post === 9 ? true : "Recovered, but a higher post score would also count."; }, why: "9 is under the cutoff of 10 and 19 points of change is well past 6." },
+              { kind: "check", title: "Ethics", q: "Why is an underpowered study an ethical problem?", options: ["It burdens participants without being able to answer the question", "It raises alpha", "It always needs more consent forms"], answer: 0, why: "Participants give time and trust; a study that can’t detect the effect wastes it." },
+              { kind: "transfer", title: "New costume", q: "A trial reports a significant group difference, d = 0.3, and 18% of treated clients recovered vs 12% of controls. The honest summary is…", options: ["A real but modest benefit: most clients did not recover", "The treatment cures depression", "No effect at all"], answer: 0, why: "Significance and recovery rates answer different questions; report both.", tags: [null, "SIG-IMPORTANT", null] }
+            ]
+          }
+        };
+        Object.keys(PART_B_LESSONS).forEach(function (k) { LESSON_CONTENT[k] = PART_B_LESSONS[k]; });
+        var CLINIC_B = {
+          23: { m: "PHQ-9", c: "CBT reduces depression partly through fewer negative automatic thoughts, and the effect is stronger for clients with higher intake severity.", act: "Name both: severity moderates (for whom), automatic thoughts may mediate (through what).", q: "Intake severity in this case is a…", options: ["Moderator", "Mediator", "Outcome"], answer: 0, why: "It changes the size of CBT’s effect: moderation." },
+          26: { m: "GAD-7", c: "You want to use an English-normed anxiety scale with Spanish-speaking clients in your programme.", act: "Look for invariance evidence (same loadings and intercepts across languages) before comparing scores.", q: "Spanish speakers score 3 points higher. Without invariance evidence you should say…", options: ["The gap may be an artifact of the instrument", "Spanish speakers are more anxious", "The scale is invalid"], answer: 0, why: "Without measurement invariance, group differences can come from the measure itself." },
+          28: { m: "OQ-45", c: "Session-by-session OQ-45 scores are analysed as growth curves; some clients fall below their expected curve by session 4.", act: "Flag “not on track” clients early and adjust treatment with them; that is routine outcome monitoring.", q: "Why model each client’s curve rather than pre/post only?", options: ["It uses every session and spots who is off track early", "It makes p-values smaller", "It needs complete data"], answer: 0, why: "Growth models use all sessions and individual trajectories." },
+          "30b": { m: "Open science", c: "You are planning a dissertation on a group intervention for clients in reentry.", act: "Pre-register hypotheses and the analysis plan on OSF before you collect data.", q: "Pre-registration mainly prevents…", options: ["Undisclosed analytic flexibility", "Low reliability", "Ethics review"], answer: 0, why: "It locks the plan, so readers can tell confirmatory from exploratory results." },
+          29: { m: "Depression", c: "A client asks whether therapy “really works” for depression. Meta-analyses find g ≈ 0.7 overall, ≈ 0.4 in the highest-quality trials.", act: "Give the honest, moderate number, and say most people improve with treatment.", q: "Which number do you lead with?", options: ["About 0.4, from the strongest studies", "0.7, because it is bigger", "Neither: meta-analyses can’t be trusted"], answer: 0, why: "High-quality studies give the more trustworthy estimate." },
+          "30a": { m: "Bayes", c: "Two bona fide therapies are compared. BF₀₁ = 8 for “no difference”.", act: "Tell the client both are reasonable choices; let preference and fit decide.", q: "What does BF₀₁ = 8 support?", options: ["No meaningful difference between them", "Therapy A is 8× better", "Nothing: it’s not significant"], answer: 0, why: "The data are 8 times more likely under no difference." },
+          "adv-clinsig": { m: "BDI-II", c: "A client moves from 30 to 22 on the BDI-II. The reliable-change threshold is 8.5 points.", act: "Keep monitoring and adjust treatment together; don’t call it change yet.", q: "How do you classify this?", options: ["No reliable change yet", "Recovered", "Deteriorated"], answer: 0, why: "8 points is within measurement error (under 8.5)." }
+        };
+        Object.keys(CLINIC_B).forEach(function (k) { addClinic(/^\d+$/.test(k) ? +k : k, CLINIC_B[k]); });
+        /* Day 30 holds both halves in its slot, like Days 6 and 9 */
+        LESSON_CONTENT[30] = { home: ["Bayesian thinking & APA results", "update beliefs, then report results others can check."], steps: LESSON_CONTENT["30a"].steps.concat(LESSON_CONTENT["30b"].steps) };
+        /* the Advanced group in the Library and a journey row on Home */
+        (function () {
+          var nl0 = newLessons;
+          newLessons = function () {
+            var out = nl0.apply(null, arguments), n = out.length;
+            Object.keys(ADV_NEW).forEach(function (id, i) { if (LESSON_CONTENT[id]) out.push({ day: id, title: ADV_NEW[id], level: "advanced", isNew: true, pillar: "Adv", ord: n + i }); });
+            return out;
+          };
+        })();
+        JOURNEY_EXTRA.push({ id: "Adv", name: "Advanced practice", t: "Advanced", items: Object.keys(ADV_NEW) });
+
+        /* --- Lab L39–L42 (L35–L38 are reserved by the plan for Phase 5C) --- */
+        var LAB_CUR = null;
+        function zCrit(a) { var lo = 0, hi = 5; for (var i = 0; i < 50; i++) { var m = (lo + hi) / 2; if (2 * (1 - phi(m)) > a) lo = m; else hi = m; } return (lo + hi) / 2; }
+        function setCtl(label, v) {
+          var i = Array.prototype.filter.call(doc.querySelectorAll(".x-lab .x-ctl .x-sl"), function (x) { return x.querySelector(".x-sl__h span").textContent === label; })[0];
+          if (!i) return; i = i.querySelector("input"); i.value = String(v); i.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        function gridLines(T, G) { return segLines(T, G * (G - 1) * 2, 0x8f86d8, 0.5); }
+        Array.prototype.push.apply(SCENES, [
+          {
+            id: "l39", lid: 39, name: "Bivariate Mountain", pillar: "B4", learn: 18, day: 18, level: "intermediate", hue: ["#a06bff", "#3fd8ff"],
+            idea: "Correlation as a landscape: a round hill or a diagonal ridge.",
+            why: "Two variables together have one joint shape. Correlation turns a round mountain into a ridge, and you can walk along it.",
+            use: "Picturing how anxiety and rumination travel together in your clients.",
+            useLine: "seeing how two symptoms travel together.",
+            cap: "Left to right is anxiety, front to back is rumination, and the height of the violet mesh is how many clients sit there. Glowing dots are clients you draw from it.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, G = 25, E = 3, S = 1.2, st = { r: 0, sd: 1, xs: [], zs: [] }, rnd = seeded(39), MAXP = 400;
+              var mesh = gridLines(T, G); env.scene.add(mesh);
+              var pts = livePoints(env, MAXP, 0.22);
+              var lab = labSprite(T, "#e8e4ff", 0.34).text("anxiety →"); lab.position.set(E * S + 0.6, 0, 0); env.scene.add(lab);
+              var lab2 = labSprite(T, "#e8e4ff", 0.34).text("rumination"); lab2.position.set(0, 0, E * S + 0.6); env.scene.add(lab2);
+              function dens(x, z) { var r = st.r, s = st.sd; x /= s; z /= s; return Math.exp(-(x * x - 2 * r * x * z + z * z) / (2 * (1 - r * r))) / (s * s * Math.sqrt(1 - r * r)); }
+              function update() {
+                var gp = mesh.geometry.attributes.position, k = 0, H = 2.2, step = 2 * E / (G - 1);
+                for (var a = 0; a < G; a++) for (var b = 0; b < G - 1; b++) {
+                  var x0 = -E + b * step, x1 = x0 + step, z = -E + a * step;
+                  gp.setXYZ(k++, x0 * S, dens(x0, z) * H, z * S); gp.setXYZ(k++, x1 * S, dens(x1, z) * H, z * S);
+                  gp.setXYZ(k++, z * S, dens(z, x0) * H, x0 * S); gp.setXYZ(k++, z * S, dens(z, x1) * H, x1 * S);
+                }
+                gp.needsUpdate = true;
+                for (var i = 0; i < MAXP; i++) { var on = i < st.xs.length; pts.set(i, on ? st.xs[i] * S : 0, on ? 0.05 : -99, on ? st.zs[i] * S : 0, [0.25, 0.85, 1]); }
+                pts.flush();
+                st.sr = st.xs.length > 2 ? corrOf(st.xs, st.zs) : null;
+                env.read.innerHTML = "r <b>" + st.r.toFixed(1) + "</b> · shared variance r² <b>" + Math.round(st.r * st.r * 100) + "%</b>" + (st.sr != null ? " · sample r from <b>" + st.xs.length + "</b> clients <b>" + st.sr.toFixed(2) + "</b>" : "");
+              }
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Turn the correlation up to .8. The mountain becomes…", options: ["Taller, still round", "A ridge along the diagonal", "Two separate peaks"] },
+                run: { label: "Draw clients from the mountain.", trial: function () { var x = gauss(rnd) / 1.41 * st.sd, e = gauss(rnd) / 1.41 * st.sd; st.xs.push(x); st.zs.push(st.r * x + Math.sqrt(1 - st.r * st.r) * e); if (st.xs.length > MAXP) { st.xs.shift(); st.zs.shift(); } }, show: update, judge: function () { return Math.abs(st.r) >= 0.3 ? 1 : 0; } },
+                challenge: [
+                  { text: "Make the ridge run downhill: more anxiety, less rumination (r at or below −0.6).", check: function () { if (st.r > -0.6) return "r is " + st.r.toFixed(1) + ". Push it below −0.6."; st.sd0 = st.sd; return true; }, ok: "A downhill ridge: high on one, low on the other." },
+                  { text: "Now make the mountain round again (r between −0.1 and 0.1) without changing its spread.", check: function () { if (st.sd !== st.sd0) return "The spread moved. Change only r."; return Math.abs(st.r) <= 0.1 ? true : "Still a ridge: r is " + st.r.toFixed(1) + "."; }, ok: "Round again: knowing one tells you nothing about the other." }
+                ],
+                takeaway: "Correlation is the shape of the joint mountain: round means unrelated, a ridge means they travel together. r² is the share of variation they have in common."
+              });
+              env.slider("Correlation r", -0.9, 0.9, 0.1, 0, function (v) { return v.toFixed(1); }, function (v) { st.r = Math.round(v * 10) / 10; st.xs = []; st.zs = []; update(); });
+              env.slider("Spread (SD)", 0.6, 1.6, 0.1, 1, function (v) { return v.toFixed(1); }, function (v) { st.sd = Math.round(v * 10) / 10; update(); });
+              env.view(0.7, 0.55); env.frame(0.8, 9, 1.2);
+              update();
+              LAB_CUR = { kit: kit, steps: [function () { setCtl("Correlation r", -0.7); }, function () { setCtl("Correlation r", 0); }] };
+            }
+          },
+          {
+            id: "l40", lid: 40, name: "Regression Plane", pillar: "B4", learn: 22, day: 22, level: "intermediate", hue: ["#3fd8ff", "#ffc85a"],
+            idea: "Two predictors make a plane; each slope holds the other still.",
+            why: "With two predictors the line becomes a tilted sheet. Tilting it by hand shows what “holding baseline constant” means.",
+            use: "Reading a model of post-treatment depression from baseline severity and alliance.",
+            useLine: "reading a two-predictor outcome model.",
+            cap: "Each dot is a client: baseline severity runs left to right, therapeutic alliance front to back, and height is depression after treatment. The violet sheet is the model; blue lines are its misses.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, rnd = seeded(40), st = { b1: 0.2, b2: 0, data: [] }, G = 9, MAXP = 200;
+              function client() { var b = 3 + rnd() * 22, a = rnd() * 10; return [b, a, 5 + 0.6 * b - 0.4 * a + gauss(rnd) * 1.6]; }
+              for (var i = 0; i < 40; i++) st.data.push(client());
+              var X = function (b) { return (b - 14) * 0.22; }, Z = function (a) { return (a - 5) * 0.5; }, Y = function (y) { return (y - 10) * 0.18; };
+              var pts = livePoints(env, MAXP, 0.24), res = segLines(T, MAXP, 0x3fd8ff, 0.7), grid = gridLines(T, G); env.scene.add(res, grid);
+              var l1 = labSprite(T, "#e8e4ff", 0.3).text("baseline →"); l1.position.set(3.4, -2.4, 0); env.scene.add(l1);
+              var l2 = labSprite(T, "#e8e4ff", 0.3).text("alliance →"); l2.position.set(0, -2.4, 3.2); env.scene.add(l2);
+              function ols() {
+                var D = st.data, n = D.length, mb = meanOf(D.map(function (d) { return d[0]; })), ma = meanOf(D.map(function (d) { return d[1]; })), my = meanOf(D.map(function (d) { return d[2]; }));
+                var sbb = 0, saa = 0, sab = 0, sby = 0, say = 0;
+                D.forEach(function (d) { var b = d[0] - mb, a = d[1] - ma, y = d[2] - my; sbb += b * b; saa += a * a; sab += a * b; sby += b * y; say += a * y; });
+                var det = sbb * saa - sab * sab, b1 = (saa * sby - sab * say) / det, b2 = (sbb * say - sab * sby) / det;
+                return { b1: b1, b2: b2, mb: mb, ma: ma, my: my };
+              }
+              function rms(b1, b2) { var o = ols(), c0 = o.my - b1 * o.mb - b2 * o.ma; return { c0: c0, r: Math.sqrt(meanOf(st.data.map(function (d) { var e = d[2] - (c0 + b1 * d[0] + b2 * d[1]); return e * e; }))) }; }
+              function update() {
+                var f = rms(st.b1, st.b2), best = ols(), bb = rms(best.b1, best.b2), rp = res.geometry.attributes.position, gp = grid.geometry.attributes.position, k = 0;
+                var surf = function (b, a) { return Y(f.c0 + st.b1 * b + st.b2 * a); };
+                for (var i = 0; i < MAXP; i++) {
+                  var d = st.data[i];
+                  if (d) { pts.set(i, X(d[0]), Y(d[2]), Z(d[1]), [1, 1, 1]); rp.setXYZ(i * 2, X(d[0]), Y(d[2]), Z(d[1])); rp.setXYZ(i * 2 + 1, X(d[0]), surf(d[0], d[1]), Z(d[1])); }
+                  else { pts.set(i, 0, -99, 0); rp.setXYZ(i * 2, 0, -99, 0); rp.setXYZ(i * 2 + 1, 0, -99, 0); }
+                }
+                for (var a = 0; a < G; a++) for (var b = 0; b < G - 1; b++) {
+                  var b0 = 3 + b * 22 / (G - 1), b1v = b0 + 22 / (G - 1), av = a * 10 / (G - 1), a0 = b * 10 / (G - 1), a1 = a0 + 10 / (G - 1), bv = 3 + a * 22 / (G - 1);
+                  gp.setXYZ(k++, X(b0), surf(b0, av), Z(av)); gp.setXYZ(k++, X(b1v), surf(b1v, av), Z(av));
+                  gp.setXYZ(k++, X(bv), surf(bv, a0), Z(a0)); gp.setXYZ(k++, X(bv), surf(bv, a1), Z(a1));
+                }
+                rp.needsUpdate = true; gp.needsUpdate = true; pts.flush();
+                st.rms = f.r; st.best = bb.r; st.ols = best;
+                env.read.innerHTML = "baseline slope <b>" + st.b1.toFixed(2) + "</b> · alliance slope <b>" + st.b2.toFixed(2) + "</b> · average miss <b>" + f.r.toFixed(2) + "</b> (best possible " + bb.r.toFixed(2) + ", " + st.data.length + " clients)";
+              }
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Holding baseline severity still, better alliance goes with depression that is…", options: ["Lower: a negative slope", "No different once baseline is in", "Higher"] },
+                run: { label: "Recruit more clients.", trial: function () { st.data.push(client()); if (st.data.length > MAXP) st.data.shift(); }, show: update, judge: function () { return st.ols && st.ols.b2 < -0.1 ? 0 : 1; } },
+                challenge: [{ text: "Tilt the plane until its average miss is within 0.15 of the best possible fit.", check: function () { return st.rms - st.best <= 0.15 ? true : "Average miss " + st.rms.toFixed(2) + " vs best " + st.best.toFixed(2) + ". Adjust both slopes."; }, ok: "The plane sits in the cloud: each slope is the effect with the other predictor held still." }],
+                takeaway: "Multiple regression fits a plane. Each slope is the change in the outcome for one predictor while the other stays fixed: alliance still matters beyond baseline severity."
+              });
+              env.slider("Baseline slope", 0, 1, 0.05, st.b1, function (v) { return v.toFixed(2); }, function (v) { st.b1 = Math.round(v * 100) / 100; update(); });
+              env.slider("Alliance slope", -1, 0.4, 0.05, st.b2, function (v) { return v.toFixed(2); }, function (v) { st.b2 = Math.round(v * 100) / 100; update(); });
+              env.view(0.75, 0.35); env.frame(0, 7.5, 1.3);
+              update();
+              LAB_CUR = { kit: kit, steps: [function () { setCtl("Baseline slope", Math.round(st.ols.b1 * 20) / 20); setCtl("Alliance slope", Math.round(st.ols.b2 * 20) / 20); }] };
+            }
+          },
+          {
+            id: "l41", lid: 41, name: "Forest to Diamond", pillar: "B6", learn: 29, day: 29, level: "advanced", hue: ["#ffc85a", "#a06bff"],
+            idea: "Many studies fall into one diamond; real differences widen it.",
+            why: "A forest plot stacks studies; the diamond is what they say together. Watching it shrink with more studies, and swell with heterogeneity, is the whole of meta-analysis.",
+            use: "Reading the meta-analysis behind a treatment guideline.",
+            useLine: "reading the meta-analysis behind a guideline.",
+            cap: "Each glowing bar is one study’s effect and interval (the bright bead is its estimate, bigger when the study is more precise). The violet diamond below is the pooled effect; the vertical line is zero effect.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { k: 4, tau: 0, shift: 0, runs: 0, excl: 0 }, X = function (d) { return (d - 0.45) * 5; };
+              var bars = segLines(T, 12, 0xe8e4ff, 0.85), zero = segLines(T, 1, 0xffc85a, 0.7), dia = segLines(T, 4, 0xa06bff, 1); env.scene.add(bars, zero, dia);
+              var beads = livePoints(env, 12, 0.5);
+              var zl = labSprite(T, "#ffc85a", 0.3).text("no effect"); env.scene.add(zl);
+              function update() {
+                var S = metaStudies(st.k, st.tau, st.shift), P = metaPool(S), bp = bars.geometry.attributes.position, mw = Math.max.apply(null, P.w);
+                for (var i = 0; i < 12; i++) {
+                  var s = S[i], y = 3 - i * 0.45;
+                  if (s) { bp.setXYZ(i * 2, X(s.d - 1.96 * s.se), y, 0); bp.setXYZ(i * 2 + 1, X(s.d + 1.96 * s.se), y, 0); beads.set(i, X(s.d), y, 0, [0.25 + 0.6 * P.w[i] / mw, 0.85, 1]); }
+                  else { bp.setXYZ(i * 2, 0, -99, 0); bp.setXYZ(i * 2 + 1, 0, -99, 0); beads.set(i, 0, -99, 0); }
+                }
+                beads.flush(); bp.needsUpdate = true;
+                var yd = 3 - st.k * 0.45 - 0.5, dp = dia.geometry.attributes.position, c = [[X(P.lo), yd], [X(P.d), yd + 0.3], [X(P.hi), yd], [X(P.d), yd - 0.3]];
+                for (var j = 0; j < 4; j++) { dp.setXYZ(j * 2, c[j][0], c[j][1], 0); dp.setXYZ(j * 2 + 1, c[(j + 1) % 4][0], c[(j + 1) % 4][1], 0); }
+                dp.needsUpdate = true;
+                var zp = zero.geometry.attributes.position; zp.setXYZ(0, X(0), 3.4, 0); zp.setXYZ(1, X(0), yd - 0.6, 0); zp.needsUpdate = true; zl.position.set(X(0), 3.8, 0);
+                st.P = P;
+                env.read.innerHTML = "pooled d <b>" + P.d.toFixed(2) + "</b> [" + P.lo.toFixed(2) + ", " + P.hi.toFixed(2) + "] · width <b>" + (P.hi - P.lo).toFixed(2) + "</b> · I² <b>" + Math.round(P.I2 * 100) + "%</b>" + (st.runs ? " · re-run literatures: diamond cleared zero in <b>" + st.excl + "/" + st.runs + "</b>" : "");
+              }
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Add more studies of the same therapy. The diamond becomes…", options: ["Narrower", "Wider", "It doesn’t change"] },
+                run: { label: "Re-run the whole literature with fresh study noise.", trial: function () { st.shift = Math.random() * 1000; var P = metaPool(metaStudies(st.k, st.tau, st.shift)); st.runs++; if (P.lo > 0) st.excl++; }, show: update, judge: function () { return 0; } },
+                challenge: [
+                  { text: "With no real differences between studies (τ = 0), make the diamond narrower than 0.30.", check: function () { if (st.tau !== 0) return "Set τ to 0 first."; var w = st.P.hi - st.P.lo; return w < 0.3 ? true : "The diamond is " + w.toFixed(2) + " wide. Add studies."; }, ok: "More studies, more precision." },
+                  { text: "Now raise τ until I² passes 50%, and watch the diamond swell.", check: function () { return st.P.I2 > 0.5 ? true : "I² is " + Math.round(st.P.I2 * 100) + "%."; }, ok: "Real heterogeneity: the studies disagree for real, so the pooled estimate is less certain." }
+                ],
+                takeaway: "Pooling precision-weighted studies narrows the estimate. When true effects differ (high I²), a random-effects diamond honestly widens."
+              });
+              env.slider("Studies (k)", 2, 12, 1, st.k, String, function (v) { st.k = v; update(); });
+              env.slider("Between-study spread τ", 0, 0.6, 0.05, 0, function (v) { return v.toFixed(2); }, function (v) { st.tau = Math.round(v * 100) / 100; update(); });
+              env.spin = false; env.view(0, 0.12); env.frame(0.4, 8, 1.4);
+              update();
+              LAB_CUR = { kit: kit, steps: [function () { setCtl("Between-study spread τ", 0); setCtl("Studies (k)", 12); }, function () { setCtl("Between-study spread τ", 0.5); }] };
+            }
+          },
+          {
+            id: "l42", lid: 42, name: "Power vs the Alpha Wall", pillar: "B2", learn: 13, day: 13, level: "intermediate", hue: ["#3fd8ff", "#ff5ec4"],
+            idea: "Move the significance wall and watch power pay for it.",
+            why: "Alpha is a wall on the null curtain; power is how much of the real-effect curtain stands beyond it. Moving the wall shows the trade.",
+            use: "Planning sample size for a study you’ll defend to a committee.",
+            useLine: "planning how many clients a study needs.",
+            cap: "The cyan curtain is what studies show if the therapy does nothing; the magenta curtain is what they show if it truly helps (d = 0.5). The glowing wall is the significance cut-off. Magenta beyond the wall is power; cyan beyond it is false alarms.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { a: 0.05, n: 20, runs: 0, hits: 0 }, rnd = seeded(42), N = 120, X = function (z) { return (z - 2) * 0.9; };
+              var c0 = segLines(T, N, 0x3fd8ff, 0.9), c1 = segLines(T, N, 0xff5ec4, 0.9), wall = segLines(T, 6, 0xffc85a, 0.95); env.scene.add(c0, c1, wall);
+              var sparks = livePoints(env, 60, 0.3), sp = [];
+              function curtain(L, m, z) { var p = L.geometry.attributes.position; for (var i = 0; i < N; i++) { var x0 = -4 + i * 12 / N, x1 = x0 + 12 / N, h = function (x) { return Math.exp(-(x - m) * (x - m) / 2) * 3; }; p.setXYZ(i * 2, X(x0), h(x0), z); p.setXYZ(i * 2 + 1, X(x1), h(x1), z); } p.needsUpdate = true; }
+              function update() {
+                var zc = zCrit(st.a), delta = 0.5 * Math.sqrt(st.n / 2), pw = 1 - phi(zc - delta);
+                curtain(c0, 0, -0.6); curtain(c1, delta, 0.6);
+                var wp = wall.geometry.attributes.position, x = X(zc), pts = [[x, 0, -1.4], [x, 3.4, -1.4], [x, 3.4, 1.4], [x, 0, 1.4]];
+                for (var j = 0; j < 4; j++) { wp.setXYZ(j * 2, pts[j][0], pts[j][1], pts[j][2]); wp.setXYZ(j * 2 + 1, pts[(j + 1) % 4][0], pts[(j + 1) % 4][1], pts[(j + 1) % 4][2]); }
+                wp.setXYZ(8, x, 1.7, -1.4); wp.setXYZ(9, x, 1.7, 1.4); wp.setXYZ(10, x, 0, 0); wp.setXYZ(11, x, 3.4, 0); wp.needsUpdate = true;
+                for (var i = 0; i < 60; i++) { var s = sp[i]; sparks.set(i, s ? X(s) : 0, s ? 0.08 : -99, 0.6, s >= zc ? [1, 0.37, 0.77] : [0.6, 0.6, 0.7]); } sparks.flush();
+                st.pw = pw; st.zc = zc;
+                env.read.innerHTML = "α <b>" + st.a.toFixed(2) + "</b> · wall at z <b>" + zc.toFixed(2) + "</b> · <b>" + st.n + "</b> per group · power <b>" + Math.round(pw * 100) + "%</b>" + (st.runs ? " · simulated studies past the wall <b>" + st.hits + "/" + st.runs + "</b>" : "");
+              }
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Move the wall right (a stricter α, like .01). Power…", options: ["Drops", "Rises", "Stays the same"] },
+                run: { label: "Run studies of a real d = 0.5 effect.", trial: function () { var z = 0.5 * Math.sqrt(st.n / 2) + gauss(rnd) / 1.41; sp.push(z); if (sp.length > 60) sp.shift(); st.runs++; if (z >= st.zc) st.hits++; }, show: update, judge: function () { return 0; } },
+                challenge: [
+                  { text: "Reach 80% power at α = .05.", check: function () { if (Math.abs(st.a - 0.05) > 1e-9) return "Set α to .05 first."; return st.pw >= 0.8 ? true : "Power is " + Math.round(st.pw * 100) + "%. Add clients."; }, ok: "About 64 per group for d = 0.5." },
+                  { text: "Now tighten to α = .01 and keep power at 80% or more.", check: function () { if (Math.abs(st.a - 0.01) > 1e-9) return "Move the wall to α = .01."; return st.pw >= 0.8 ? true : "Power fell to " + Math.round(st.pw * 100) + "%. A stricter wall costs clients."; }, ok: "A stricter wall needs about 95 per group: fewer false alarms, paid for in sample size." }
+                ],
+                takeaway: "α and power trade off: a stricter wall cuts false alarms but hides more real effects unless you add clients."
+              });
+              env.slider("Alpha (α)", 0.01, 0.1, 0.01, 0.05, function (v) { return v.toFixed(2); }, function (v) { st.a = Math.round(v * 100) / 100; update(); });
+              env.slider("Clients per group", 10, 150, 5, 20, String, function (v) { st.n = v; update(); });
+              env.view(0.35, 0.3); env.frame(1.4, 9, 1.6);
+              update();
+              LAB_CUR = { kit: kit, steps: [function () { setCtl("Alpha (α)", 0.05); setCtl("Clients per group", 65); }, function () { setCtl("Alpha (α)", 0.01); setCtl("Clients per group", 100); }] };
+            }
+          }
+        ]);
+        /* the Days these scenes teach link to them (their appended clinic step or a play step) */
+        [[29, "l41"]].forEach(function (p) { var s = LESSON_CONTENT[p[0]].steps.filter(function (x) { return x.kind === "play"; })[0]; if (s && !s.lab) s.lab = p[1]; });
+        /* test hook: Check (must reject), then walk every stage with its solution */
+        function labSolve() {
+          if (!LAB_CUR) return "no scene";
+          var chk = doc.querySelector(".x-kit [data-kc]"), v = doc.querySelector(".x-kit__v");
+          if (chk.disabled) return "check locked";
+          chk.click(); if (!/Not yet/.test(v.textContent)) return "did not reject: " + v.textContent;
+          for (var i = 0; i < LAB_CUR.steps.length; i++) { LAB_CUR.steps[i](); chk.click(); if (/Not yet/.test(v.textContent)) return "stage " + (i + 1) + " rejected: " + v.textContent; }
+          return LAB_CUR.kit.solved === true ? true : "not solved: " + v.textContent;
+        }
+
+        /* --- 8 · Comfort: text size, reduce motion, accent palettes (default = current look) --- */
+        var ACCENTS = [{ v: "theme", t: "Theme" }, { v: "ember", t: "Ember" }, { v: "ocean", t: "Ocean" }, { v: "forest", t: "Forest" }, { v: "rose", t: "Rosé" }];
+        var SYS_REDUCE = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+        var Comfort = {
+          reduced: function () { return typeof prefs.reduceMotion === "boolean" ? prefs.reduceMotion : SYS_REDUCE; },
+          apply: function () {
+            root.setAttribute("data-text", prefs.textSize || "m");
+            root.setAttribute("data-accent", prefs.accent || "theme");
+            root.setAttribute("data-motion", Comfort.reduced() ? "reduce" : "full");
+            reduce = Comfort.reduced();
+          },
+          html: function () {
+            var seg = function (attr, list, cur) { return '<div class="x-btns" role="group">' + list.map(function (o) { return '<button type="button" class="press" ' + attr + '="' + o.v + '" aria-pressed="' + (cur === o.v) + '">' + (o.sw ? '<i class="x-sw" data-swatch="' + o.v + '"></i>' : "") + esc(o.t) + "</button>"; }).join("") + "</div>"; };
+            return '<p class="eyebrow">Text size</p>' + seg("data-cf-text", [{ v: "s", t: "Small" }, { v: "m", t: "Medium" }, { v: "l", t: "Large" }], prefs.textSize || "m") +
+              '<button type="button" class="tgl press" role="switch" data-toggle="cf-motion" aria-checked="' + Comfort.reduced() + '"><span>Reduce motion' + (typeof prefs.reduceMotion !== "boolean" ? " <small class=\"dim\">(follows your device)</small>" : "") + '</span><span class="tgl__track"><span class="tgl__knob"></span></span></button>' +
+              '<p class="eyebrow">Accent</p>' + seg("data-cf-accent", ACCENTS.map(function (a) { return { v: a.v, t: a.t, sw: 1 }; }), prefs.accent || "theme") +
+              '<p class="dim">Accents tint buttons and highlights in both Day and Night themes. Theme keeps each theme’s own colour.</p>';
+          }
+        };
+        (function () {
+          var apply0 = Themes.apply;
+          Themes.apply = function () { apply0.apply(Themes, arguments); try { Comfort.apply(); } catch (e) {} };
+        })();
+        P20.settingsExtra = function (h) {
+          var k = h.indexOf('<section class="fold glass"><button type="button" class="fold__h press" data-fold="about"');
+          if (k < 0) return h;
+          var on = State.open === "comfort";
+          var f = '<section class="fold glass"><button type="button" class="fold__h press" data-fold="comfort" aria-expanded="' + on + '" aria-controls="fb-comfort"><span>Comfort</span><span class="chev">' + I.chev + '</span></button><div class="fold__b" id="fb-comfort"' + (on ? "" : " hidden") + ">" + Comfort.html() + "</div></section>";
+          return h.slice(0, k) + f + h.slice(k);
+        };
+        doc.addEventListener("click", function (e) {
+          var t = e.target.closest("button"); if (!t) return;
+          if (t.dataset.cfText) { prefs.textSize = t.dataset.cfText; savePrefs(); Comfort.apply(); Views.render(); return; }
+          if (t.dataset.cfAccent) { prefs.accent = t.dataset.cfAccent; savePrefs(); Comfort.apply(); Views.render(); return; }
+          if (t.dataset.toggle === "cf-motion") { prefs.reduceMotion = !Comfort.reduced(); savePrefs(); Comfort.apply(); /* the shell's toggle handler re-renders */ }
+        });
+        var ADVANCED = { lessons: [23, 26, 28, 29, 30, "adv-clinsig"], scenes: ["l39", "l40", "l41", "l42"], solve: labSolve };
+
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
-        Object.assign(window.Psygma, { v2: true, review: Review, studytime: StudyTime, labFull: labFull });
+        Object.assign(window.Psygma, { v2: true, review: Review, studytime: StudyTime, labFull: labFull, comfort: Comfort, advanced: ADVANCED });
 
         function confetti() {
           if (reduce) return;
