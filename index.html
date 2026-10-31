@@ -5744,6 +5744,483 @@
           var L = LESSON_CONTENT[p[0]]; if (!L) return;
           var s = L.steps.filter(function (x) { return x.kind === "play"; })[0]; if (s && !s.lab) s.lab = p[1];
         });
+        /* ============ PHASE 5B · B3 Comparing Groups + B4 Relationships ============ */
+        /* B3 · the design decides the test: three questions route to every test in the pillar */
+        function routeTest(out, grp, ppl) {
+          if (out === "cat") return ppl === "same" ? "McNemar (Chi-square family, same people)" : "Chi-square";
+          var skew = out === "rank";
+          if (ppl === "same") return grp === "many" ? (skew ? "Friedman (rank fallback)" : "Repeated-measures ANOVA") : (skew ? "Wilcoxon signed-rank (rank fallback)" : "Paired t-test");
+          return grp === "many" ? (skew ? "Kruskal–Wallis (rank fallback)" : "One-way ANOVA") : (skew ? "Mann–Whitney (rank fallback)" : "Independent t-test");
+        }
+        function mazeViz(stage, api) {
+          var st = { out: "", grp: "", ppl: "" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var cols = [["Outcome", st.out, { score: "score", rank: "skewed / ranks", cat: "category" }], ["Groups", st.grp, { two: "two", many: "three +" }], ["People", st.ppl, { diff: "different", same: "same, twice" }]];
+            var w = (c.w - 40) / 4, y = c.h / 2;
+            cols.forEach(function (q, i) {
+              var x = 16 + i * (w + 4), on = !!q[1];
+              ctx.fillStyle = on ? c.pri : c.dim; ctx.globalAlpha = on ? 0.9 : 0.25; ctx.fillRect(x, y - 26, w - 6, 52); ctx.globalAlpha = 1;
+              txt(ctx, c, q[0], x + (w - 6) / 2, y - 34, c.text, "center", "600"); txt(ctx, c, on ? q[2][q[1]] : "?", x + (w - 6) / 2, y + 4, on ? "#fff" : c.text, "center", "600");
+              ctx.strokeStyle = on ? c.pri : c.dim; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + w - 6, y); ctx.lineTo(x + w + 4, y); ctx.stroke(); ctx.lineWidth = 1;
+            });
+            var done = st.out && st.grp && st.ppl, ex = 16 + 3 * (w + 4);
+            ctx.fillStyle = done ? PX.ok : c.dim; ctx.globalAlpha = done ? 0.85 : 0.2; ctx.fillRect(ex, y - 26, w, 52); ctx.globalAlpha = 1;
+            txt(ctx, c, "Exit", ex + w / 2, y - 34, c.text, "center", "600");
+            st.test = done ? routeTest(st.out, st.grp, st.ppl) : "";
+            return done ? "The maze lights: <b>" + st.test + "</b>" : "Answer all three design questions to light the path.";
+          });
+        }
+        var MAZE_VZ = function () { return vz("A three-gate maze: outcome, groups, people; the exit lights the test", ctl(bt("out", [["score", "Score"], ["rank", "Skewed / ranks"], ["cat", "Category"]])) + ctl(bt("grp", [["two", "Two groups"], ["many", "Three +"]])) + ctl(bt("ppl", [["diff", "Different people"], ["same", "Same people twice"]]))); };
+        /* B3 · two clouds: is the gap between them bigger than the spread inside them? */
+        function cloudsViz(stage, api) {
+          var st = { gap: 3, sd: 6, ext: "off" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded(41), A = [], B = [], n = 20;
+            for (var i = 0; i < n; i++) { A.push(14 + gauss(r) * st.sd); B.push(14 - st.gap + gauss(r) * st.sd); }
+            if (st.ext === "on") { B[0] = 14 - st.gap + 26; B[1] = 14 - st.gap + 22; }
+            var lo = -6, hi = 40, px = function (v) { return 14 + (v - lo) / (hi - lo) * (c.w - 28); };
+            [[A, PX.cy, c.h * 0.32, "usual care"], [B, PX.vio, c.h * 0.68, "programme"]].forEach(function (g) {
+              g[0].forEach(function (v, k) { ctx.fillStyle = g[1]; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.arc(px(v), g[2] + ((k % 5) - 2) * 5, 4, 0, 6.2832); ctx.fill(); });
+              ctx.globalAlpha = 1; var m = meanOf(g[0]); ctx.strokeStyle = g[1]; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px(m), g[2] - 18); ctx.lineTo(px(m), g[2] + 18); ctx.stroke(); ctx.lineWidth = 1;
+              txt(ctx, c, g[3], 16, g[2] - 22, g[1], "left", "600");
+            });
+            var mA = meanOf(A), mB = meanOf(B), sA = sdOf(A), sB = sdOf(B), se = Math.sqrt((sA * sA + sB * sB) / n), t = (mA - mB) / se, p = 2 * (1 - phi(Math.abs(t)));
+            var srt = function (a) { return a.slice().sort(function (x, y) { return x - y; }); }, med = function (a) { a = srt(a); return (a[9] + a[10]) / 2; };
+            st.t = t; st.p = p; st.medGap = med(A) - med(B); st.meanGap = mA - mB;
+            return "mean gap <b>" + st.meanGap.toFixed(1) + "</b> · median gap <b>" + st.medGap.toFixed(1) + "</b> · spread inside <b>" + ((sA + sB) / 2).toFixed(1) + "</b> · t <b>" + t.toFixed(2) + "</b> · p <b>" + (p < 0.001 ? "< .001" : p.toFixed(3)) + "</b>";
+          });
+        }
+        var CLOUD_VZ = function (ext) { return vz("Two clouds of client scores, usual care above and programme below, each with its mean marked", ctl(sl("gap", "Gap between groups", 0, 8, 3, 0.5) + sl("sd", "Spread inside groups", 1, 10, 6, 0.5)) + (ext ? ctl(bt("ext", [["off", "No extreme clients"], ["on", "Add 2 extreme clients"]])) : "")); };
+        /* B3 · paired threads: the same clients twice; pairing removes the between-client noise */
+        function threadsViz(stage, api) {
+          var st = { chg: 2, pair: "on" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded(73), n = 14, pre = [], post = [], d = [];
+            for (var i = 0; i < n; i++) { var b = 16 + gauss(r) * 6; pre.push(b); post.push(b - st.chg + gauss(r) * 1.5); d.push(pre[i] - post[i]); }
+            var lo = 0, hi = 32, py = function (v) { return c.h - 20 - (v - lo) / (hi - lo) * (c.h - 34); }, xa = c.w * 0.3, xb = c.w * 0.7;
+            for (i = 0; i < n; i++) {
+              var jx = (i - n / 2) * 3;
+              if (st.pair === "on") { ctx.strokeStyle = PX.gold; ctx.globalAlpha = 0.7; ctx.beginPath(); ctx.moveTo(xa + jx, py(pre[i])); ctx.lineTo(xb + jx, py(post[i])); ctx.stroke(); }
+              ctx.globalAlpha = 0.9; ctx.fillStyle = PX.cy; ctx.beginPath(); ctx.arc(xa + jx, py(pre[i]), 4, 0, 6.2832); ctx.fill(); ctx.fillStyle = PX.vio; ctx.beginPath(); ctx.arc(xb + jx, py(post[i]), 4, 0, 6.2832); ctx.fill();
+            }
+            ctx.globalAlpha = 1; txt(ctx, c, "intake", xa, 12, PX.cy, "center", "600"); txt(ctx, c, "discharge", xb, 12, PX.vio, "center", "600");
+            var md = meanOf(d), tp = md / (sdOf(d) / Math.sqrt(n)), pp = 2 * (1 - phi(Math.abs(tp)));
+            var ti = (meanOf(pre) - meanOf(post)) / Math.sqrt((sdOf(pre) * sdOf(pre) + sdOf(post) * sdOf(post)) / n), pi = 2 * (1 - phi(Math.abs(ti)));
+            st.pPaired = pp; st.pInd = pi;
+            var f = function (p) { return p < 0.001 ? "< .001" : p.toFixed(3); };
+            return st.pair === "on" ? "Paired (threads kept): average change <b>" + md.toFixed(1) + "</b> · p <b>" + f(pp) + "</b>" : "Pairing ignored (two loose clouds): gap <b>" + md.toFixed(1) + "</b> · p <b>" + f(pi) + "</b>";
+          });
+        }
+        var THREAD_VZ = function () { return vz("The same 14 clients at intake and discharge, each joined by a gold thread", ctl(sl("chg", "Average improvement", 0, 6, 2, 0.5)) + ctl(bt("pair", [["on", "Keep the pairing"], ["off", "Ignore the pairing"]]))); };
+        /* B3 · Chi-square: counts seen vs counts expected if the programme made no difference */
+        function chiViz(stage, api) {
+          var st = { rate: 35, n: 40 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var n = st.n, a = Math.round(n * st.rate / 100), b = n - a, cc = Math.round(n * 0.5), d = n - cc, tot = 2 * n, rel = a + cc, E = rel / 2, Eb = n - E;
+            var cells = [[a, E, "programme · relapsed"], [b, Eb, "programme · sober"], [cc, E, "usual care · relapsed"], [d, Eb, "usual care · sober"]];
+            var chi = cells.reduce(function (s, x) { return s + (x[1] ? Math.pow(x[0] - x[1], 2) / x[1] : 0); }, 0), p = 2 * (1 - phi(Math.sqrt(chi)));
+            var cw = (c.w - 30) / 2, ch = (c.h - 30) / 2;
+            cells.forEach(function (x, i) {
+              var cx = 10 + (i % 2) * (cw + 10), cy = 10 + Math.floor(i / 2) * (ch + 10), dev = Math.min(1, Math.abs(x[0] - x[1]) / Math.max(1, x[1]) * 2);
+              ctx.fillStyle = x[0] > x[1] ? PX.gold : PX.cy; ctx.globalAlpha = 0.15 + dev * 0.6; ctx.fillRect(cx, cy, cw, ch); ctx.globalAlpha = 1;
+              txt(ctx, c, x[2], cx + cw / 2, cy + 16, c.text, "center", "600"); txt(ctx, c, "seen " + x[0] + " · expected " + x[1].toFixed(1), cx + cw / 2, cy + ch / 2 + 6, c.text, "center");
+            });
+            st.chi = chi; st.p = p;
+            return "χ² <b>" + chi.toFixed(2) + "</b> · p <b>" + (p < 0.001 ? "< .001" : p.toFixed(3)) + "</b> · usual care relapse stays at 50%";
+          });
+        }
+        var CHI_VZ = function () { return vz("A 2 by 2 grid of counts, glowing where seen differs from expected", ctl(sl("rate", "Programme relapse %", 10, 60, 35) + sl("n", "Clients per group", 10, 200, 40, 10))); };
+        /* B3 · ANOVA towers: signal (between groups) over noise (within groups) */
+        function anovaViz(stage, api) {
+          var st = { gap: 2, sd: 5 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded(88), k = 3, n = 15, G = [], all = [];
+            for (var g = 0; g < k; g++) { G.push([]); for (var i = 0; i < n; i++) { var v = 15 + (g - 1) * st.gap + gauss(r) * st.sd; G[g].push(v); all.push(v); } }
+            var gm = meanOf(all), ssb = 0, ssw = 0;
+            G.forEach(function (a) { var m = meanOf(a); ssb += n * (m - gm) * (m - gm); a.forEach(function (v) { ssw += (v - m) * (v - m); }); });
+            var F = (ssb / (k - 1)) / (ssw / (k * n - k)), py = function (v) { return c.h - 18 - v / 32 * (c.h - 30); }, cols = [PX.cy, PX.vio, PX.gold];
+            G.forEach(function (a, g) {
+              var x = c.w * (0.22 + g * 0.28), m = meanOf(a);
+              a.forEach(function (v, j) { ctx.fillStyle = cols[g]; ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.arc(x + ((j % 5) - 2) * 6, py(v), 3.5, 0, 6.2832); ctx.fill(); });
+              ctx.globalAlpha = 0.85; ctx.fillStyle = cols[g]; ctx.fillRect(x - 20, py(m), 40, c.h - 18 - py(m)); ctx.globalAlpha = 1;
+              txt(ctx, c, ["Group A", "Group B", "Group C"][g], x, c.h - 4, cols[g], "center", "600");
+            });
+            st.F = F; st.p = Math.pow(1 + F * 2 / 42, -21); /* exact upper tail of F(2, 42) */
+            return "between-group signal <b>" + (ssb / 2).toFixed(1) + "</b> ÷ within-group noise <b>" + (ssw / 42).toFixed(1) + "</b> = F <b>" + F.toFixed(2) + "</b> · p <b>" + (st.p < 0.001 ? "< .001" : st.p.toFixed(3)) + "</b>";
+          });
+        }
+        var ANOVA_VZ = function () { return vz("Three towers, one per group, with each group's clients as dots", ctl(sl("gap", "Gap between group means", 0, 6, 2, 0.5) + sl("sd", "Spread inside groups", 1, 10, 5, 0.5))); };
+        /* B4 · scatter first: read strength, direction and outliers from the cloud */
+        function scatterViz(stage, api) {
+          var st = { rel: 5, out: 0 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded(64), xs = [], ys = [], k = st.rel / 10;
+            for (var i = 0; i < 40; i++) { var x = gauss(r), y = k * x + Math.sqrt(1 - k * k) * gauss(r); xs.push(x); ys.push(y); }
+            if (st.out) { xs.push(5.5); ys.push(st.out * 0.8); }
+            var px = function (v) { return 20 + (v + 3) / 9 * (c.w - 30); }, py = function (v) { return c.h - 20 - (v + 8.5) / 17 * (c.h - 30); };
+            xs.forEach(function (x, i) { var o = st.out && i === xs.length - 1; ctx.fillStyle = o ? PX.bad : c.pri; ctx.globalAlpha = o ? 1 : 0.7; ctx.beginPath(); ctx.arc(px(x), py(ys[i]), o ? 6 : 4, 0, 6.2832); ctx.fill(); });
+            ctx.globalAlpha = 1; txt(ctx, c, "hours of sleep →", c.w - 10, c.h - 4, c.dim, "right"); txt(ctx, c, "↑ mood", 8, 14, c.dim, "left");
+            st.r = corrOf(xs, ys);
+            return (st.out ? "one unusual client (red) · " : "") + "r <b>" + (st.r >= 0 ? "+" : "") + st.r.toFixed(2) + "</b>";
+          });
+        }
+        var SCAT_VZ = function () { return vz("A scatterplot of clients: hours of sleep across, mood up", ctl(sl("rel", "Togetherness", 0, 9, 5) + sl("out", "Unusual client's mood (0 = none)", -10, 10, 0))); };
+        /* B4 · the line as a prediction machine, with residual rain */
+        var REG_DATA = (function () { var r = seeded(19), a = []; for (var i = 0; i < 24; i++) { var x = 2 + r() * 18; a.push([x, 20 - 0.6 * x + gauss(r) * 2]); } return a; })();
+        function regViz(stage, api) {
+          var st = { at: 10, rain: "on" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var xs = REG_DATA.map(function (p) { return p[0]; }), ys = REG_DATA.map(function (p) { return p[1]; }), mx = meanOf(xs), my = meanOf(ys), sxy = 0, sxx = 0;
+            xs.forEach(function (x, i) { sxy += (x - mx) * (ys[i] - my); sxx += (x - mx) * (x - mx); });
+            var b = sxy / sxx, a = my - b * mx, px = function (v) { return 20 + v / 40 * (c.w - 30); }, py = function (v) { return c.h - 20 - (v + 6) / 32 * (c.h - 30); };
+            ctx.fillStyle = c.pri; ctx.globalAlpha = 0.08; ctx.fillRect(px(2), 4, px(20) - px(2), c.h - 24); ctx.globalAlpha = 1; txt(ctx, c, "where the data live", px(11), 14, c.dim);
+            REG_DATA.forEach(function (p) {
+              if (st.rain === "on") { ctx.strokeStyle = PX.cy; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.moveTo(px(p[0]), py(p[1])); ctx.lineTo(px(p[0]), py(a + b * p[0])); ctx.stroke(); }
+              ctx.globalAlpha = 1; ctx.fillStyle = c.text; ctx.beginPath(); ctx.arc(px(p[0]), py(p[1]), 3.5, 0, 6.2832); ctx.fill();
+            });
+            ctx.strokeStyle = c.pri; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px(0), py(a)); ctx.lineTo(px(40), py(a + b * 40)); ctx.stroke(); ctx.lineWidth = 1;
+            var yh = a + b * st.at; ctx.fillStyle = PX.gold; ctx.beginPath(); ctx.arc(px(st.at), py(yh), 7, 0, 6.2832); ctx.fill();
+            txt(ctx, c, "sessions attended →", c.w - 10, c.h - 4, c.dim, "right");
+            st.pred = yh; st.slope = b;
+            return "for <b>" + st.at + "</b> sessions the line predicts craving score <b>" + yh.toFixed(1) + "</b> · slope <b>" + b.toFixed(2) + "</b> per session";
+          });
+        }
+        var REG_VZ = function () { return vz("A scatter of clients with a fitted line; blue rain drops from each client to the line; a gold marker rides the line", ctl(sl("at", "Sessions to predict for", 0, 40, 10)) + ctl(bt("rain", [["on", "Show residual rain"], ["off", "Hide rain"]]))); };
+        /* B4 · holding a third variable still: slice by intake severity (Simpson's paradox) */
+        function sliceData(pull) {
+          var r = seeded(57), pts = [], k = pull / 2;
+          for (var s = 0; s < 3; s++) for (var i = 0; i < 16; i++) { var x = 6 + k * s * 0.8 + gauss(r) * 1.5; pts.push([x, 8 + k * s * 1.2 - 0.4 * x + gauss(r) * 0.8, s]); }
+          return pts;
+        }
+        function slopeOf(pts) { var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; }), mx = meanOf(xs), my = meanOf(ys), a = 0, b = 0; xs.forEach(function (x, i) { a += (x - mx) * (ys[i] - my); b += (x - mx) * (x - mx); }); return a / b; }
+        function sliceViz(stage, api) {
+          var st = { pull: 2, slice: "off" };
+          bindViz(stage, api, st, function (c, ctx) {
+            var pts = sliceData(st.pull), cols = [PX.cy, PX.vio, PX.gold], px = function (v) { return 20 + v / 20 * (c.w - 30); }, py = function (v) { return c.h - 20 - (v + 2) / 18 * (c.h - 30); };
+            pts.forEach(function (p) { ctx.fillStyle = st.slice === "on" ? cols[p[2]] : c.pri; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.arc(px(p[0]), py(p[1]), 3.5, 0, 6.2832); ctx.fill(); });
+            ctx.globalAlpha = 1;
+            var drawFit = function (sub, col, w) { var xs = sub.map(function (p) { return p[0]; }), b = slopeOf(sub), mx = meanOf(xs), my = meanOf(sub.map(function (p) { return p[1]; })), x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(px(x0), py(my + b * (x0 - mx))); ctx.lineTo(px(x1), py(my + b * (x1 - mx))); ctx.stroke(); ctx.lineWidth = 1; return b; };
+            var whole = drawFit(pts, c.text, 2), within = null;
+            if (st.slice === "on") { within = [0, 1, 2].map(function (s) { return drawFit(pts.filter(function (p) { return p[2] === s; }), cols[s], 3); }); within = meanOf(within); }
+            txt(ctx, c, "sessions attended →", c.w - 10, c.h - 4, c.dim, "right"); txt(ctx, c, "↑ symptoms at discharge", 8, 14, c.dim, "left");
+            st.whole = whole; st.within = within;
+            return "whole-cloud slope <b>" + (whole >= 0 ? "+" : "") + whole.toFixed(2) + "</b>" + (within != null ? " · slope inside each severity layer <b>" + (within >= 0 ? "+" : "") + within.toFixed(2) + "</b>" : " · slice by severity to see inside the layers");
+          });
+        }
+        var SLICE_VZ = function () { return vz("A scatter of clients, sessions across and discharge symptoms up; colours mark intake severity layers when sliced", ctl(sl("pull", "Severity's pull on both", 0, 10, 2)) + ctl(bt("slice", [["off", "Whole cloud"], ["on", "Slice by severity"]]))); };
+        Object.assign(LESSON_CONTENT, {
+          "b3-which": {
+            steps: [
+              { kind: "hook", title: "Five studies, five tests?", body: '<p class="hook">t-test, paired t, Chi-square, ANOVA… a list to memorise?</p><p class="dim">No. Three questions about the design pick the test for you.</p>' },
+              { kind: "predict", title: "Your guess first", q: "PHQ-9 for the same 30 clients at intake and discharge. Which test?", options: ["Independent t-test", "Paired t-test", "Chi-square"], say: "Hold it. Walk the maze." },
+              { kind: "play", title: "Walk the maze", mount: mazeViz, lab: "l31", body: "<p>Answer the three gates. The exit lights the test.</p>" + MAZE_VZ(), so: "Outcome kind, number of groups, same or different people: that is the whole map." },
+              { kind: "notice", title: "What changed?", q: "Switching “different people” to “same people twice” changed…", options: ["The test, because the design changed", "Nothing: the outcome is still a score"], say: ["Yes. Same people means pairs, and pairs need a paired test.", "Look again at the exit when you flip the people gate."] },
+              { kind: "formalize", title: "One family", body: "<p>Every test here asks: <b>is the signal bigger than the noise?</b></p><p>Skewed scores, ranks or tiny samples? Take the rank-based fallback.</p>", so: "The design of the data, not habit, chooses the test." },
+              { kind: "check", title: "Build-check", mount: mazeViz, body: MAZE_VZ(), q: "Route this study: relapsed yes/no, for clients in three different programmes.",
+                goal: function (st) { if (!st.test) return "Answer all three gates first."; if (st.out !== "cat") return "Relapsed yes/no isn’t a score: it’s a category."; if (st.ppl !== "diff") return "Each client is in only one programme: different people."; return st.grp === "many" ? true : "There are three programmes, not two."; },
+                hints: ["Start with the outcome: what kind of answer is “relapsed yes/no”?", "Look at each gate in turn.", "Category outcome, three groups, different people."], why: "Category outcome across different people: Chi-square, whatever the number of groups.", concept: "b3-route" },
+              { kind: "transfer", title: "A new costume", costume: "A paper’s method", q: "A study gave 25 clients a craving rating before and after group, then ran an independent t-test. The problem is…", options: ["Nothing: both are scores", "It throws away the pairing: the same people were measured twice", "It should have used Chi-square"], answer: 1, tags: ["PAIR-WASTE", null, null], why: "Same people twice: analyse the changes, with a paired test.", concept: "b3-route" }
+            ]
+          },
+          15: {
+            home: ["t-tests", "is the gap between two groups bigger than the spread inside them?"],
+            steps: [
+              { kind: "hook", title: "Two clouds", body: '<p class="hook">Programme clients average 3 points lower than usual care.</p><p class="dim">Big news, or noise?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Keep the 3-point gap but make each group much more tightly bunched. The result becomes…", options: ["More convincing", "Less convincing", "No different"], say: "Try it with the spread slider." },
+              { kind: "play", title: "Squeeze the clouds", mount: cloudsViz, lab: "ttest", body: "<p>Each dot is a client. The bars are the group means.</p>" + CLOUD_VZ(), so: "The same gap means more when the clouds are tight." },
+              { kind: "notice", title: "What changed?", q: "As the spread inside the groups fell, t…", options: ["Grew", "Shrank"], say: ["Yes. Less noise, the signal stands out.", "Look again at t as you shrink the spread."] },
+              { kind: "formalize", title: "The t ratio", body: '<p class="hook">t = gap between means ÷ noise in that gap</p><p>Big t, small p: the gap is unlikely in a do-nothing world.</p>', so: "A t-test is signal over noise for two groups of different people." },
+              { kind: "check", title: "Build-check", mount: cloudsViz, body: CLOUD_VZ(), q: "Keep the 3-point gap and make the result significant (p under .05).",
+                goal: function (st) { if (st.gap !== 3) return "The gap moved to " + st.gap + ". Keep it at 3."; return st.p < 0.05 ? true : "p is " + st.p.toFixed(3) + ". The clouds are still too noisy."; },
+                hints: ["You can’t change the gap. What else is in the ratio?", "Watch t as you move the other slider.", "Shrink the spread inside the groups."], why: "Less spread inside, same gap: the signal beats the noise.", concept: "b3-t" },
+              { kind: "transfer", title: "A new costume", costume: "Two counsellors", q: "Clients of two counsellors differ by 2 points in satisfaction, but satisfaction varies by 15 points within each caseload. Most likely…", options: ["A clear difference", "The gap is lost in the noise", "Can’t be tested"], answer: 1, why: "A small gap inside big spreads gives a small t.", concept: "b3-t" }
+            ]
+          },
+          16: {
+            home: ["Paired t-test", "the same clients twice: test the changes."],
+            steps: [
+              { kind: "hook", title: "Same people, twice", body: '<p class="hook">14 clients, PHQ-9 at intake and at discharge.</p><p class="dim">Each client is their own comparison.</p>' },
+              { kind: "predict", title: "Your guess first", q: "Ignore the pairing and treat intake and discharge as two loose groups. The improvement looks…", options: ["Clearer", "Weaker, lost in the noise", "Exactly the same"], say: "Flip the pairing toggle." },
+              { kind: "play", title: "Cut the threads", mount: threadsViz, lab: "l32", body: "<p>Each gold thread joins one client’s two scores.</p>" + THREAD_VZ(), so: "Threads turn two clouds into one set of changes." },
+              { kind: "notice", title: "What changed?", q: "Ignoring the pairing made p…", options: ["Much bigger", "Smaller"], say: ["Yes. The client-to-client differences swamped the change.", "Look again: compare p with and without the threads."] },
+              { kind: "formalize", title: "Test the changes", body: '<p class="hook">change = intake − discharge, for each client</p><p>The paired t-test is a one-sample t-test on those changes.</p>', so: "Pairing removes the noise of who each client is." },
+              { kind: "fade", title: "Finish the example", q: "Three clients: 20→16, 12→9, 25→20.", lines: ["Changes: 4, 3, 5", "Average change = 12 ÷ 3", "Average change = 4 points"], blank: 2, options: ["Average change = 4 points", "Average change = 19 points", "Average change = 15 points"], answer: 0, why: "Test the changes, not the raw scores." },
+              { kind: "check", title: "Build-check", mount: threadsViz, body: THREAD_VZ(), q: "Find an average improvement where the paired test says p < .05 but ignoring the pairing says p > .05. Show it with the pairing kept.",
+                goal: function (st) { if (st.pair !== "on") return "Show it with the pairing kept."; if (st.pPaired >= 0.05) return "Even the paired test misses this one. More improvement."; return st.pInd > 0.05 ? true : "Here both tests agree. Try a smaller improvement."; },
+                hints: ["You need a change pairing can see but loose clouds can’t.", "Compare p in both toggle states.", "Small, steady improvements: try 1 to 3 points."], why: "A small, consistent change: the paired test sees it, the loose-cloud test wastes it.", concept: "b3-paired" },
+              { kind: "transfer", title: "A trap check", costume: "A programme evaluation", q: "Craving scores for the same 20 clients, week 1 and week 8. A colleague runs an independent t-test. You say…", options: ["Fine, both are scores", "Use a paired test: the same clients were measured twice", "Use Chi-square"], answer: 1, tags: ["PAIR-WASTE", null, null], back: 2, why: "Same people twice: run the test on their changes.", concept: "b3-paired" }
+            ]
+          },
+          17: {
+            home: ["Chi-square", "counts seen versus counts expected if nothing were going on."],
+            steps: [
+              { kind: "hook", title: "Relapsed or not", body: '<p class="hook">Relapse is yes or no. There is no mean to compare.</p><p class="dim">So we compare counts.</p>' },
+              { kind: "predict", title: "Your guess first", q: "40 per group: programme relapse 35%, usual care 50%. Significant?", options: ["Yes, clearly", "Not yet", "Can’t test categories"], say: "Watch the cells glow." },
+              { kind: "play", title: "Make the cells glow", body: "<p>Each cell shows the count seen and the count expected if the programme made no difference.</p>" + CHI_VZ(), mount: chiViz, so: "The further seen drifts from expected, the bigger χ²." },
+              { kind: "notice", title: "What changed?", q: "Doubling the clients per group, at the same relapse rates, made p…", options: ["Smaller", "Bigger"], say: ["Yes. The same gap in rates, more counts behind it.", "Look again as you raise the clients."] },
+              { kind: "formalize", title: "Chi-square", body: '<p class="hook">χ² = Σ (seen − expected)² ÷ expected</p><p>Expected comes from the “no relationship” story.</p>', so: "Chi-square is the category member of the signal-over-noise family." },
+              { kind: "check", title: "Build-check", mount: chiViz, body: CHI_VZ(), q: "Keep 40 per group. Set the programme relapse rate to the highest value that still gives p under .05.",
+                goal: function (st) { if (st.n !== 40) return "Clients per group is " + st.n + ". Set it back to 40."; if (st.p >= 0.05) return "p is " + st.p.toFixed(3) + ". The cells are still close to expected."; return st.rate >= 27 ? true : "Significant, but a higher relapse rate works too."; },
+                hints: ["Which way must the programme rate move from 50%?", "Watch p as you move the rate one step at a time.", "Start at 35% and step down until p drops under .05."], why: "At 40 per group, the programme must cut relapse to about 28% before chance is an unlikely story.", concept: "b3-chi" },
+              { kind: "transfer", title: "A new costume", costume: "Housing status", q: "Housed vs not housed, for clients in three reentry programmes. The fitting test is…", options: ["ANOVA", "Chi-square", "Paired t-test"], answer: 1, why: "Category outcome, different people.", concept: "b3-chi" }
+            ]
+          },
+          20: {
+            home: ["ANOVA", "three or more groups: signal between, noise within."],
+            steps: [
+              { kind: "hook", title: "Three groups", body: '<p class="hook">CBT, motivational interviewing, and usual care.</p><p class="dim">Why not just run three t-tests?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Three t-tests, each at 5%. The chance of at least one false alarm is about…", options: ["5%", "14%", "50%"], say: "Hold it. We’ll do the maths after the towers." },
+              { kind: "play", title: "Raise the towers", mount: anovaViz, lab: "anova", body: "<p>Tower height: each group’s mean. Dots: its clients.</p>" + ANOVA_VZ(), so: "F compares how far the towers differ with how scattered each group is." },
+              { kind: "notice", title: "What changed?", q: "More spread inside the groups made F…", options: ["Smaller", "Bigger"], say: ["Yes. More noise, same signal: F falls.", "Look again at F as the spread grows."] },
+              { kind: "formalize", title: "F", body: '<p class="hook">F = signal between groups ÷ noise within groups</p><p>One test for all groups keeps the false-alarm rate at 5%. Three t-tests push it to about 14%.</p>', so: "ANOVA is the t-test’s family member for many groups." },
+              { kind: "fade", title: "Finish the example", q: "Three tests, each with a 95% chance of no false alarm.", lines: ["No false alarm in all three = 0.95 × 0.95 × 0.95", "= 0.86", "At least one false alarm ≈ 14%"], blank: 2, options: ["At least one false alarm ≈ 14%", "At least one false alarm = 5%", "At least one false alarm = 86%"], answer: 0, why: "Every extra test is another ticket in the false-alarm lottery." },
+              { kind: "check", title: "Build-check", mount: anovaViz, body: ANOVA_VZ(), q: "Keep the gap between means at 2. Make F at least 4.",
+                goal: function (st) { if (st.gap !== 2) return "The gap moved. Keep it at 2."; return st.F >= 4 ? true : "F is " + st.F.toFixed(2) + ". The groups are too noisy."; },
+                hints: ["The gap is fixed. What’s the other half of F?", "Watch the noise number.", "Tighten the spread inside the groups."], why: "Same signal, less noise: F rises.", concept: "b3-anova" },
+              { kind: "transfer", title: "A new costume", costume: "Four housing units", q: "Average days sober across four housing units: one test or six t-tests?", options: ["One ANOVA", "Six t-tests", "Chi-square"], answer: 0, why: "Many groups, score outcome: one ANOVA keeps the false-alarm rate honest.", concept: "b3-anova" }
+            ]
+          },
+          27: {
+            home: ["Nonparametric tests", "the sturdy fallback when the bell shape fails."],
+            steps: [
+              { kind: "hook", title: "Two extreme clients", body: '<p class="hook">Most clients improve a little. Two get dramatically worse.</p><p class="dim">The mean jumps. Does the story change?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Add two extreme clients to one group. Which gap moves more?", options: ["The mean gap", "The median gap", "Neither"], say: "Toggle the extreme clients." },
+              { kind: "play", title: "Add the extremes", mount: cloudsViz, body: "<p>Watch both the mean gap and the median gap.</p>" + CLOUD_VZ(true), so: "Means chase extremes; ranks and medians hold steady." },
+              { kind: "notice", title: "What changed?", q: "With the extremes added, the median gap…", options: ["Barely moved", "Jumped like the mean"], say: ["Yes. Rank-based summaries don’t care how far out a score is.", "Look again at the median gap number."] },
+              { kind: "formalize", title: "The fallback", body: "<p>Rank tests (Mann–Whitney, Wilcoxon, Kruskal–Wallis) compare orders, not distances.</p><p>Use them for heavy skew, ordinal ratings, or tiny samples.</p>", so: "Nonparametric means sturdy when the model’s assumptions fail, not advanced." },
+              { kind: "check", title: "Build-check", mount: cloudsViz, body: CLOUD_VZ(true), q: "With the extreme clients added, make the mean gap and median gap disagree by more than 1.5 points.",
+                goal: function (st) { if (st.ext !== "on") return "Add the two extreme clients first."; var g = Math.abs(st.meanGap - st.medGap); return g > 1.5 ? true : "They differ by " + g.toFixed(1) + ". Make the groups tighter so the extremes stand out more."; },
+                hints: ["The extremes are on. What makes them pull harder on the mean?", "Watch both gap numbers.", "Shrink the spread inside groups."], why: "Two extreme clients drag the mean; the median, like rank tests, barely notices.", concept: "b3-rank" },
+              { kind: "transfer", title: "A new costume", costume: "A 1–5 rating", q: "Clients rate group helpfulness 1–5 in two programmes, 9 clients each. The sturdy choice is…", options: ["Independent t-test", "Mann–Whitney", "Paired t-test"], answer: 1, why: "Ordinal ratings, tiny groups, different people: the rank fallback.", concept: "b3-rank" }
+            ]
+          },
+          18: {
+            home: ["Correlation", "togetherness, read from the cloud first."],
+            steps: [
+              { kind: "hook", title: "Sleep and mood", body: '<p class="hook">Clients who sleep more report better mood.</p><p class="dim">How strong is that, and what does it prove?</p>' },
+              { kind: "predict", title: "Your guess first", q: "One unusual client can flip r from positive to negative.", options: ["True", "False"], say: "Test it with the unusual-client slider." },
+              { kind: "play", title: "Read the cloud", mount: scatterViz, lab: "cosmos", body: "<p>Read direction, strength and outliers from the dots before the number.</p>" + SCAT_VZ(), so: "Look at the scatter first; r only summarises a straight-line trend." },
+              { kind: "notice", title: "What changed?", q: "Adding one far-out client changed r…", options: ["A lot", "Not at all"], say: ["Yes. One point can drag r.", "Look again with the unusual client set low."] },
+              { kind: "formalize", title: "r", body: "<p><b>r</b> runs from −1 to +1: direction and strength of a straight-line trend.</p><p>It never says which variable caused the other.</p>", so: "r describes togetherness, not cause." },
+              { kind: "check", title: "Build-check", mount: scatterViz, body: SCAT_VZ(), q: "Keep a positive trend (togetherness 5) and add one unusual client that makes r negative.",
+                goal: function (st) { if (st.rel !== 5) return "Togetherness is " + st.rel + ". Set it back to 5."; if (!st.out) return "Add the unusual client first."; return st.r < 0 ? true : "r is still +" + st.r.toFixed(2) + "."; },
+                hints: ["Where would one client need to sit to fight the trend?", "Watch r as you move the red client.", "Far right on sleep, very low on mood."], why: "One extreme point can reverse r. Always look at the scatter.", concept: "b4-r" },
+              { kind: "transfer", title: "Three stories", costume: "A headline", q: "“Clients who attend more groups relapse less (r = −.45).” The safest reading is…", options: ["Groups prevent relapse", "They move together; cause needs a design that rules out other stories", "r is too small to matter"], answer: 1, tags: ["CORR-CAUSE", null, null], scene: "l23", why: "Motivation could drive both. Togetherness isn’t cause.", concept: "b4-r" }
+            ]
+          },
+          19: {
+            home: ["Regression", "a line as a prediction machine, and what it missed."],
+            steps: [
+              { kind: "hook", title: "A prediction machine", body: '<p class="hook">Put in sessions attended. Get out a predicted craving score.</p><p class="dim">How far can you trust it?</p>' },
+              { kind: "predict", title: "Your guess first", q: "The data run from 2 to 20 sessions. A prediction for 40 sessions is…", options: ["Just as good", "A guess beyond the data", "Better: more data"], say: "Ride the gold marker out." },
+              { kind: "play", title: "Ride the line", mount: regViz, lab: "l33", body: "<p>Blue rain: what the line missed for each client.</p>" + REG_VZ(), so: "The line predicts; the rain shows its misses." },
+              { kind: "notice", title: "What changed?", q: "Past 20 sessions, the line…", options: ["Keeps going with no clients to check it", "Bends to follow the data"], say: ["Yes. Beyond the data the line knows nothing.", "Look again: there are no dots out there."] },
+              { kind: "formalize", title: "The line", body: '<p class="hook">predicted = a + b × sessions</p><p><b>b</b>: the change in prediction per extra session. <b>Residual</b> = actual − predicted.</p>', so: "A good line has small, patternless rain, and stays inside the data." },
+              { kind: "fade", title: "Finish the example", q: "Predicted craving = 20 − 0.6 × sessions. A client attends 10.", lines: ["0.6 × 10 = 6", "20 − 6", "Predicted craving = 14"], blank: 2, options: ["Predicted craving = 14", "Predicted craving = 26", "Predicted craving = 6"], answer: 0, why: "Ten sessions bring the prediction down 6 points." },
+              { kind: "check", title: "Build-check", mount: regViz, body: REG_VZ(), q: "Set the marker to a session count where the line should NOT be trusted.",
+                goal: function (st) { return st.at > 20 || st.at < 2 ? true : st.at + " sessions is inside the data. The line has clients there to check it."; },
+                hints: ["Where do the clients actually sit?", "Look at the shaded band.", "Go beyond the band."], why: "Outside 2–20 sessions there are no clients: that’s extrapolation.", concept: "b4-reg" },
+              { kind: "transfer", title: "A new costume", costume: "Age and recovery", q: "A line fits clients aged 20–45. Using it for a 70-year-old is…", options: ["Fine", "Extrapolation: the data say nothing there", "Better because older"], answer: 1, why: "A line is only as good as the range it was fitted on.", concept: "b4-reg" }
+            ]
+          },
+          22: {
+            home: ["Multiple regression", "“controlling for” means comparing clients who are alike."],
+            steps: [
+              { kind: "hook", title: "More therapy, worse symptoms?", body: '<p class="hook">Clients with more sessions leave with MORE symptoms.</p><p class="dim">Does therapy hurt? Or were they sicker to begin with?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Among clients with the SAME intake severity, more sessions go with…", options: ["More symptoms", "Fewer symptoms", "No pattern"], say: "Slice the cloud and see." },
+              { kind: "play", title: "Slice by severity", mount: sliceViz, lab: "l34", body: "<p>Colours: intake severity layers. Lines: the trend in the whole cloud and inside each layer.</p>" + SLICE_VZ(), so: "Inside each layer, the slope tells a different story." },
+              { kind: "notice", title: "What changed?", q: "Raising severity’s pull made the whole-cloud slope…", options: ["Climb, even turning positive", "Stay the same"], say: ["Yes. Severity drives both sessions and symptoms.", "Look again at the whole-cloud number."] },
+              { kind: "formalize", title: "Controlling for", body: "<p>Multiple regression estimates each predictor’s slope <b>holding the others still</b>.</p><p>In plain words: comparing clients who are alike on the other variables.</p>", so: "“Controlling for severity” means looking inside the severity layers." },
+              { kind: "check", title: "Build-check", mount: sliceViz, body: SLICE_VZ(), q: "With the cloud sliced, make the whole-cloud slope positive while the within-layer slope stays negative.",
+                goal: function (st) { if (st.slice !== "on") return "Slice by severity first."; return st.whole > 0 && st.within < 0 ? true : "Whole-cloud slope is " + st.whole.toFixed(2) + ". It hasn’t reversed yet."; },
+                hints: ["What would make sicker clients both attend more and score higher?", "Watch the whole-cloud number.", "Turn severity’s pull up."], why: "Simpson’s paradox: the whole cloud and the layers disagree, and the layers are the fair comparison.", concept: "b4-control" },
+              { kind: "transfer", title: "A new costume", costume: "A report", q: "“Controlling for age, employment predicted lower recidivism.” This means…", options: ["Employment causes lower recidivism", "Among clients of the same age, employed ones reoffended less", "Age doesn’t matter"], answer: 1, tags: ["CORR-CAUSE", null, null], why: "Controlling compares like with like. Cause still needs design.", concept: "b4-control" }
+            ]
+          }
+        });
+        /* ============ PHASE 5B · Lab L31–L34 ============ */
+        function choiceRow(env, ctl, list, cur, fn) {
+          var row;
+          env.buttons(list.map(function (o) { return { t: o[1], fn: function () { cur = o[0]; mark(); fn(o[0]); } }; }));
+          row = ctl.lastElementChild; row.setAttribute("role", "group");
+          function mark() { Array.prototype.forEach.call(row.querySelectorAll("button"), function (b, i) { b.setAttribute("aria-pressed", String(list[i][0] === cur)); }); }
+          mark(); return row;
+        }
+        function segLines(T, n, color, op) {
+          var g = new T.BufferGeometry(); g.setAttribute("position", new T.BufferAttribute(new Float32Array(n * 6), 3));
+          return new T.LineSegments(g, new T.LineBasicMaterial({ color: color, transparent: true, opacity: op, blending: T.AdditiveBlending, depthWrite: false }));
+        }
+        function pairData(chg) {
+          var r = seeded(73), n = 14, pre = [], post = [], d = [];
+          for (var i = 0; i < n; i++) { var b = 16 + gauss(r) * 6; pre.push(b); post.push(b - chg + gauss(r) * 1.5); d.push(pre[i] - post[i]); }
+          var tp = meanOf(d) / (sdOf(d) / Math.sqrt(n)), ti = (meanOf(pre) - meanOf(post)) / Math.sqrt((sdOf(pre) * sdOf(pre) + sdOf(post) * sdOf(post)) / n);
+          return { pre: pre, post: post, md: meanOf(d), pPaired: 2 * (1 - phi(Math.abs(tp))), pInd: 2 * (1 - phi(Math.abs(ti))) };
+        }
+        var RAIN_PTS = (function () { var r = seeded(23), a = []; for (var i = 0; i < 60; i++) { var x = r() * 10, z = r() * 2 - 1; a.push([x, z, 0.9 * x - 0.07 * x * x + 0.5 * z + gauss(r) * 0.15]); } return a; })();
+        function rainFit(tilt, bend) {
+          var res = RAIN_PTS.map(function (p) { return p[2] - (tilt * p[0] + bend * (p[0] - 5) * (p[0] - 5) + 0.5 * p[1]); }), b0 = meanOf(res);
+          var th = [[], [], []]; RAIN_PTS.forEach(function (p, i) { th[Math.min(2, Math.floor(p[0] / 3.334))].push(res[i] - b0); });
+          return { b0: b0, res: res.map(function (v) { return v - b0; }), thirds: th.map(meanOf) };
+        }
+        Array.prototype.push.apply(SCENES, [
+          {
+            id: "l31", lid: 31, name: "Design Decides Maze", pillar: "B3", learn: "b3-which", day: 15, level: "intermediate", hue: ["#5be3a0", "#3fd8ff"],
+            idea: "Two design gates light the path to the right test.",
+            why: "Every test in this family asks one question — is the signal bigger than the noise? The design of the data, not habit, picks which one answers.",
+            use: "Checking whether a programme evaluation used the right test before trusting its conclusion.",
+            useLine: "checking a programme evaluation used the right test.",
+            cap: "Start on the left. The first gate asks what kind of outcome you measured; the second asks how the groups were formed. The glowing path ends at one of five exits: t-test, paired t, ANOVA, Chi-square, or the rank-based fallback.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { out: "score", des: "two" };
+              var EX = [["t", "Independent t-test", 2.2, "t-test"], ["paired", "Paired t-test", 1.1, "Paired t"], ["anova", "One-way ANOVA", 0, "ANOVA"], ["chi", "Chi-square", -1.1, "Chi-square"], ["rank", "Rank fallback", -2.2, "Rank fallback"]];
+              var OUT = { score: [-1.5, 1.1, "Score"], rank: [-1.5, 0, "Skewed / ranks"], cat: [-1.5, -1.1, "Category"] }, DES = { two: [0.5, 1.1, "Two different groups"], same: [0.5, 0, "Same people twice"], many: [0.5, -1.1, "Three + groups"] };
+              var geo = new T.BoxGeometry(0.5, 0.5, 0.5), nodes = {};
+              function node(key, x, y, c, label) { var m = new T.Mesh(geo, new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.25, blending: T.AdditiveBlending, depthWrite: false })); m.position.set(x, y, 0); env.scene.add(m); var l = labSprite(T, "#e8e4ff", 0.4).text(label); l.position.set(x, y + 0.52, 0); env.scene.add(l); nodes[key] = m; }
+              node("start", -3, 0, 0xffffff, "start");
+              Object.keys(OUT).forEach(function (k) { node("o" + k, OUT[k][0], OUT[k][1], 0x3fd8ff, OUT[k][2]); });
+              Object.keys(DES).forEach(function (k) { node("d" + k, DES[k][0], DES[k][1], 0xa06bff, DES[k][2]); });
+              EX.forEach(function (e) { node("x" + e[0], 2.5, e[2], 0x5be3a0, e[3]); });
+              var path = segLines(T, 3, 0xffc85a, 1); env.scene.add(path);
+              function exitOf() { if (st.out === "cat") return "chi"; if (st.out === "rank") return "rank"; return st.des === "same" ? "paired" : st.des === "many" ? "anova" : "t"; }
+              function update() {
+                var x = exitOf(), o = OUT[st.out], d = DES[st.des], ex = EX.filter(function (e) { return e[0] === x; })[0];
+                Object.keys(nodes).forEach(function (k) { nodes[k].material.opacity = 0.18; nodes[k].scale.setScalar(1); });
+                ["start", "o" + st.out, "d" + st.des, "x" + x].forEach(function (k) { nodes[k].material.opacity = 0.85; nodes[k].scale.setScalar(1.25); });
+                var p = path.geometry.attributes.position; [[-3, 0, o[0], o[1]], [o[0], o[1], d[0], d[1]], [d[0], d[1], 2.5, ex[2]]].forEach(function (s, i) { p.setXYZ(i * 2, s[0], s[1], 0); p.setXYZ(i * 2 + 1, s[2], s[3], 0); }); p.needsUpdate = true;
+                st.exit = x;
+                env.read.innerHTML = "Outcome <b>" + o[2].toLowerCase() + "</b> · design <b>" + d[2].toLowerCase() + "</b> → exit <b>" + ex[1] + "</b>";
+              }
+              var study = function (txt, want, why) { return { text: "Route this study: " + txt, check: function () { var x = exitOf(); return x === want ? true : why(x); }, ok: "Right exit." }; };
+              labKit(env, ctl, this, {
+                predict: { q: "PHQ-9 scores for the same 30 clients at intake and discharge. Which exit?", options: ["Independent t-test", "Paired t-test", "Chi-square"] },
+                challenge: [
+                  study("anxiety scores, CBT group vs waitlist, different clients.", "t", function (x) { return x === "paired" ? "These are different clients, so there are no pairs." : st.out !== "score" ? "Anxiety scores are scores, roughly bell-shaped." : "There are only two groups."; }),
+                  study("PHQ-9 for 25 clients at intake and again at discharge.", "paired", function (x) { return st.out !== "score" ? "PHQ-9 is a score." : "The same clients were measured twice: that’s a pairing."; }),
+                  study("days sober across four housing units, different residents.", "anova", function (x) { return st.out !== "score" ? "Days sober is a score." : "Four units is more than two groups."; }),
+                  study("relapsed yes or no, programme vs usual care.", "chi", function () { return "Relapsed yes/no is a category, not a score."; }),
+                  study("pain ratings 1–5, heavily skewed, 8 clients in each of two groups.", "rank", function () { return "A skewed 1–5 rating in tiny groups breaks the bell-shape assumption: take the sturdy route."; })
+                ],
+                takeaway: "Three questions — what kind of outcome, how many groups, same or different people — route you to the right test. The design decides, never habit."
+              });
+              choiceRow(env, ctl, [["score", "Score"], ["rank", "Skewed / ranks"], ["cat", "Category"]], st.out, function (v) { st.out = v; update(); });
+              choiceRow(env, ctl, [["two", "Two groups"], ["same", "Same people twice"], ["many", "Three + groups"]], st.des, function (v) { st.des = v; update(); });
+              env.spin = false; env.view(0, 0.1); env.frame(0, 7.2, 1.15); env.scene.position.x = 0.2;
+              update();
+            }
+          },
+          {
+            id: "l32", lid: 32, name: "Paired Threads", pillar: "B3", learn: 16, day: 16, level: "intermediate", hue: ["#ffc85a", "#a06bff"],
+            idea: "One glowing thread per client joins intake to discharge.",
+            why: "Pairing turns two noisy clouds into one set of changes. Throw the pairing away and the client-to-client noise swallows the signal.",
+            use: "Spotting a pre/post programme evaluation that analysed the same clients as two separate groups.",
+            useLine: "spotting pre/post data analysed as two separate groups.",
+            cap: "Cyan points: 14 clients' scores at intake. Violet: the same clients at discharge. Each gold thread joins one client's two scores. Height is the score; the clients differ a lot from each other, but each one changes by a similar amount.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { chg: 2, pair: true }, N = 14, U = 0.17, Z = [];
+              for (var i = 0; i < N; i++) Z.push((i - N / 2 + 0.5) * 0.3);
+              var shuf = [3, 9, 0, 12, 6, 1, 13, 4, 10, 7, 2, 11, 5, 8];
+              var pts = livePoints(env, N * 2, 0.32), thr = segLines(T, N, 0xffc85a, 0.85); env.scene.add(thr);
+              var la = labSprite(T, "#3fd8ff", 0.3).text("intake"), lb = labSprite(T, "#c3a0ff", 0.3).text("discharge"); la.position.set(-1.6, 6.2, 0); lb.position.set(1.6, 6.2, 0); env.scene.add(la, lb);
+              function update() {
+                var D = pairData(st.chg), p = thr.geometry.attributes.position;
+                for (var i = 0; i < N; i++) {
+                  var zb = st.pair ? Z[i] : Z[shuf[i]];
+                  pts.set(i, -1.6, D.pre[i] * U, Z[i], [0.25, 0.85, 1]); pts.set(N + i, 1.6, D.post[i] * U, zb, [0.63, 0.42, 1]);
+                  p.setXYZ(i * 2, -1.6, D.pre[i] * U, Z[i]); p.setXYZ(i * 2 + 1, 1.6, D.post[i] * U, zb);
+                }
+                p.needsUpdate = true; pts.flush(); thr.visible = st.pair; st.D = D;
+                var f = function (v) { return v < 0.001 ? "< .001" : v.toFixed(3); };
+                env.read.innerHTML = (st.pair ? "Threads kept · test on each client’s change: average <b>" + D.md.toFixed(1) + "</b> points · p <b>" + f(D.pPaired) + "</b>" : "Pairing ignored · two loose clouds: gap <b>" + D.md.toFixed(1) + "</b> points · p <b>" + f(D.pInd) + "</b>");
+              }
+              labKit(env, ctl, this, {
+                predict: { q: "Ignore the pairing and treat intake and discharge as two loose groups. The improvement will look…", options: ["Clearer", "Weaker, lost in the noise", "Exactly the same"] },
+                challenge: [{ text: "Find an average improvement where pairing changes the conclusion: paired p < .05, but p > .05 when the pairing is ignored.", check: function () {
+                  var D = pairData(st.chg); if (D.pPaired >= 0.05) return "Even the paired test misses a change this small."; return D.pInd > 0.05 ? true : "Here both views agree (loose clouds p = " + D.pInd.toFixed(3) + "). Try a smaller improvement."; }, ok: "Same clients, same data: only the pairing reveals it." }],
+                takeaway: "Same people measured twice? Test their changes. Treating pairs as two independent groups throws the design away and can hide a real improvement."
+              });
+              env.slider("Average improvement", 0, 6, 0.5, st.chg, function (v) { return v + " pts"; }, function (v) { st.chg = v; update(); });
+              choiceRow(env, ctl, [[true, "Keep the pairing"], [false, "Ignore the pairing"]], st.pair, function (v) { st.pair = v; update(); });
+              env.spin = false; env.view(0.35, 0.25); env.frame(2.8, 8, 1);
+              update();
+            }
+          },
+          {
+            id: "l33", lid: 33, name: "Residual Rain", pillar: "B4", learn: 19, day: 19, level: "intermediate", hue: ["#3fd8ff", "#8f86d8"],
+            idea: "Residuals fall as rain from each client to the model's surface.",
+            why: "A model's misses should look like random drizzle. Rain that clusters in one region says the model's shape is wrong.",
+            use: "Judging whether a straight-line model fits outcomes that level off with more sessions.",
+            useLine: "checking whether a straight-line model really fits.",
+            cap: "Each point is a client: sessions attended run left to right, motivation runs front to back, and height is improvement. The violet grid is the model. Blue rain falls from each client to the grid; it shows what the model missed.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { tilt: 0.5, bend: 0 }, S = 0.55, U = 0.9, N = RAIN_PTS.length, G = 11;
+              var pts = livePoints(env, N, 0.3), rain = segLines(T, N, 0x3fd8ff, 0.85), grid = segLines(T, G * 2 * 10, 0x8f86d8, 0.45); env.scene.add(rain, grid);
+              var X = function (x) { return (x - 5) * S; }, Zp = function (z) { return z * 1.4; };
+              function surf(f, x, z) { return (st.tilt * x + st.bend * (x - 5) * (x - 5) + 0.5 * z + f.b0) * U; }
+              function update() {
+                var f = rainFit(st.tilt, st.bend), rp = rain.geometry.attributes.position, gp = grid.geometry.attributes.position, k = 0;
+                RAIN_PTS.forEach(function (p, i) {
+                  var y = p[2] * U, m = surf(f, p[0], p[1]); pts.set(i, X(p[0]), y, Zp(p[1]), [1, 1, 1]);
+                  rp.setXYZ(i * 2, X(p[0]), y, Zp(p[1])); rp.setXYZ(i * 2 + 1, X(p[0]), m, Zp(p[1]));
+                });
+                for (var a = 0; a < G; a++) for (var b = 0; b < 10; b++) {
+                  var x0 = b, x1 = b + 1, z = -1 + a * 0.2; gp.setXYZ(k++, X(x0), surf(f, x0, z), Zp(z)); gp.setXYZ(k++, X(x1), surf(f, x1, z), Zp(z));
+                  var xx = a, z0 = -1 + b * 0.2, z1 = z0 + 0.2; if (xx <= 10) { gp.setXYZ(k++, X(xx), surf(f, xx, z0), Zp(z0)); gp.setXYZ(k++, X(xx), surf(f, xx, z1), Zp(z1)); }
+                }
+                rp.needsUpdate = true; gp.needsUpdate = true; pts.flush(); st.th = f.thirds;
+                var w = function (v) { return (v >= 0 ? "above " : "below ") + Math.abs(v).toFixed(2); };
+                env.read.innerHTML = "average miss · few sessions <b>" + w(f.thirds[0]) + "</b> · middle <b>" + w(f.thirds[1]) + "</b> · many sessions <b>" + w(f.thirds[2]) + "</b>";
+              }
+              labKit(env, ctl, this, {
+                predict: { q: "Fit a flat, tilted plane over outcomes that level off with more sessions. The rain will…", options: ["Fall randomly everywhere", "Cluster: misses grouped by how many sessions", "Not fall at all"] },
+                challenge: [{ text: "Tilt and bend the model until the rain looks patternless: every region’s average miss within 0.15.", check: function () {
+                  var t = st.th, worst = [0, 1, 2].sort(function (a, b) { return Math.abs(t[b]) - Math.abs(t[a]); })[0];
+                  return Math.abs(t[worst]) < 0.15 ? true : "The rain still clusters at " + ["few sessions", "the middle", "many sessions"][worst] + " (" + (t[worst] > 0 ? "clients above the model by " : "clients below the model by ") + Math.abs(t[worst]).toFixed(2) + ")."; }, ok: "Patternless drizzle: the model’s shape now matches the data." }],
+                takeaway: "Good models leave random, patternless misses. Rain that gathers in one region means the model has the wrong shape, often a curve fitted with a straight line."
+              });
+              env.slider("Tilt", 0, 0.6, 0.05, st.tilt, function (v) { return v.toFixed(2); }, function (v) { st.tilt = Math.round(v * 100) / 100; update(); });
+              env.slider("Bend", -15, 5, 1, 0, function (v) { return (v / 100).toFixed(2); }, function (v) { st.bend = v / 100; update(); });
+              env.spin = false; env.view(0.5, 0.3); env.frame(1.6, 5.5, 1.6);
+              update();
+            }
+          },
+          {
+            id: "l34", lid: 34, name: "Holding the Third Variable Still", pillar: "B4", learn: 22, day: 22, level: "intermediate", hue: ["#3fd8ff", "#ffc85a"],
+            idea: "Slice the cloud into same-severity layers and a different slope appears.",
+            why: "“Controlling for” a variable means comparing clients who are alike on it. Inside the layers the story can reverse: Simpson’s paradox.",
+            use: "Reading “more sessions, worse outcomes” without concluding that therapy harms clients.",
+            useLine: "reading a “controlling for” result in a treatment study.",
+            cap: "Each point is a client: sessions attended run left to right, symptoms at discharge rise upward, and intake severity runs front to back in three layers. The white line is the trend in the whole cloud; coloured lines are the trend inside each severity layer.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { pull: 2, slice: false }, S = 0.5, U = 0.42, LZ = [-1.6, 0, 1.6], COL = [[0.25, 0.85, 1], [0.63, 0.42, 1], [1, 0.78, 0.35]];
+              var pts = livePoints(env, 48, 0.3), lines = segLines(T, 4, 0xffffff, 0.95); env.scene.add(lines);
+              var X = function (x) { return (x - 10) * S; };
+              function update() {
+                var P = sliceData(st.pull), lp = lines.geometry.attributes.position;
+                P.forEach(function (p, i) { pts.set(i, X(p[0]), p[1] * U, st.slice ? LZ[p[2]] : 0, st.slice ? COL[p[2]] : [0.9, 0.9, 1]); }); pts.flush();
+                function fit(sub, k, z) { var xs = sub.map(function (p) { return p[0]; }), b = slopeOf(sub), mx = meanOf(xs), my = meanOf(sub.map(function (p) { return p[1]; })), x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs); lp.setXYZ(k * 2, X(x0), (my + b * (x0 - mx)) * U, z); lp.setXYZ(k * 2 + 1, X(x1), (my + b * (x1 - mx)) * U, z); return b; }
+                st.whole = fit(P, 0, 0);
+                var w = [0, 1, 2].map(function (s) { return fit(P.filter(function (p) { return p[2] === s; }), s + 1, st.slice ? LZ[s] : -50); });
+                st.within = meanOf(w); lp.needsUpdate = true;
+                var f = function (v) { return (v >= 0 ? "+" : "") + v.toFixed(2); };
+                env.read.innerHTML = "whole-cloud slope <b>" + f(st.whole) + "</b> symptoms per session" + (st.slice ? " · inside each severity layer <b>" + f(st.within) + "</b>" : " · slice to look inside the layers");
+              }
+              labKit(env, ctl, this, {
+                predict: { q: "Among clients with the SAME intake severity, more sessions go with…", options: ["More symptoms", "Fewer symptoms", "No pattern"] },
+                challenge: [{ text: "Make the whole-cloud relationship reverse inside the layers: whole-cloud slope positive, within-layer slope negative, with the cloud sliced.", check: function () {
+                  if (!st.slice) return "Slice the cloud into severity layers first."; if (st.within >= 0) return "The within-layer slope isn’t negative."; return st.whole > 0 ? true : "The whole-cloud slope is still " + st.whole.toFixed(2) + ": not reversed yet."; }, ok: "Simpson’s paradox, found by hand." }],
+                takeaway: "A whole-cloud trend can reverse inside layers of a third variable. “Controlling for” means comparing like with like, and that comparison is the fair one."
+              });
+              env.slider("Severity’s pull on both", 0, 10, 1, st.pull, String, function (v) { st.pull = v; update(); });
+              choiceRow(env, ctl, [[false, "Whole cloud"], [true, "Slice by severity"]], st.slice, function (v) { st.slice = v; update(); });
+              env.spin = false; env.view(0.55, 0.25); env.frame(2.4, 5.8, 1.5);
+              update();
+            }
+          }
+        ]);
+        [["b3-which", "l31"], [16, "l32"], [19, "l33"], [22, "l34"]].forEach(function (p) {
+          var L = LESSON_CONTENT[p[0]]; if (!L) return;
+          var s = L.steps.filter(function (x) { return x.kind === "play"; })[0]; if (s && !s.lab) s.lab = p[1];
+        });
         var KIND = { hook: "Hook", concept: "Concept", intuition: "Intuition", formula: "Key rule", example: "Worked example", quiz: "Quiz", lens: "Lens",
           predict: "Predict", run: "Run it", play: "Manipulate", notice: "Notice", formalize: "So", check: "Build-check", transfer: "Transfer", fade: "Finish the example" };
         /* C1 lesson anatomy: a strip appears only on lessons built with the new step kinds; existing lessons look as before */
@@ -6044,7 +6521,7 @@
           }
         };
 
-        window.Sigmind = { version: "phase5a", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
+        window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
         function confetti() {
           if (reduce) return;
