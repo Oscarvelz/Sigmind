@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Sigmind — Statistics for the scientist-counselor</title>
+    <title>Psygma — Statistics for the scientist-counselor</title>
     <link rel="icon" href="sigmind-icon.png" />
     <link rel="apple-touch-icon" href="icon-180.png" />
     <link rel="manifest" href="manifest.webmanifest" />
     <meta name="theme-color" content="#0b1020" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Sigmind" />
+    <meta name="apple-mobile-web-app-title" content="Psygma" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -652,9 +652,9 @@
   </head>
   <body>
     <!-- SPLASH: shown once per session, tap to skip -->
-    <div id="splash" class="x-splash" role="button" tabindex="0" aria-label="Sigmind is starting. Tap to skip.">
+    <div id="splash" class="x-splash" role="button" tabindex="0" aria-label="Psygma is starting. Tap to skip.">
       <div class="x-splash__icon"><img src="sigmind-icon.png" alt="" /></div>
-      <p class="x-splash__name">Sigmind</p>
+      <p class="x-splash__name">Psygma</p>
       <p class="x-splash__tag">Statistics you can see.</p>
       <div class="x-splash__bar" aria-hidden="true"><span></span></div>
     </div>
@@ -662,7 +662,7 @@
     <!-- APP -->
     <div id="app">
       <header class="hd glass">
-        <div class="hd__brand"><img src="sigmind-icon.png" alt="" /><span class="mark">Sigmind</span></div>
+        <div class="hd__brand"><img src="sigmind-icon.png" alt="" /><span class="mark">Psygma</span></div>
         <button class="iconbtn press" id="theme-btn"></button>
         <button class="iconbtn press" id="gear-btn" aria-label="Settings"></button>
       </header>
@@ -673,7 +673,7 @@
 
     <script>
       /* =========================================================
-         SIGMIND app shell
+         PSYGMA app shell
          Sections: ICONS · STORE · THEMES · AUTH · SYNC · HISTORY · UI · VIEWS · BOOT
          ========================================================= */
       (function () {
@@ -792,7 +792,7 @@
         var savePrefs = Save.schedule;
 
         /* ============ ACCOUNT & ONLINE SYNC (same Supabase project as Numina and Anima) ============ */
-        /* Sigmind keeps its own keys (user metadata sigmind_progress / sigmind_updated_at, local sm.cloud),
+        /* Psygma keeps its own keys (user metadata sigmind_progress / sigmind_updated_at, local sm.cloud),
            so it never reads or overwrites Numina's or Anima's progress. Local saving stays exactly as before. */
         var SUPABASE_URL = "https://etyimgbooxvqejkjhfyo.supabase.co";
         var SUPABASE_KEY = "sb_publishable_PhzsifRX21bl1JX_1NXMCA_0kB-q6xB";
@@ -961,7 +961,7 @@
                 '<div class="x-bk">' + b("ac-sync", "Sync now") + b("ac-out", "Sign out") + "</div>" +
                 '<p class="dim">Same account as Numina and Anima. Each app keeps its own progress.</p>';
             }
-            return '<p class="dim">Sign in and your progress follows you from phone to tablet. Same account as Numina and Anima; Sigmind keeps its own progress. Without an account, everything stays saved on this device.</p>' +
+            return '<p class="dim">Sign in and your progress follows you from phone to tablet. Same account as Numina and Anima; Psygma keeps its own progress. Without an account, everything stays saved on this device.</p>' +
               '<form class="x-ac" id="ac-form" novalidate>' +
               (f.mode === "up" ? '<label>Name<input id="ac-name" autocomplete="name" value="' + esc(f.name) + '" /></label>' : "") +
               '<label>Email<input id="ac-email" type="email" inputmode="email" autocomplete="email" value="' + esc(f.email) + '" /></label>' +
@@ -3889,7 +3889,7 @@
                 row("Lessons mastered", String((prefs.mastered || []).length)) + row("XP", String(prefs.xp || 0)) +
                 row("This device", meta.device) + row("Revision", "r" + meta.rev) + "</div>" + Backup.html()) +
               fold("about", "About",
-                '<p class="dim">Sigmind teaches statistics to counselors and clinicians in 30 short daily lessons. Version 0.1 · app shell.</p>') +
+                '<p class="dim">Psygma teaches statistics to counselors and clinicians in 30 short daily lessons. Version 0.1 · app shell.</p>') +
               "</div>";
           }
         };
@@ -3915,7 +3915,7 @@
           prompt: null,
           name: function () {
             var d = new Date(), p = function (n) { return (n < 10 ? "0" : "") + n; };
-            return "sigmind-progress-" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + ".json";
+            return "psygma-progress-" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + ".json";
           },
           build: function () {
             Save.flush();
@@ -3951,11 +3951,11 @@
               '<input type="file" id="bk-file" accept=".json,application/json" hidden /></div>' +
               '<textarea class="x-code" id="bk-paste" rows="3" placeholder="Paste progress code" aria-label="Paste progress code">' + esc(Backup.paste) + "</textarea>" +
               '<div class="x-bk">' + b("bk-load", "Load code") + "</div>" +
-              '<p class="eyebrow">Install Sigmind</p>' + inst +
+              '<p class="eyebrow">Install Psygma</p>' + inst +
               '<details class="x-how"><summary>How to move to another device</summary><ol>' +
               "<li>Export on this device: download the file or copy the code.</li>" +
               "<li>Send the file or code to the other device (Drive, email, Quick Share).</li>" +
-              "<li>Open Sigmind there and Import it under Settings → Progress &amp; Backup.</li></ol></details>";
+              "<li>Open Psygma there and Import it under Settings → Progress &amp; Backup.</li></ol></details>";
           },
           showCode: function () {
             Backup.code = Backup.enc(Backup.json());
@@ -3977,7 +3977,7 @@
               } catch (e) { Backup.showCode(); UI.toast("Download blocked: copy the code instead"); }
             }
             if (id === "bk-share") {
-              navigator.share({ files: [Backup.file()], title: "Sigmind backup", text: "My Sigmind progress" }).catch(function () {});
+              navigator.share({ files: [Backup.file()], title: "Psygma backup", text: "My Psygma progress" }).catch(function () {});
             }
             if (id === "bk-code") Backup.showCode();
             if (id === "bk-copy") {
@@ -3999,8 +3999,8 @@
             try {
               text = String(text).trim();
               data = JSON.parse(text.charAt(0) === "{" ? text : Backup.dec(text));
-            } catch (e) { return UI.toast("That isn't a Sigmind backup"); }
-            if (!data || data.app !== "sigmind" || !data.prefs || typeof data.prefs !== "object") return UI.toast("That isn't a Sigmind backup");
+            } catch (e) { return UI.toast("That isn't a Psygma backup"); }
+            if (!data || data.app !== "sigmind" || !data.prefs || typeof data.prefs !== "object") return UI.toast("That isn't a Psygma backup");
             Backup.preview(data);
           },
           sum: function (p, at) {
@@ -6521,7 +6521,7 @@
           }
         };
 
-        window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
+        window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
         function confetti() {
           if (reduce) return;
