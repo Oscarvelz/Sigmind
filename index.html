@@ -1429,7 +1429,7 @@
           return env;
         }
 
-        function openScene(id) {
+        function openScene(id, step) {
           var sc = SCENES.filter(function (s) { return s.id === id; })[0];
           if (!sc) return;
           var opener = doc.activeElement, env = null, gone = false;
@@ -1491,7 +1491,7 @@
           loadThree().then(function (THREE) {
             if (gone) return;
             try { env = labEnv(THREE, box, ctl); } catch (e) { return fail(); }
-            env.read = read;
+            env.read = read; env.step = step || null;
             sc.build(box, ctl, env);
             /* the first one or two sliders, as steppers in the docked bar */
             env.sliders.slice(0, 2).forEach(function (s) {
@@ -3832,15 +3832,15 @@
             }[prefs.sort];
             var style = prefs.view === "grid" ? ' style="--cols: ' + prefs.cols + '"' : "";
             var groups = GROUPS.filter(function (g) { return prefs.level === "all" || prefs.level === g.v; }).map(function (g) {
-              var items = LESSONS.filter(function (l) { return l.level === g.v; }).concat(g.v === "foundations" ? newLessons() : []).sort(sorter);
+              var items = LESSONS.filter(function (l) { return l.level === g.v; }).concat(newLessons().filter(function (l) { return l.level === g.v; })).sort(sorter);
               return '<section aria-label="' + g.t + '"><div class="grpname"><h2 class="mark" style="--fs:18px">' + g.t + '</h2><span class="eyebrow">' + g.s + "</span></div>" +
                 '<div class="lessons" data-view="' + prefs.view + '"' + style + ">" +
                 items.map(function (l) {
                   return '<button type="button" class="lesson press" data-lesson="' + l.day + '"><span><span class="lesson__day">' + (l.isNew ? esc(l.pillar) + " · New" : "Day " + l.day) + "</span>" + ((prefs.mastered || []).indexOf(l.day) > -1 ? '<span class="ok-badge" role="img" aria-label="Mastered">' + I.check + "</span>" : "") + '<br><span class="lesson__t">' + esc(l.title) + '</span></span><span class="lesson__n">' + I.chev + "</span></button>";
                 }).join("") + "</div></section>";
             }).join("");
-            var nn = newLessons().length;
-            return '<div><h1 class="greet">Library</h1><p class="dim">30 lessons in three levels' + (nn ? ", plus " + nn + " new Foundations lessons" : "") + ".</p></div>" + bar + groups;
+            var nl = newLessons(), nn = nl.length, nb = nl.filter(function (l) { return l.level !== "foundations"; }).length;
+            return '<div><h1 class="greet">Library</h1><p class="dim">30 lessons in three levels' + (nn ? ", plus " + nn + " new lessons" + (nb ? "" : " in Foundations") : "") + ".</p></div>" + bar + groups;
           },
           lab: function () {
             var tile = function (s, soon) {
@@ -5093,6 +5093,12 @@
             Learn.bump(sc.id, 25);
           });
           k.ready = function () { return k.pred != null; };
+          /* opened from a misconception: go straight to the step that attacks it (e.g. L28's flag planting) */
+          if (env.step) setTimeout(function () {
+            var f = doc.querySelector(".x-lab__fold"); if (f && f.getAttribute("aria-expanded") !== "true") f.click();
+            var t = q(".x-kit__c"); if (!t) return; t.setAttribute("data-step", env.step); t.classList.add("x-hl");
+            if (t.scrollIntoView) t.scrollIntoView({ block: "center" }); setTimeout(function () { t.classList.remove("x-hl"); }, 2600);
+          }, 60);
           return k;
         }
         function sdOf(a) { var n = a.length, m = a.reduce(function (t, v) { return t + v; }, 0) / n; return Math.sqrt(a.reduce(function (t, v) { return t + (v - m) * (v - m); }, 0) / n); }
@@ -5414,6 +5420,330 @@
           var L = LESSON_CONTENT[p[0]]; if (!L) return;
           var s = L.steps.filter(function (x) { return x.kind === "play"; })[0]; if (s && !s.lab) s.lab = p[1];
         });
+        /* ============ PHASE 5A · B1 Inference Logic + B2 Effect Size, Power & Reliable Change ============ */
+        /* B1 · a do-nothing world: 400 null studies' gaps, the observed study's flag planted among them */
+        function nullViz(stage, api) {
+          var st = { gap: 3, n: 30 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded(500 + st.n), se = 8 * Math.sqrt(2 / st.n), g = [];
+            for (var i = 0; i < 400; i++) g.push(gauss(r) * se);
+            var lo = -8, hi = 8, px = function (v) { return 14 + (v - lo) / (hi - lo) * (c.w - 28); }, B = c.h - 28, cols = {}, beyond = 0, R = 3;
+            g.forEach(function (v) {
+              var k = Math.round((v - lo) / (hi - lo) * 80), y = (cols[k] = (cols[k] || 0) + 1), out = Math.abs(v) >= Math.abs(st.gap);
+              if (out) beyond++;
+              ctx.fillStyle = out ? PX.bad : c.dim; ctx.globalAlpha = out ? 0.9 : 0.45;
+              ctx.beginPath(); ctx.arc(px(lo + k * (hi - lo) / 80), B - y * (R * 1.6), R, 0, 6.2832); ctx.fill();
+            });
+            ctx.globalAlpha = 1; ctx.strokeStyle = c.dim; ctx.beginPath(); ctx.moveTo(px(lo), B + 4); ctx.lineTo(px(hi), B + 4); ctx.stroke();
+            [-8, -4, 0, 4, 8].forEach(function (t) { txt(ctx, c, (t > 0 ? "+" : "") + t, px(t), B + 18); });
+            ctx.strokeStyle = PX.gold; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px(st.gap), 10); ctx.lineTo(px(st.gap), B + 4); ctx.stroke(); ctx.lineWidth = 1;
+            ctx.fillStyle = PX.gold; ctx.fillRect(px(st.gap), 10, 16, 10); txt(ctx, c, "your study", px(st.gap) + 20, 19, PX.gold, "left", "600");
+            st.p = beyond / 400; st.pLess = g.filter(function (v) { return Math.abs(v) >= Math.abs(st.gap) - 0.5; }).length / 400;
+            return "do-nothing studies <b>400</b> · as extreme as yours <b>" + beyond + "</b> → p ≈ <b>" + st.p.toFixed(3) + "</b> (two-sided)";
+          });
+        }
+        /* B1 · twenty confidence intervals; how many catch the true mean? */
+        function ciViz(stage, api) {
+          var st = { n: 20, conf: 95 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = seeded(700 + st.n * 3 + st.conf), MU = 10, SD = 6, z = st.conf >= 99 ? 2.576 : st.conf >= 95 ? 1.96 : st.conf >= 90 ? 1.645 : 1.282, half = z * SD / Math.sqrt(st.n), hit = 0;
+            var lo = 4, hi = 16, px = function (v) { return 14 + (v - lo) / (hi - lo) * (c.w - 28); }, H = (c.h - 34) / 20;
+            for (var i = 0; i < 20; i++) {
+              var m = MU + gauss(r) * SD / Math.sqrt(st.n), ok = Math.abs(m - MU) <= half, y = 8 + i * H + H / 2;
+              if (ok) hit++;
+              ctx.strokeStyle = ok ? PX.cy : PX.bad; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px(Math.max(lo, m - half)), y); ctx.lineTo(px(Math.min(hi, m + half)), y); ctx.stroke();
+              ctx.fillStyle = c.text; ctx.beginPath(); ctx.arc(px(m), y, 3, 0, 6.2832); ctx.fill();
+            }
+            ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.strokeStyle = PX.gold; ctx.beginPath(); ctx.moveTo(px(MU), 4); ctx.lineTo(px(MU), c.h - 24); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
+            txt(ctx, c, "true mean", px(MU), c.h - 8, PX.gold, "center", "600");
+            st.hit = hit; st.width = 2 * half;
+            return "intervals that catch the true mean <b>" + hit + "</b> of 20 · each interval is <b>" + (2 * half).toFixed(1) + "</b> sessions wide";
+          });
+        }
+        /* B2 · two bell mountains: programme vs usual care; overlap and significance side by side */
+        function overlapViz(stage, api) {
+          var st = { d: 5, n: 50 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var d = st.d / 10, lo = -3.5, hi = 5.5, px = function (v) { return 10 + (v - lo) / (hi - lo) * (c.w - 20); }, B = c.h - 24, Hh = B - 14;
+            [[0, PX.cy], [d, PX.vio]].forEach(function (g) {
+              ctx.beginPath(); ctx.moveTo(px(lo), B);
+              for (var v = lo; v <= hi; v += 0.04) ctx.lineTo(px(v), B - Math.exp(-Math.pow(v - g[0], 2) / 2) * Hh);
+              ctx.lineTo(px(hi), B); ctx.closePath(); ctx.fillStyle = g[1]; ctx.globalAlpha = 0.3; ctx.fill(); ctx.globalAlpha = 1; ctx.strokeStyle = g[1]; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1;
+            });
+            txt(ctx, c, "usual care", px(0), 12, PX.cy, "center", "600"); txt(ctx, c, "programme", px(d) + 34, 26, PX.vio, "center", "600");
+            var ovl = 2 * phi(-d / 2), zt = d * Math.sqrt(st.n / 2), p = 2 * (1 - phi(zt));
+            st.dd = d; st.ovl = ovl; st.p = p;
+            return "Cohen’s d <b>" + d.toFixed(1) + "</b> · overlap <b>" + Math.round(ovl * 100) + "%</b> · " + st.n + " per group → p <b>" + (p < 0.001 ? "< .001" : p.toFixed(3)) + "</b>" + (p < 0.05 ? " · “significant”" : "") +
+              "<br>" + (ovl > 0.85 ? "Most clients in both groups score alike." : ovl > 0.6 ? "The groups differ, but many clients overlap." : "Most programme clients score better than usual care.");
+          });
+        }
+        /* B2 · power: the null curve, the real-effect curve, and the cut-off between them */
+        function powerViz(stage, api) {
+          var st = { n: 20, d: 5 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var delta = (st.d / 10) * Math.sqrt(st.n / 2), lo = -3.5, hi = 9, px = function (v) { return 10 + (v - lo) / (hi - lo) * (c.w - 20); }, B = c.h - 24, Hh = B - 16;
+            var bell = function (m, col, shadeFrom) {
+              if (shadeFrom != null) { ctx.beginPath(); ctx.moveTo(px(shadeFrom), B); for (var v = shadeFrom; v <= hi; v += 0.04) ctx.lineTo(px(v), B - Math.exp(-Math.pow(v - m, 2) / 2) * Hh); ctx.lineTo(px(hi), B); ctx.closePath(); ctx.fillStyle = col; ctx.globalAlpha = 0.35; ctx.fill(); ctx.globalAlpha = 1; }
+              ctx.beginPath(); for (var w = lo; w <= hi; w += 0.04) ctx[w === lo ? "moveTo" : "lineTo"](px(w), B - Math.exp(-Math.pow(w - m, 2) / 2) * Hh); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1;
+            };
+            bell(0, c.dim); bell(delta, PX.ok, 1.96);
+            ctx.strokeStyle = PX.gold; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px(1.96), 8); ctx.lineTo(px(1.96), B); ctx.stroke(); ctx.lineWidth = 1;
+            txt(ctx, c, "cut-off", px(1.96), c.h - 8, PX.gold, "center", "600"); txt(ctx, c, "no effect", px(0), 12, c.dim, "center", "600"); txt(ctx, c, "real effect", px(delta), 26, PX.ok, "center", "600");
+            st.power = 1 - phi(1.96 - delta);
+            return "d <b>" + (st.d / 10).toFixed(1) + "</b> · <b>" + st.n + "</b> per group · power <b>" + Math.round(st.power * 100) + "%</b> (green area: the chance the study catches the effect)";
+          });
+        }
+        /* B2 · one client's pre and post, with the measurement-error band around the pre score */
+        var RCI_PRE = 18, RCI_SD = 5.5;
+        function rciViz(stage, api) {
+          var st = { post: 14, rel: 85 };
+          bindViz(stage, api, st, function (c, ctx) {
+            var r = st.rel / 100, sdiff = RCI_SD * Math.sqrt(2 * (1 - r)), band = 1.96 * sdiff, px = function (v) { return 14 + (v / 27) * (c.w - 28); }, y = c.h / 2;
+            ctx.fillStyle = PX.gold; ctx.globalAlpha = 0.22; ctx.fillRect(px(Math.max(0, RCI_PRE - band)), y - 34, px(Math.min(27, RCI_PRE + band)) - px(Math.max(0, RCI_PRE - band)), 68); ctx.globalAlpha = 1;
+            txt(ctx, c, "could be measurement error", px(RCI_PRE), y - 42, PX.gold, "center", "600");
+            ctx.strokeStyle = c.dim; ctx.beginPath(); ctx.moveTo(px(0), y + 44); ctx.lineTo(px(27), y + 44); ctx.stroke();
+            [0, 5, 10, 15, 20, 27].forEach(function (t) { txt(ctx, c, String(t), px(t), y + 60); });
+            var change = RCI_PRE - st.post, rci = change / sdiff, real = Math.abs(rci) >= 1.96;
+            [[RCI_PRE, c.text, "pre"], [st.post, real ? PX.ok : PX.vio, "post"]].forEach(function (m, i) {
+              ctx.fillStyle = m[1]; ctx.beginPath(); ctx.arc(px(m[0]), y + (i ? 12 : -12), 8, 0, 6.2832); ctx.fill(); txt(ctx, c, m[2], px(m[0]), y + (i ? 34 : -20) + (i ? 0 : -0), m[1], "center", "600");
+            });
+            st.rci = rci; st.real = real;
+            return "PHQ-9 pre <b>" + RCI_PRE + "</b> · post <b>" + st.post + "</b> · change <b>" + change + "</b> points · scale reliability <b>." + st.rel + "</b> · RCI <b>" + rci.toFixed(2) + "</b>";
+          });
+        }
+        var NULL_VZ = function () { return vz("Hundreds of do-nothing studies as dots, with your study's flag planted among them", ctl(sl("gap", "Your study’s gap", 0, 7, 3, 0.5) + sl("n", "Clients per group", 10, 120, 30, 5))); };
+        var CI_VZ = function () { return vz("Twenty confidence intervals, each a bar, around a dashed true mean", ctl(sl("n", "Sample size n", 5, 200, 20, 5) + sl("conf", "Confidence %", 80, 99, 95, 1))); };
+        var OVL_VZ = function () { return vz("Two overlapping bell curves: usual care and programme", ctl(sl("d", "Effect size d (×10)", 0, 20, 5) + sl("n", "Clients per group", 10, 2000, 50, 10))); };
+        var POW_VZ = function () { return vz("Two curves, no effect and real effect, with a cut-off line; the green area is power", ctl(sl("n", "Clients per group", 5, 200, 20, 5) + sl("d", "Effect size d (×10)", 1, 15, 5))); };
+        var RCI_VZ = function () { return vz("One client's pre and post PHQ-9 markers, with a gold measurement-error band", ctl(sl("post", "Post score", 0, 27, 14) + sl("rel", "Scale reliability (.xx)", 60, 95, 85))); };
+        Object.assign(NEW_LESSONS, {});
+        Object.assign(LESSON_CONTENT, {
+          11: {
+            home: ["Confidence intervals", "a range of believable values, not one magic number."],
+            steps: [
+              { kind: "hook", title: "One sample, one guess", body: '<p class="hook">Your 20 clients average 10.4 sessions.</p><p class="dim">Is the true average for everyone like them exactly 10.4?</p>' },
+              { kind: "predict", title: "Your guess first", q: "Draw 20 samples and make a 95% interval from each. How many catch the true mean?", options: ["All 20", "About 19", "About 10"], say: "Hold the guess. Count the bars." },
+              { kind: "play", title: "Twenty intervals", mount: ciViz, lab: "l28", body: "<p>Each bar is one sample’s interval. The dashed line is the truth you never see.</p>" + CI_VZ(), so: "Most intervals catch the truth; a few miss, and you never know which." },
+              { kind: "notice", title: "What changed?", q: "When n grew, the intervals got…", options: ["Narrower", "Wider", "No different"], say: ["Yes. More clients, a tighter range.", "Look again at the width number as n rises."] },
+              { kind: "formalize", title: "The interval", body: '<p class="hook">mean ± about 2 × SD / √n</p><p>“95%” describes the method: 95 of 100 intervals made this way catch the truth.</p>', so: "A CI is a range of plausible values, and its confidence belongs to the method." },
+              { kind: "fade", title: "Finish the example", q: "Mean 10, SD 6, n = 36.", lines: ["SD / √n = 6 / 6 = 1", "2 × 1 = 2", "95% CI ≈ 8 to 12"], blank: 2, options: ["95% CI ≈ 8 to 12", "95% CI ≈ 4 to 16", "95% CI ≈ 9 to 11"], answer: 0, why: "10 ± 2 gives 8 to 12 sessions." },
+              { kind: "check", title: "Build-check", mount: ciViz, body: CI_VZ(), q: "Keep 95% confidence and make each interval narrower than 2 sessions.",
+                goal: function (st) { if (st.conf < 95) return "Confidence dropped to " + st.conf + "%. Keep it at 95% or more."; return st.width < 2 ? true : "Each interval is " + st.width.toFixed(1) + " wide."; },
+                hints: ["Two dials set the width. Which one may you change?", "Watch the width number under the bars.", "The width shrinks with √n."], why: "Only more clients narrow the interval without giving up confidence.", concept: "b1-ci" },
+              { kind: "transfer", title: "A new costume", costume: "A programme report", q: "“Average days sober 42, 95% CI 35 to 49.” The fairest reading is…", options: ["There is a 95% chance the true mean is in 35–49", "Values from 35 to 49 are plausible for the true mean", "95% of clients stayed sober 35–49 days"], answer: 1, tags: [null, null, "CLT-DATA"], why: "The interval is about the average, not about individual clients.", concept: "b1-ci" }
+            ]
+          },
+          "b1-null": {
+            steps: [
+              { kind: "hook", title: "A world where nothing works", body: '<p class="hook">Imagine the programme does nothing at all.</p><p class="dim">Studies would still find gaps, just by chance.</p>' },
+              { kind: "run", title: "Run do-nothing studies", q: "In a do-nothing world with 30 clients per group, a gap of 3 PHQ-9 points or more happens…", options: ["Often (more than 20%)", "Sometimes (5–20%)", "Rarely (under 5%)"], need: 1000,
+                init: function () { return { n: 0, big: 0 }; },
+                trial: function (s) { var a = 0, b = 0; for (var i = 0; i < 30; i++) { a += gauss(Math.random) * 8; b += gauss(Math.random) * 8; } if (Math.abs(a / 30 - b / 30) >= 3) s.big++; },
+                show: function (s) { return "Do-nothing studies <b>" + s.n + "</b> · gap of 3+ points <b>" + s.big + "</b>" + (s.n ? " (" + (100 * s.big / s.n).toFixed(1) + "%)" : ""); },
+                bar: function (s) { return s.n ? s.big / s.n : 0; },
+                judge: function (s) { var r = s.big / Math.max(1, s.n); return r > 0.2 ? 0 : r >= 0.05 ? 1 : 2; }, why: "About 15%: chance alone makes 3-point gaps fairly often at this size." },
+              { kind: "play", title: "Plant your study's flag", mount: nullViz, lab: "l28", body: "<p>Grey dots: do-nothing studies. Red: ones at least as extreme as yours.</p>" + NULL_VZ(), so: "The share of red dots is how surprising your study would be if nothing were going on." },
+              { kind: "notice", title: "What changed?", q: "With more clients per group, the do-nothing crowd…", options: ["Bunched closer to zero", "Spread wider"], say: ["Yes. Big samples make chance gaps small.", "Look again as you raise the clients slider."] },
+              { kind: "formalize", title: "The null story", body: "<p>The <b>null hypothesis</b> is the do-nothing world.</p><p>We ask: is our result surprising in that world?</p>", so: "Inference asks which population stories are still plausible after seeing the data." },
+              { kind: "check", title: "Build-check", mount: nullViz, body: NULL_VZ(), q: "Keep the 3-point gap. Make it surprising: fewer than 5% of do-nothing studies as extreme.",
+                goal: function (st) { if (st.gap !== 3) return "The gap moved to " + st.gap + ". Keep the study’s 3 points."; return st.p < 0.05 ? true : "Still " + (st.p * 100).toFixed(1) + "% of do-nothing studies match it."; },
+                hints: ["You can’t change the result. What else shapes the crowd?", "Watch how wide the grey crowd is.", "More clients per group shrink chance gaps."], why: "With more clients, the same 3-point gap stands out from chance.", concept: "b1-null" },
+              { kind: "transfer", title: "A new costume", costume: "Group attendance", q: "Two groups differ by 1 session in attendance. To judge it, you first ask…", options: ["How often a 1-session gap happens when the groups are really alike", "Whether 1 is a big number", "Which group the counsellor prefers"], answer: 0, why: "Compare the result to a do-nothing world.", concept: "b1-null" }
+            ]
+          },
+          12: {
+            home: ["p-values", "how surprising your result would be if nothing were going on."],
+            steps: [
+              { kind: "hook", title: "p = .03", body: '<p class="hook">A study reports p = .03.</p><p class="dim">What does that number actually say?</p>' },
+              { kind: "predict", title: "Your guess first", q: "p = .03 most nearly means…", options: ["A 3% chance the programme doesn’t work", "If it did nothing, results this extreme happen 3% of the time", "The programme works 97% of the time"], say: "Keep it. The flag will tell." },
+              { kind: "play", title: "Read p off the crowd", mount: nullViz, lab: "l28", body: "<p>The p-value is the red share: do-nothing studies as extreme as yours.</p>" + NULL_VZ(), so: "p is a position in the do-nothing crowd, read off spatially." },
+              { kind: "notice", title: "What changed?", q: "Moving the flag further out made p…", options: ["Smaller", "Bigger"], say: ["Yes. Further out, rarer in the do-nothing world.", "Look again at the red share as the flag moves out."] },
+              { kind: "formalize", title: "What p is, and isn’t", body: "<p><b>p</b> = how often a do-nothing world gives a result this extreme.</p><p>It is <b>not</b> the chance the null is true, and not how big the effect is.</p>", so: "p measures surprise under the null, nothing more." },
+              { kind: "transfer", title: "A trap check", costume: "A journal abstract", q: "“The programme reduced relapse, p = .03.” Which reading is right?", options: ["There is a 3% chance the programme doesn’t work", "If the programme did nothing, a result this strong would show up about 3% of the time", "The effect is large"], answer: 1, tags: ["P-IS-H0", null, "SIG-IMPORTANT"], scene: "l28", sceneStep: "flag", why: "p is about the data in a do-nothing world, not about the world itself.", concept: "b1-p" },
+              { kind: "check", title: "Build-check", mount: nullViz, body: NULL_VZ(), q: "With 30 clients per group, find the smallest gap that lands under p = .05.",
+                goal: function (st) { if (st.n !== 30) return "Clients per group is " + st.n + ". Set it back to 30."; if (st.p >= 0.05) return "p is " + st.p.toFixed(3) + ". Move the flag further out."; return st.pLess >= 0.05 ? true : "That works, but a smaller gap does too."; },
+                hints: ["Which dial moves the flag?", "Watch p as the flag moves.", "Move out half a point at a time and stop at the first p under .05."], why: "Around 4 points at 30 per group: smaller gaps are common in a do-nothing world.", concept: "b1-p" },
+              { kind: "formalize", title: "Carry this forward", body: "<p>Always report p with the effect size and its confidence interval.</p>", so: "p says “surprising?”; effect size says “how big?”." }
+            ]
+          },
+          14: {
+            home: ["Effect sizes & reliable change", "how big, not just whether."],
+            steps: [
+              { kind: "hook", title: "Significant, but…", body: '<p class="hook">A study of 2,000 clients finds p < .001.</p><p class="dim">Is the programme a big deal?</p>' },
+              { kind: "predict", title: "Your guess first", q: "With d = 0.2, how much do the two groups’ scores overlap?", options: ["About 92%", "About 50%", "About 10%"], say: "Slide d and watch the mountains." },
+              { kind: "play", title: "Drag the mountains apart", mount: overlapViz, lab: "l29", body: "<p>Two groups of clients: usual care and programme.</p>" + OVL_VZ(), so: "d says how far apart the groups sit, in SD units." },
+              { kind: "notice", title: "What changed?", q: "Raising the clients per group changed…", options: ["Only p, not the overlap", "The overlap too"], say: ["Yes. Sample size buys certainty, not size.", "Look again: the overlap % holds still."] },
+              { kind: "formalize", title: "Cohen’s d", body: '<p class="hook">d = (mean difference) ÷ SD</p><p>Rough guide: 0.2 small, 0.5 medium, 0.8 large.</p>', so: "Effect size answers “how big?”; p answers “how surprising?”." },
+              { kind: "fade", title: "Finish the example", q: "Programme mean 10, usual care 13, SD 6 (lower is better).", lines: ["Difference = 13 − 10 = 3", "d = 3 ÷ 6", "d = 0.5, a medium effect"], blank: 2, options: ["d = 0.5, a medium effect", "d = 2, a huge effect", "d = 0.05, no effect"], answer: 0, why: "Three points on an SD of six is half an SD." },
+              { kind: "check", title: "Build-check", mount: overlapViz, body: OVL_VZ(), q: "Set a small effect (d 0.2 or less) that the study still calls significant.",
+                goal: function (st) { if (st.dd > 0.2) return "d is " + st.dd.toFixed(1) + ". That isn’t small."; if (st.dd === 0) return "d is 0: no effect at all."; return st.p < 0.05 ? true : "p is " + st.p.toFixed(3) + ". Not significant yet."; },
+                hints: ["Which dial makes p small without changing d?", "Watch p and the overlap together.", "Many more clients per group."], why: "Huge samples call tiny effects significant. That’s why effect sizes must be reported.", concept: "b2-effect" },
+              { kind: "transfer", title: "A new costume", costume: "A news headline", q: "“Significant drop in cravings (p < .001, d = 0.1).” The fair summary is…", options: ["A big drop in cravings", "A real but very small drop", "No drop at all"], answer: 1, tags: ["SIG-IMPORTANT", null, null], why: "d = 0.1 means the groups almost fully overlap.", concept: "b2-effect" }
+            ]
+          },
+          13: {
+            home: ["Power & errors", "could your study have found the effect at all?"],
+            steps: [
+              { kind: "hook", title: "A study that couldn’t win", body: '<p class="hook">Ten clients per group, a medium effect.</p><p class="dim">“No significant difference.” Did the programme fail?</p>' },
+              { kind: "predict", title: "Your guess first", q: "With 20 per group and d = 0.5, the chance a study catches the effect is about…", options: ["90%", "60%", "35%"], say: "Look at the green area." },
+              { kind: "play", title: "Grow the green", mount: powerViz, body: "<p>Grey: what results look like with no effect. Green: with a real effect. Past the gold cut-off, the study calls it significant.</p>" + POW_VZ(), so: "Power is the green area past the cut-off." },
+              { kind: "notice", title: "What changed?", q: "More clients per group made the green area…", options: ["Bigger", "Smaller"], say: ["Yes. More clients, more power.", "Look again as n rises."] },
+              { kind: "formalize", title: "Two errors", body: "<p><b>Type I</b>: crying wolf, a false “it works” (rate α, usually 5%).</p><p><b>Type II</b>: missing a real effect. Power = 1 − that miss rate.</p>", so: "A non-significant result from a weak study is a shrug, not a no." },
+              { kind: "check", title: "Build-check", mount: powerViz, body: POW_VZ(), q: "For a medium effect (d = 0.5), reach at least 80% power.",
+                goal: function (st) { if (st.d !== 5) return "d is " + (st.d / 10).toFixed(1) + ". Keep it at 0.5."; return st.power >= 0.8 ? true : "Power is " + Math.round(st.power * 100) + "%."; },
+                hints: ["You can’t change the effect. What can you change?", "Watch the green share.", "Keep adding clients per group."], why: "About 64 per group gives 80% power for d = 0.5.", concept: "b2-power" },
+              { kind: "transfer", title: "A new costume", costume: "A pilot study", q: "A pilot with 8 clients finds no significant effect. The fair conclusion is…", options: ["The programme doesn’t work", "The pilot had too little power to tell", "The effect is exactly zero"], answer: 1, tags: ["SIG-IMPORTANT", null, null], why: "Low power means a miss is likely even when the effect is real.", concept: "b2-power" }
+            ]
+          },
+          "b2-client": {
+            steps: [
+              { kind: "hook", title: "From 18 to 14", body: '<p class="hook">Your client’s PHQ-9 dropped from 18 to 14.</p><p class="dim">Real change, or the scale wobbling?</p>' },
+              { kind: "predict", title: "Your guess first", q: "With a reliability of .85, is a 4-point drop real change?", options: ["Yes, 4 points is a lot", "Not yet: it could be measurement error", "Can’t ever tell"], say: "Drag the post score and watch the band." },
+              { kind: "play", title: "Escape the band", mount: rciViz, lab: "l30", body: "<p>The gold band is how far scores wobble from measurement error alone.</p>" + RCI_VZ(), so: "Change counts as real once the post score leaves the band." },
+              { kind: "notice", title: "What changed?", q: "Lowering the scale’s reliability made the band…", options: ["Wider", "Narrower"], say: ["Yes. A shakier scale needs a bigger change.", "Look again as reliability drops."] },
+              { kind: "formalize", title: "Reliable change", body: '<p class="hook">RCI = change ÷ (SD × √(2 × (1 − r)))</p><p>RCI beyond 1.96: real change for this client.</p>', so: "Real change must beat the scale’s own wobble." },
+              { kind: "check", title: "Build-check", mount: rciViz, body: RCI_VZ(), q: "At reliability .85, find the highest post score that still counts as real improvement.",
+                goal: function (st) { if (st.rel !== 85) return "Reliability is ." + st.rel + ". Set it back to .85."; if (!st.real || st.post >= RCI_PRE) return "Post " + st.post + " is still inside the band."; return st.post === 12 ? true : "Real change, but a higher post score also counts."; },
+                hints: ["Which marker do you move?", "Watch where the post marker leaves the gold band.", "Move one point at a time from 18 downward."], why: "From 18, a drop to 12 or lower escapes the band at r = .85.", concept: "b2-rci" },
+              { kind: "transfer", title: "A new costume", costume: "Days drinking", q: "Days drinking per month fell from 12 to 9. Before telling the court it’s real change, you check…", options: ["Whether 3 days beats the measure’s error band", "Only that the number went down", "The group average"], answer: 0, why: "One client’s change must beat measurement error, not just move.", concept: "b2-rci" }
+            ]
+          }
+        });
+        /* ============ PHASE 5A · Lab L28–L30 ============ */
+        Array.prototype.push.apply(SCENES, [
+          {
+            id: "l28", lid: 28, name: "Null World Simulator", pillar: "B1", learn: 12, day: 12, level: "intermediate", hue: ["#8f86d8", "#ffc85a"],
+            idea: "A crowd of do-nothing studies, and your study's flag planted among them.",
+            why: "The p-value is where your study stands in a world where the programme does nothing. Seeing the crowd turns a formula into a position.",
+            use: "Reading “p = .03” in a programme evaluation without mistaking it for the chance the programme fails.",
+            useLine: "reading a p-value in a programme evaluation correctly.",
+            cap: "Each grey flag is one simulated study in a world where the programme does nothing: its gap between groups, by chance alone. The gold flag is your real study. Flags at least as far from zero glow red.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { gap: 3, n: 30 }, gaps = [], MAX = 1000, S = 0.55, planted = false;
+              var crowd = livePoints(env, MAX, 0.2); crowd.g.visible = false;
+              env.scene.add(env.line(new Float32Array([-8 * S, 0, 0, 8 * S, 0, 0]), 0x8f86d8, 0.6));
+              [-8, -4, 0, 4, 8].forEach(function (t) { var l = labSprite(T, "#c8c0ff", 0.26).text((t > 0 ? "+" : "") + t); l.position.set(t * S, -0.35, 1); env.scene.add(l); });
+              var cg = new T.CylinderGeometry(0.05, 0.05, 1, 10); cg.translate(0, 0.5, 0);
+              var flag = new T.Mesh(cg, new T.MeshBasicMaterial({ color: 0xffc85a })); flag.scale.y = 4; env.scene.add(flag);
+              var fl = labSprite(T, "#ffc85a", 0.34).text("your study"); env.scene.add(fl);
+              function se() { return 8 * Math.sqrt(2 / st.n); }
+              function redraw() {
+                var cols = {}, beyond = 0;
+                gaps.forEach(function (v, i) {
+                  var k = Math.round(v * 4), y = (cols[k] = (cols[k] || 0) + 1), out = Math.abs(v) >= Math.abs(st.gap);
+                  if (out) beyond++;
+                  crowd.set(i, (k / 4) * S, 0.12 + Math.floor((y - 1) / 6) * 0.16, ((y - 1) % 6 - 2.5) * 0.18, planted && out ? hexRGB(0xff5a6a) : [0.45, 0.42, 0.7]);
+                });
+                for (var j = gaps.length; j < MAX; j++) crowd.set(j, 0, -50, 0);
+                crowd.flush(); crowd.g.visible = gaps.length > 0;
+                flag.position.x = st.gap * S; fl.position.set(st.gap * S, 4.4, 0);
+                st.p = gaps.length ? beyond / gaps.length : null;
+                env.read.innerHTML = "do-nothing studies <b>" + gaps.length + "</b> · " + st.n + " clients per group · your gap <b>" + st.gap + "</b> points" +
+                  (planted && gaps.length ? " · as extreme as yours <b>" + beyond + "</b> → p ≈ <b>" + st.p.toFixed(3) + "</b>" : planted ? "" : " · flag not planted yet");
+              }
+              var bin = function (p) { return p > 0.2 ? 0 : p >= 0.05 ? 1 : 2; };
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Your study found a 3-point gap with 30 clients per group. In a do-nothing world, gaps this big happen…", options: ["Often (over 20%)", "Sometimes (5–20%)", "Rarely (under 5%)"] },
+                run: { label: "Each run is one study in a world where the programme does nothing.", trial: function () { if (gaps.length < MAX) gaps.push(gauss(Math.random) * se()); }, show: redraw,
+                  judge: function () { return planted && gaps.length >= 1000 ? bin(st.p) : null; } },
+                challenge: [
+                  { text: "Run 1,000 do-nothing studies, then plant your flag (Check) to read its p-value off the crowd.", check: function () { if (gaps.length < 1000) return "Only " + gaps.length + " do-nothing studies so far."; planted = true; redraw(); var g = ctl.querySelector(".x-kit__gap"), m = bin(st.p); if (g && kit.pred != null) g.textContent = m === kit.pred ? "Your prediction matches the crowd." : "You predicted “" + this.opts[kit.pred] + "” — the crowd says “" + this.opts[m] + "”. That gap is where the learning is."; return true; }, opts: ["Often (over 20%)", "Sometimes (5–20%)", "Rarely (under 5%)"],
+                    ok: "Planted. Red flags are as extreme as yours: their share is the p-value." },
+                  { text: "Keep the 3-point gap. Find a sample size where it lands under p = .05 (run 1,000 again after changing it).", check: function () { if (st.gap !== 3) return "The gap moved. Keep it at 3."; if (gaps.length < 1000) return "Run 1,000 do-nothing studies at this sample size."; return st.p < 0.05 ? true : "p is " + st.p.toFixed(3) + " here."; },
+                    ok: "Same gap, bigger study: chance gaps shrink, so yours stands out." }
+                ],
+                takeaway: "A p-value is your study’s place in a do-nothing world. It is not the chance the programme fails, and it says nothing about how big the effect is."
+              });
+              env.slider("Your study’s gap", 0, 7, 0.5, st.gap, function (v) { return v + " pts"; }, function (v) { st.gap = v; redraw(); });
+              env.slider("Clients per group", 10, 120, 5, st.n, String, function (v) { st.n = v; gaps = []; redraw(); });
+              env.spin = false; env.view(0, 0.35); env.frame(1.8, 9, 1.6);
+              redraw();
+            }
+          },
+          {
+            id: "l29", lid: 29, name: "Overlap Mountains", pillar: "B2", learn: 14, day: 14, level: "intermediate", hue: ["#3fd8ff", "#a06bff"],
+            idea: "Two bell mountains whose overlap tells you how big an effect really is.",
+            why: "Cohen’s d is a distance between mountains. Seeing how much they still overlap shows why “significant” isn’t “large”.",
+            use: "Judging whether a programme with a significant result would change most clients’ lives, or barely any.",
+            useLine: "judging whether a significant programme effect actually matters.",
+            cap: "Cyan: usual-care clients' scores. Violet: programme clients'. The distance between the peaks, in SD units, is Cohen's d. Where the mountains overlap, clients from both groups score alike.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { d: 0.5, n: 50 }, NS = 140, S = 0.9, lo = -4, hi = 6;
+              function ribbon(color) {
+                var g = new T.BufferGeometry(), p = new Float32Array(NS * 6), ix = [];
+                for (var j = 0; j < NS - 1; j++) { var a = j * 2; ix.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+                g.setAttribute("position", new T.BufferAttribute(p, 3)); g.setIndex(ix);
+                var m = new T.Mesh(g, new T.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.32, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }));
+                var edge = env.line(new Float32Array(NS * 3), color, 0.95); env.scene.add(m, edge); return { m: m, p: p, e: edge, cx: 0, tx: 0 };
+              }
+              var A = ribbon(0x3fd8ff), B = ribbon(0xa06bff);
+              env.scene.add(env.line(new Float32Array([lo * S, 0, 0, hi * S, 0, 0]), 0x8f86d8, 0.6));
+              var la = labSprite(T, "#3fd8ff", 0.3).text("usual care"), lb = labSprite(T, "#c3a0ff", 0.3).text("programme"); env.scene.add(la, lb);
+              function shape(R, mu, z) {
+                var ep = R.e.geometry.attributes.position;
+                for (var j = 0; j < NS; j++) { var x = lo + (hi - lo) * j / (NS - 1), y = Math.exp(-Math.pow(x - mu, 2) / 2) * 3.6; R.p.set([x * S, 0, z, x * S, y, z], j * 6); ep.setXYZ(j, x * S, y, z); }
+                R.m.geometry.attributes.position.needsUpdate = true; ep.needsUpdate = true;
+              }
+              env.tick(function (dt) { var k = Math.min(1, dt * 5); B.cx += (st.d - B.cx) * k; shape(A, 0, -0.15); shape(B, B.cx, 0.15); la.position.set(0, 4.1, -0.15); lb.position.set(B.cx * S, 4.5, 0.15); });
+              function update() {
+                var ovl = 2 * phi(-st.d / 2), z = st.d * Math.sqrt(st.n / 2), p = 2 * (1 - phi(z)); st.ovl = ovl; st.p = p;
+                env.read.innerHTML = "d <b>" + st.d.toFixed(2) + "</b> · overlap <b>" + Math.round(ovl * 100) + "%</b> · " + st.n + " per group · p <b>" + (p < 0.001 ? "< .001" : p.toFixed(3)) + "</b><br>" +
+                  (ovl > 0.85 ? "Most clients in both groups score alike." : ovl > 0.6 ? "The groups differ, but many clients overlap." : "Most programme clients score better than usual care.");
+              }
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "With d = 0.2, how much do the two groups overlap?", options: ["About 92%", "About 50%", "About 10%"] },
+                challenge: [{ text: "Set a SMALL effect (d 0.2 or less, above 0) that a big sample still calls “significant” (p < .05).", check: function () { if (st.d > 0.2) return "d is " + st.d.toFixed(2) + ": not small."; if (st.d === 0) return "d is 0: no effect at all."; return st.p < 0.05 ? true : "p is " + st.p.toFixed(3) + ": not significant yet."; }, ok: "Tiny effect, “significant” result." }],
+                explain: { q: "Why does that matter? Pick one sentence.", options: ["Significance says the effect is surely large", "With enough clients, even a trivial effect is significant, so report the effect size", "Big samples are unreliable"], answer: 1, no: "Look at the overlap: most clients score alike." },
+                takeaway: "p asks “surprising?”; d asks “how big?”. A huge study can make a trivial effect significant, so always read the effect size."
+              });
+              env.slider("Effect size d", 0, 2, 0.05, st.d, function (v) { return v.toFixed(2); }, function (v) { st.d = v; update(); });
+              env.slider("Clients per group", 10, 3000, 10, st.n, String, function (v) { st.n = v; update(); });
+              env.spin = false; env.view(0.15, 0.2); env.frame(1.8, 10, 1.7);
+              update();
+            }
+          },
+          {
+            id: "l30", lid: 30, name: "Change You Can Trust", pillar: "B2", learn: "b2-client", day: 14, level: "intermediate", hue: ["#ffc85a", "#5be3a0"],
+            idea: "One client's pre and post, with the scale's own wobble glowing between them.",
+            why: "Every score carries measurement error. Change only counts once it escapes the band that error alone could make.",
+            use: "Telling a probation officer or treatment team whether one client truly improved.",
+            useLine: "deciding whether one client's score change is real.",
+            cap: "The white tower is the client's pre-treatment PHQ-9 (18). The violet tower is the post score you set. The gold band around the pre score is how far scores wobble from measurement error alone; its width depends on the scale's reliability.",
+            build: function (box, ctl, env) {
+              var T = env.THREE, st = { post: 16, rel: 0.85 }, PRE = 18, SD = 5.5, U = 0.22;
+              var geo = new T.BoxGeometry(1, 1, 1); geo.translate(0, 0.5, 0);
+              var mk = function (c) { var m = new T.Mesh(geo, new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.45, blending: T.AdditiveBlending, depthWrite: false })); m.add(new T.LineSegments(new T.EdgesGeometry(geo), new T.LineBasicMaterial({ color: c, transparent: true, opacity: 0.95, blending: T.AdditiveBlending }))); env.scene.add(m); return m; };
+              var pre = mk(0xffffff), post = mk(0xa06bff); pre.scale.set(0.9, PRE * U, 0.9); pre.position.x = -1.2; post.position.x = 1.2; post.scale.set(0.9, 0.01, 0.9);
+              var pg = new T.BoxGeometry(1, 1, 1); var band = new T.Mesh(pg, new T.MeshBasicMaterial({ color: 0xffc85a, transparent: true, opacity: 0.16, blending: T.AdditiveBlending, depthWrite: false })); band.scale.set(4.2, 1, 1.4); env.scene.add(band);
+              var pl = labSprite(T, "#ffffff", 0.3).text("pre 18"), ql = labSprite(T, "#c3a0ff", 0.3); pl.position.set(-1.2, PRE * U + 0.35, 0); env.scene.add(pl, ql);
+              var bl = labSprite(T, "#ffc85a", 0.28).text("could be measurement error"); env.scene.add(bl);
+              var cur = { h: st.post * U };
+              env.tick(function (dt) { cur.h += (st.post * U - cur.h) * Math.min(1, dt * 6); post.scale.y = Math.max(0.01, cur.h); ql.position.set(1.2, cur.h + 0.35, 0); });
+              function update() {
+                var sdiff = SD * Math.sqrt(2 * (1 - st.rel)), w = 1.96 * sdiff, rci = (PRE - st.post) / sdiff; st.real = Math.abs(rci) >= 1.96; st.rci = rci;
+                band.scale.y = 2 * w * U; band.position.y = (PRE - w) * U; bl.position.set(0, (PRE + w) * U + 0.3, 0);
+                post.material.color.set(st.real ? 0x5be3a0 : 0xa06bff); post.children[0].material.color.set(st.real ? 0x5be3a0 : 0xa06bff); ql.text("post " + st.post);
+                env.read.innerHTML = "pre <b>18</b> · post <b>" + st.post + "</b> · change <b>" + (PRE - st.post) + "</b> points · reliability <b>" + st.rel.toFixed(2) + "</b> · RCI <b>" + rci.toFixed(2) + "</b>";
+              }
+              var kit = labKit(env, ctl, this, {
+                predict: { q: "Reliability .85. A drop from 18 to 14 (4 points) is…", options: ["Real change", "Still inside measurement error", "Impossible to judge"] },
+                challenge: [{ text: "At reliability .85, find the highest post score that still counts as REAL improvement.", check: function () {
+                  if (Math.abs(st.rel - 0.85) > 0.001) return "Reliability is " + st.rel.toFixed(2) + ". Set it back to .85.";
+                  if (!st.real || st.post >= PRE) return "Post " + st.post + " is still inside the band.";
+                  return st.post === 12 ? true : "Real change, but a higher post score also escapes the band."; }, ok: "From 18, 12 is the first score outside the band." }],
+                takeaway: "Real change has to beat the scale’s own wobble. The less reliable the scale, the bigger the change you need before calling it real."
+              });
+              env.slider("Post score", 0, 27, 1, st.post, String, function (v) { st.post = v; update(); });
+              env.slider("Scale reliability", 0.6, 0.95, 0.01, st.rel, function (v) { return v.toFixed(2); }, function (v) { st.rel = v; update(); });
+              env.spin = false; env.view(0.35, 0.18); env.frame(2.4, 8, 1);
+              update();
+            }
+          }
+        ]);
+        [[11, "l28"], ["b1-null", "l28"], [12, "l28"], [14, "l29"], ["b2-client", "l30"]].forEach(function (p) {
+          var L = LESSON_CONTENT[p[0]]; if (!L) return;
+          var s = L.steps.filter(function (x) { return x.kind === "play"; })[0]; if (s && !s.lab) s.lab = p[1];
+        });
         var KIND = { hook: "Hook", concept: "Concept", intuition: "Intuition", formula: "Key rule", example: "Worked example", quiz: "Quiz", lens: "Lens",
           predict: "Predict", run: "Run it", play: "Manipulate", notice: "Notice", formalize: "So", check: "Build-check", transfer: "Transfer", fade: "Finish the example" };
         /* C1 lesson anatomy: a strip appears only on lessons built with the new step kinds; existing lessons look as before */
@@ -5442,10 +5772,10 @@
         /* new Foundations lessons that have content, in path order (A1 → A8) */
         function newLessons() {
           var out = [];
-          PILLARS.forEach(function (P) { P.items.forEach(function (it) { if (typeof it === "string" && NEW_LESSONS[it] && LESSON_CONTENT[it]) out.push({ day: it, title: NEW_LESSONS[it], level: "foundations", isNew: true, pillar: P.id, ord: out.length }); }); });
+          PILLARS.forEach(function (P) { P.items.forEach(function (it) { if (typeof it === "string" && NEW_LESSONS[it] && LESSON_CONTENT[it]) out.push({ day: it, title: NEW_LESSONS[it], level: P.part === "A" ? "foundations" : "intermediate", isNew: true, pillar: P.id, ord: out.length }); }); });
           return out;
         }
-        function lessonOf(id) { return typeof id === "number" ? LESSONS[id - 1] : { day: id, title: NEW_LESSONS[id] || id, level: "foundations", isNew: true }; }
+        function lessonOf(id) { return typeof id === "number" ? LESSONS[id - 1] : { day: id, title: NEW_LESSONS[id] || id, level: /^B/.test(pillarOf(id) || "") ? "intermediate" : "foundations", isNew: true }; }
         function nextDay() {
           for (var d = 1; LESSON_CONTENT[d]; d++) if (!isMastered(d)) return d;
           return d - 1;
@@ -5656,7 +5986,7 @@
               if (a === "next") return P.i === L.steps.length - 1 ? complete() : move(1);
               if (a === "fold") { P.folds[P.i] = !P.folds[P.i]; paint(); return $("[data-pl=fold]", el).focus(); }
               var st = L.steps[P.i], cid = cidOf(st), card = $("#pl-stage .scard", el);
-              if (b.dataset.scene) return openScene(b.dataset.scene);
+              if (b.dataset.scene) return openScene(b.dataset.scene, b.dataset.step);
               if (a === "hint") {
                 var n = P.hints[P.i] = Math.min(3, (P.hints[P.i] || 0) + 1);
                 Learn.hint(cid, n);
@@ -5714,7 +6044,7 @@
           }
         };
 
-        window.Sigmind = { version: "phase4", scenes: SCENES, openScene: function (id) { return openScene(id); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
+        window.Sigmind = { version: "phase5a", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
         function confetti() {
           if (reduce) return;
@@ -5776,7 +6106,7 @@
             return go(t.dataset.tab);
           }
           if (t.dataset.go) return go(t.dataset.go);
-          if (t.dataset.scene) return openScene(t.dataset.scene);
+          if (t.dataset.scene) return openScene(t.dataset.scene, t.dataset.step);
           if (t.dataset.lesson) return openLesson(/^\d+$/.test(t.dataset.lesson) ? +t.dataset.lesson : t.dataset.lesson);
           if (t.dataset.fold) {
             State.open = State.open === t.dataset.fold ? null : t.dataset.fold;
