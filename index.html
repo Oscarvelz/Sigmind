@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Psygma — Statistics for the scientist-counselor</title>
+    <title>Psygma — Statistics for the Mind</title>
     <link rel="icon" href="sigmind-icon.png" />
     <link rel="apple-touch-icon" href="icon-180.png" />
     <link rel="manifest" href="manifest.webmanifest" />
@@ -635,6 +635,95 @@
         .lessons[data-view="grid"][style*="--cols: 3"] .lesson, .lessons[data-view="grid"][style*="--cols: 4"] .lesson { padding: 18px; min-height: 150px; }
         .lessons[data-view="grid"][style*="--cols: 4"] .lesson__day { font-size: 12px; }
       }
+
+      /* ============ PSYGMA 2.0 (additive) ============ */
+      .x-tagline { margin: 0 0 10px; font: 600 clamp(24px, 4.6vw, 34px)/1.12 var(--display); letter-spacing: -0.015em; color: var(--text); }
+      .x-tagline em { font-style: italic; font-weight: 600; background: linear-gradient(100deg, #a78bfa, #22d3ee 55%, #f472b6); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: 0.06em; }
+      [data-theme="day"] .x-tagline em { background: linear-gradient(100deg, var(--primary), #0891b2 60%, #db2777); -webkit-background-clip: text; background-clip: text; }
+      .x-tagline--s { font-size: 20px; margin-bottom: 6px; }
+      .x-splash__tag { letter-spacing: 0.02em; }
+      /* account chip */
+      .x-acchip { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px 0 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font: 500 12.5px/1 var(--sans); white-space: nowrap; }
+      .x-acchip svg { width: 18px; height: 18px; color: var(--primary); }
+      .x-acchip__av { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: linear-gradient(135deg, var(--primary), #22d3ee); color: #fff; font: 700 10.5px/1 var(--sans); letter-spacing: 0.02em; }
+      .x-acchip[data-state="live"] .x-acchip__t::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 999px; background: var(--ok); vertical-align: 1px; }
+      .x-acchip[data-state="expired"], .x-acchip[data-state="pending"] { border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); }
+      @media (max-width: 380px) { .x-acchip[data-state="off"] .x-acchip__t { display: none; } .x-acchip { padding: 0 9px; } }
+      .x-acline { display: flex; align-items: center; gap: 10px; width: 100%; min-height: var(--tap); padding: 10px 14px; border-radius: var(--r-m); text-align: left; font-size: 13.5px; color: var(--text); }
+      .x-acline svg { flex: none; color: var(--primary); }
+      .x-acline span { flex: 1; }
+      /* Home tiles + journey */
+      .x-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .x-stat { display: grid; align-content: start; gap: 4px; padding: 14px 16px; border-radius: var(--r-l); text-align: left; color: var(--text); min-height: 96px; }
+      .x-stat b { font: 600 30px/1.05 var(--display); }
+      .x-stat .dim { font-size: 12.5px; }
+      button.x-stat:hover { box-shadow: 0 0 0 1px var(--primary), var(--shadow); }
+      .x-journey .eyebrow { margin: 12px 0 6px; }
+      .x-jr { display: grid; gap: 8px; }
+      .x-jr__row { display: grid; grid-template-columns: 2.4em 1fr auto; grid-template-areas: "id t n" "bar bar bar"; align-items: center; gap: 4px 8px; }
+      .x-jr__id { grid-area: id; font: 600 11px/1 var(--mono); color: var(--primary); }
+      .x-jr__t { grid-area: t; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .x-jr__n { grid-area: n; font: 500 11px/1 var(--mono); color: var(--dim); }
+      .x-jr__bar { grid-area: bar; display: flex; gap: 3px; }
+      .x-jr__bar i { flex: 1; height: 7px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+      .x-jr__bar i.is-done { background: linear-gradient(90deg, var(--primary), #22d3ee); border-color: transparent; }
+      .x-jr__bar i.is-soon { opacity: 0.45; border-style: dashed; }
+      @media (min-width: 960px) { .x-jr { grid-template-columns: 1fr 1fr; gap: 10px 24px; } }
+      /* clinic + worked steps */
+      .x-clinic { display: grid; gap: 10px; }
+      .x-clinic__m { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; }
+      .x-clinic__tag { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 999px; font: 600 11px/1 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--bg); background: linear-gradient(100deg, #22d3ee, var(--primary)); }
+      .x-clinic__case { margin: 0; padding: 12px 14px; border-radius: var(--r-s); background: var(--surface-2); border-left: 3px solid #22d3ee; font: 500 15.5px/1.5 var(--display); }
+      .x-clinic__act { margin: 0; font-size: 14px; color: var(--dim); }
+      .x-clinic__act b { color: var(--text); }
+      .scard:has(.x-clinic) { box-shadow: 0 0 0 1px color-mix(in srgb, #22d3ee 38%, transparent), var(--card-shadow); }
+      .x-wk__tip { margin: 6px 0 0; font-size: 13px; }
+      .x-wk__l { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; counter-reset: wk; }
+      .x-wk__l li { counter-increment: wk; position: relative; padding: 10px 12px 10px 40px; border-radius: var(--r-s); background: var(--surface-2); border: 1px solid var(--border); font-family: var(--mono); font-size: 13.5px; }
+      .x-wk__l li::before { content: counter(wk); position: absolute; left: 10px; top: 9px; width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center; font: 600 11px/1 var(--sans); color: var(--bg); background: var(--primary); }
+      .x-wk__l li.is-new { animation: rise var(--dur, 0.3s) ease; border-color: var(--primary); }
+      .x-wk__btn { margin-top: 12px; }
+      /* review */
+      .x-rv-deck { min-height: 0; }
+      .x-rv-due { font: 600 26px/1.2 var(--display); margin: 6px 0 12px; }
+      .x-rv-due b { font-size: 40px; }
+      .x-boxes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; max-width: 26rem; }
+      .x-box { display: grid; justify-items: center; gap: 4px; }
+      .x-box__b { position: relative; width: 100%; height: 64px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+      .x-box__b b { position: absolute; left: 0; right: 0; bottom: 0; height: var(--h); background: linear-gradient(0deg, var(--primary), #22d3ee); opacity: 0.9; }
+      .x-box__n { font: 600 13px/1 var(--mono); }
+      .x-box__l { font: 500 10.5px/1 var(--mono); color: var(--dim); }
+      .panel .x-btns, .x-rv .x-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+      .panel .x-btns button { min-height: var(--tap); padding: 0 16px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+      .panel .x-btns button[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent); }
+      .x-rv__top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+      .x-rv__from { margin: 0; font-size: 12.5px; color: var(--dim); }
+      .x-rv__bar { height: 5px; margin: 10px 0 2px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+      .x-rv__bar b { display: block; height: 100%; width: var(--w); background: var(--primary); transition: width var(--dur) var(--ease); }
+      .x-rv__ctx { margin: 0 0 6px; font-size: 14px; }
+      .x-rv__next { margin: 10px 0 0; font-size: 13px; }
+      .x-rv .x-bk { margin-top: 12px; }
+      .x-rv .start { margin-top: 0; }
+      /* full-screen Lab */
+      .x-lab__fs { position: absolute; top: 14px; right: 118px; flex: none; width: var(--tap); height: var(--tap); border-radius: 999px; display: grid; place-items: center; }
+      .x-lab__fs svg { width: 20px; height: 20px; }
+      .x-lab.has-fs .x-lab__top { right: 172px; }
+      .x-lab.is-full .x-lab__panel { opacity: 0; pointer-events: none; }
+      .x-lab.is-full .x-lab__x, .x-lab.is-full .x-lab__i { display: none; }
+      .x-lab.is-full .x-lab__top { right: 72px; }
+      .x-full { position: absolute; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: calc(100% - 24px); max-width: 44rem; padding: 12px 16px 14px; border-radius: var(--r-xl); display: grid; gap: 8px; z-index: 2; }
+      .x-full__h { display: flex; align-items: center; gap: 10px; font: 600 15px/1.2 var(--display); }
+      .x-full__h span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .x-full__x { min-height: var(--tap); padding: 0 16px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); font: 500 13px var(--sans); }
+      .x-full__r { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; touch-action: none; }
+      .x-full__r::-webkit-slider-runnable-track { height: 12px; border-radius: 999px; background: linear-gradient(90deg, #a78bfa, #22d3ee 55%, #f472b6); }
+      .x-full__r::-moz-range-track { height: 12px; border-radius: 999px; background: linear-gradient(90deg, #a78bfa, #22d3ee 55%, #f472b6); }
+      .x-full__r::-webkit-slider-thumb { -webkit-appearance: none; width: 40px; height: 40px; margin-top: -14px; border-radius: 999px; background: #fff; border: 3px solid var(--primary); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4); }
+      .x-full__r::-moz-range-thumb { width: 36px; height: 36px; border-radius: 999px; background: #fff; border: 3px solid var(--primary); }
+      .x-full__b { display: flex; flex-wrap: wrap; gap: 8px; }
+      .x-full__b button { flex: 1 1 7rem; min-height: 52px; padding: 8px 12px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); font: 600 14px/1.25 var(--sans); }
+      .x-full__b button[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 50%, transparent); }
+      @media (prefers-reduced-motion: reduce) { .x-wk__l li.is-new { animation: none; } }
     </style>
     <script>
       /* before first paint: the saved theme, and no splash if it already ran this session */
@@ -655,7 +744,7 @@
     <div id="splash" class="x-splash" role="button" tabindex="0" aria-label="Psygma is starting. Tap to skip.">
       <div class="x-splash__icon"><img src="sigmind-icon.png" alt="" /></div>
       <p class="x-splash__name">Psygma</p>
-      <p class="x-splash__tag">Statistics you can see.</p>
+      <p class="x-splash__tag">Statistics for the Mind</p>
       <div class="x-splash__bar" aria-hidden="true"><span></span></div>
     </div>
 
@@ -663,6 +752,7 @@
     <div id="app">
       <header class="hd glass">
         <div class="hd__brand"><img src="sigmind-icon.png" alt="" /><span class="mark">Psygma</span></div>
+        <button type="button" class="x-acchip press" id="acct-chip" data-acct="1" aria-label="Account"></button>
         <button class="iconbtn press" id="theme-btn"></button>
         <button class="iconbtn press" id="gear-btn" aria-label="Settings"></button>
       </header>
@@ -6521,7 +6611,574 @@
           }
         };
 
+        /* =====================================================================
+           PSYGMA 2.0 · additive layer (Oct 30, 2026). Nothing above this line changes:
+           new step kinds (clinic, worked), spaced review, Home tiles + journey, account chip,
+           full-screen Lab, study time. State lives in prefs (prefs.review) and the shared
+           studytime.* keys; sync keys and backup format are unchanged.
+           ===================================================================== */
+        KIND.clinic = "In the clinic"; KIND.worked = "Worked example";
+        ANAT_OF.clinic = 6; ANAT_OF.worked = 4;
+
+        /* ---------- worked example: one line at a time ---------- */
+        var WK_SEEN = {};
+        function workedStep(key, w) {
+          var n = w.lines.length;
+          return {
+            kind: "worked", title: w.title || "Worked example", worked: true,
+            body: '<div class="x-wk" data-wkey="' + esc(key) + '"><p class="x-q">' + esc(w.problem) + '</p><p class="dim x-wk__tip">Try each line yourself before you reveal it.</p><ol class="x-wk__l">' +
+              w.lines.map(function (t) { return '<li hidden>' + esc(t) + "</li>"; }).join("") + "</ol>" +
+              '<p class="why x-wk__ans" hidden><b>Answer. </b>' + esc(w.answer) + "</p>" +
+              '<button type="button" class="x-ladder__btn press x-wk__btn" data-wk="1">Reveal line 1 of ' + n + "</button></div>",
+            mount: function (card) {
+              var box = card.querySelector(".x-wk"); if (!box) return;
+              var lis = box.querySelectorAll(".x-wk__l li"), ans = box.querySelector(".x-wk__ans"), btn = box.querySelector(".x-wk__btn");
+              function show(k) {
+                Array.prototype.forEach.call(lis, function (li, i) { li.hidden = i >= k; if (i === k - 1) li.classList.add("is-new"); else li.classList.remove("is-new"); });
+                ans.hidden = k < n;
+                if (k >= n) { btn.hidden = true; } else { btn.hidden = false; btn.textContent = "Reveal line " + (k + 1) + " of " + n; }
+                box.setAttribute("data-shown", String(k));
+              }
+              show(WK_SEEN[key] || 0);
+              btn.addEventListener("click", function () { WK_SEEN[key] = Math.min(n, (WK_SEEN[key] || 0) + 1); show(WK_SEEN[key]); });
+            }
+          };
+        }
+
+        /* ---------- In the clinic: a labelled case card, appended, with one decision ---------- */
+        function clinicStep(lid, idx, c) {
+          var s = {
+            kind: "clinic", title: c.t || "From the counseling room", clinic: true, caseText: c.c, measure: c.m, lab: c.lab, q: c.q, options: c.options, answer: c.answer, why: c.why, concept: c.concept,
+            body: '<div class="x-clinic"><p class="x-clinic__m"><span class="x-clinic__tag">' + I.eye.replace(/width="20" height="20"/, 'width="15" height="15"') + "Case</span>" +
+              (c.m ? '<span class="chip">' + esc(c.m) + "</span>" : "") + "</p>" +
+              '<p class="x-clinic__case">' + esc(c.c) + "</p>" + (c.act ? '<p class="x-clinic__act"><b>What you do with it.</b> ' + esc(c.act) + "</p>" : "") +
+              (c.q ? '<p class="x-q">' + esc(c.q) + '</p><div class="x-cq"></div>' : "") + "</div>"
+          };
+          s.mount = function (card) {
+            var box = card.querySelector(".x-cq"); if (!box) return;
+            function paintQ() {
+              var a = (prefs.answers && prefs.answers[lid] || {})[idx];
+              box.innerHTML = s.options.map(function (o, k) {
+                var cls = a == null ? "" : k === s.answer ? " is-right" : k === a ? " is-wrong" : "";
+                return '<button type="button" class="qopt press' + cls + '" data-cq="' + k + '"' + (a != null ? " disabled" : "") + ">" + esc(o) + "</button>";
+              }).join("") + (a != null ? '<p class="why' + (a === s.answer ? "" : " is-bad") + '"><b>' + (a === s.answer ? "Sound call. " : "Not quite. ") + "</b>" + esc(s.why) + "</p>" : "");
+            }
+            paintQ();
+            box.addEventListener("click", function (e) {
+              var b = e.target.closest("[data-cq]"); if (!b) return;
+              prefs.answers = prefs.answers || {}; var A = prefs.answers[lid] = prefs.answers[lid] || {};
+              if (A[idx] != null) return;
+              A[idx] = +b.dataset.cq;
+              var cid = s.concept || "day" + lid;
+              if (A[idx] === s.answer) Learn.bump(cid, 15); else Learn.miss(cid);
+              savePrefs(); paintQ();
+            });
+          };
+          return s;
+        }
+        function addClinic(lid, c) {
+          var L = LESSON_CONTENT[lid]; if (!L) return;
+          L.steps = L.steps.concat([clinicStep(lid, L.steps.length, c)]);
+        }
+        /* cases rewritten from the earlier Psygma build; appended after each lesson's last step */
+        var CLINIC = {
+          1: { m: "PHQ-9", c: "A trial compares CBT with a waitlist. Each client has a group (CBT or waitlist) and a PHQ-9 total at week 8.", act: "Group is a category you count; the PHQ-9 total is a score you can average.", q: "Which of these is it sensible to average?", options: ["The PHQ-9 totals", "The group codes (1 = CBT, 2 = waitlist)", "Both"], answer: 0, why: "Group codes are labels; their “average” means nothing. PHQ-9 totals are treated as scores." },
+          2: { m: "Sampling", c: "A study recruits volunteers from a university counseling centre and reports the anxiety level of “young adults”.", act: "Ask who could have ended up in the sample before you generalize a number to your clients.", q: "Whose anxiety does this sample actually describe?", options: ["Help-seeking students like these volunteers", "All young adults", "Nobody: the number is useless"], answer: 0, why: "The population of inference is help-seeking students. Young adults in general would likely score lower." },
+          4: { m: "Sessions", c: "Seven clients attended 2, 4, 4, 5, 6, 7 and 52 sessions. The mean is 11.4; the median is 5.", act: "With one extreme client, report the median as the typical course and mention the outlier.", q: "What do you tell your supervisor a typical course is?", options: ["About 5 sessions (median)", "About 11 sessions (mean)", "52 sessions"], answer: 0, why: "One 52-session client drags the mean up. The median describes the typical client." },
+          5: { m: "BDI-II", c: "Two groups both average 15 on the BDI-II. One has SD 2: everyone is mildly depressed. The other has SD 10: some barely depressed, some severe.", act: "Same mean, different planning: the spread tells you whether one plan fits all.", q: "Which group needs stepped care with severity screening?", options: ["The SD 10 group", "The SD 2 group", "Neither: the means match"], answer: 0, why: "A wide spread means very different clients sit behind the same mean." },
+          6: { m: "PHQ-9", c: "In a student sample most PHQ-9 scores are 0–5 and a few are 20+: a floor effect with a long right tail. Q1 = 3, Q3 = 9.", act: "Flag a far score, verify it, and treat it as a person first: it may be a client in crisis, not a typo.", q: "Is a score of 20 an outlier by the 1.5 × IQR rule?", options: ["Yes: the upper fence is 18", "No: it is under 27", "Can’t tell without the mean"], answer: 0, why: "IQR = 6, so the fence is 9 + 1.5 × 6 = 18. 20 is beyond it." },
+          7: { m: "MMPI-2", c: "A client scores T = 65 on the MMPI-2 Depression scale. T-scores have mean 50 and SD 10.", act: "Translate to z before you interpret: T 65 sits in the conventional clinical zone.", q: "What is the z-score?", options: ["1.5 (about the 93rd percentile)", "0.65", "6.5"], answer: 0, why: "z = (65 − 50) / 10 = 1.5, about the 93rd percentile." },
+          9: { m: "Risk screen", c: "A suicide-risk screen has 90% sensitivity and 90% specificity. Imminent risk is rare here: about 5% of clients.", act: "A positive screen starts a careful, compassionate assessment; it is not a verdict.", q: "Of clients who screen positive, about how many are at imminent risk?", options: ["About 1 in 3", "About 9 in 10", "About half"], answer: 0, why: "4.5 true positives against 9.5 false ones: about 32%. Low base rates make most positives false alarms." },
+          10: { m: "PHQ-9", c: "PHQ-9 scores in your clinic have SD 6. You average 36 clients each month.", act: "The monthly average jitters far less than single clients do; judge month-to-month changes against that.", q: "How much does a monthly mean typically jitter (SE)?", options: ["About 1 point", "About 6 points", "About 0.17 points"], answer: 0, why: "SE = SD / √n = 6 / 6 = 1." },
+          11: { m: "PCL-5", c: "A trial reports a 12-point mean drop on the PCL-5 (PTSD), 95% CI [4, 20].", act: "Tell clients the honest range: the benefit is likely real, and its size is uncertain.", q: "What can you fairly say?", options: ["It likely helps; the gain could be modest or large", "It cuts PTSD symptoms by exactly 12 points", "Zero is plausible, so it may do nothing"], answer: 0, why: "The interval excludes 0 but spans 4 to 20 points." },
+          12: { m: "Stress", c: "An online study with 20,000 people finds a gratitude app lowers stress by 0.3 points on a 40-point scale, p < .001.", act: "With huge samples, check the size before you recommend anything.", q: "Should you recommend it as a stress treatment?", options: ["Not on this evidence: 0.3 of 40 is trivial", "Yes: p < .001 shows a strong effect"], answer: 0, why: "Significant is not the same as meaningful; the effect is tiny." },
+          13: { m: "Power", lab: "l42", c: "Your pilot has 15 clients per group and the true effect is d = 0.5, typical of therapy vs control.", act: "Plan about 64 per group for 80% power before you collect; an underpowered study burdens clients without answers.", q: "Roughly what is the pilot’s power?", options: ["About 28%", "About 80%", "About 95%"], answer: 0, why: "With 15 per group you would miss a real d = 0.5 about 72% of the time." },
+          14: { m: "GAD-7", c: "After 8 weeks, CBT clients average 10 on the GAD-7 and waitlist clients 16; pooled SD is 5.", act: "Report d next to the p-value so readers can judge the size.", q: "What is Cohen’s d?", options: ["1.2: large", "6", "0.6: medium"], answer: 0, why: "d = (16 − 10) / 5 = 1.2." },
+          15: { m: "PHQ-9", c: "You compare week-8 PHQ-9 scores of telehealth clients with in-person clients: different people in each group.", act: "Two separate groups, one score each: an independent-samples comparison.", q: "Which test fits?", options: ["Independent-samples t-test", "Paired t-test", "Chi-square"], answer: 0, why: "Different people in each group, a numeric outcome." },
+          16: { m: "MBI", c: "Thirty-six counselors do a mindfulness programme; burnout (MBI) is measured before and after. Mean change 3, SD of changes 6.", act: "Each counselor is their own control, so analyse the change scores.", q: "What is the paired t?", options: ["3.00", "0.50", "18"], answer: 0, why: "SE = 6 / √36 = 1, so t = 3 / 1 = 3.00 (and d_z = 0.50)." },
+          17: { m: "Dropout", c: "Dropout: 30 of 100 telehealth clients and 15 of 100 in-person clients.", act: "Compare observed counts with what you’d expect if format didn’t matter.", q: "If format didn’t matter, how many dropouts would you expect per group?", options: ["22.5", "15", "30"], answer: 0, why: "45 dropouts of 200 is 22.5%, so 22.5 per group of 100." },
+          18: { m: "Alliance", lab: "l39", c: "The alliance–outcome correlation is about r = .28 across many studies. Early improvement may also strengthen the alliance.", act: "Treat it as a robust link, not proof that alliance causes outcome.", q: "Rumination and depression correlate r = .50. How much variance do they share?", options: ["25%", "50%", "5%"], answer: 0, why: "r² = .25: a quarter shared, three quarters not." },
+          19: { m: "PHQ-9", c: "In your clinic, post-treatment PHQ-9 ≈ 5 + 0.6 × baseline PHQ-9.", act: "Use the line for an expectation, then watch for clients far off it.", q: "A client starts at 20. What is the expected post score?", options: ["17", "12", "25"], answer: 0, why: "5 + 0.6 × 20 = 17." },
+          20: { m: "Social anxiety", c: "Three treatments for social anxiety are compared: MS between = 40, MS within = 10, df 2 and 57.", act: "A significant F only says some group differs: follow with post hoc comparisons.", q: "What is F?", options: ["4.00", "30", "0.25"], answer: 0, why: "F = 40 / 10 = 4.00, p ≈ .024." },
+          22: { m: "Depression", lab: "l40", c: "Post depression ≈ 5 + 0.6 × baseline − 0.4 × alliance. Alliance still predicts outcome with baseline held constant.", act: "Each slope is “holding the other predictor still”.", q: "Baseline 20, alliance 10: predicted score?", options: ["13", "17", "9"], answer: 0, why: "5 + 12 − 4 = 13." },
+          25: { m: "SEM", c: "A depression scale has SD 7 and reliability .84.", act: "The SEM tells you how far a single client’s score can wobble on its own.", q: "What is the standard error of measurement?", options: ["2.8 points", "1.1 points", "5.9 points"], answer: 0, why: "SEM = 7 × √(1 − .84) = 7 × 0.4 = 2.8." },
+          27: { m: "Satisfaction", c: "Three groups rate satisfaction on a 1–5 ordinal scale; the ratings bunch at the top.", act: "Ranks are safer than means for ordinal, skewed ratings.", q: "Which test fits?", options: ["Kruskal–Wallis", "One-way ANOVA on the raw codes", "Paired t-test"], answer: 0, why: "Three independent groups, ordinal outcome: the rank-based Kruskal–Wallis test." },
+          "b2-client": { m: "BDI-II", c: "A client goes from 30 to 22 on the BDI-II. The reliable-change threshold for this scale is 8.5 points.", act: "Keep monitoring and adjust the plan together; don’t call it change yet.", q: "Is this reliable change?", options: ["Not yet: 8 points is under 8.5", "Yes: any drop counts", "Yes, and the client has recovered"], answer: 0, why: "8 < 8.5: within what measurement error alone could produce." }
+        };
+        Object.keys(CLINIC).forEach(function (k) { addClinic(/^\d+$/.test(k) ? +k : k, CLINIC[k]); });
+
+        /* ---------- spaced review: Leitner 6 boxes at 1/2/4/8/16/32 days, inside prefs.review ---------- */
+        var RV_INT = [1, 2, 4, 8, 16, 32];
+        function rvDay(days, from) { var d = new Date(from || Date.now()); return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days).getTime(); }
+        function rvIsQ(s) { return !!(s && Array.isArray(s.options) && s.answer != null && !s.goal && /^(quiz|check|transfer|fade|clinic)$/.test(s.kind)); }
+        function lessonLabel(lid) {
+          var n = /^\d+$/.test(String(lid)) ? +lid : null;
+          if (n) return "Day " + n + " · " + ((LESSONS[n - 1] || {}).title || "");
+          if (SPLITS[lid]) return "Day " + SPLITS[lid].day + " · " + SPLITS[lid].t;
+          return NEW_LESSONS[lid] || String(lid);
+        }
+        function labOf(lid) {
+          var L = LESSON_CONTENT[lid]; if (!L) return null;
+          var s = L.steps.filter(function (x) { return x.lab; })[0];
+          if (s) return s.lab;
+          var sc = SCENES.filter(function (x) { return String(x.learn) === String(lid); })[0];
+          return sc ? sc.id : null;
+        }
+        var Review = {
+          cards: function () { return (prefs.review && prefs.review.cards) || {}; },
+          st: function () {
+            var r = prefs.review;
+            if (!r || typeof r !== "object") r = prefs.review = {};
+            if (!r.cards || typeof r.cards !== "object") r.cards = {};
+            if (!r.mk || typeof r.mk !== "object") r.mk = {};
+            return r;
+          },
+          size: function () { return (prefs.review && prefs.review.n) || 10; },
+          make: function (lid, i, s, a, src) {
+            var now = Date.now(), wrong = a == null || a !== s.answer;
+            var c = { l: String(lid), i: i, box: 1, due: wrong ? now : rvDay(1, now), last: now, seen: 0, ok: 0, src: src };
+            var mis = a != null && a !== s.answer && s.tags && s.tags[a]; if (mis) c.mis = mis;
+            Review.st().cards[lid + "::" + i] = c;
+          },
+          /* cards come from answered choice questions, then from logged misses (Learn misses) */
+          harvest: function () {
+            var ans = prefs.answers || {}, cards = Review.cards(), changed = false;
+            Object.keys(ans).forEach(function (lid) {
+              var L = LESSON_CONTENT[lid]; if (!L || !ans[lid]) return;
+              Object.keys(ans[lid]).forEach(function (i) {
+                var a = ans[lid][i], s = L.steps[+i];
+                if (typeof a !== "number" || !rvIsQ(s) || cards[lid + "::" + i]) return;
+                Review.make(lid, +i, s, a, "q"); cards = Review.cards(); changed = true;
+              });
+            });
+            var miss = prefs.misses || {}, mk = (prefs.review && prefs.review.mk) || {};
+            Object.keys(miss).forEach(function (key) {
+              if (!(miss[key] > 0) || mk[key]) return;
+              var lid = Review.resolve(key), L = lid != null && LESSON_CONTENT[lid];
+              Review.st().mk[key] = 1; changed = true; mk = prefs.review.mk;
+              if (!L) return;
+              for (var i = 0; i < L.steps.length; i++) if (rvIsQ(L.steps[i]) && !Review.cards()[lid + "::" + i]) { Review.make(lid, i, L.steps[i], null, "miss"); break; }
+            });
+            if (changed) savePrefs();
+            return changed;
+          },
+          resolve: function (key) {
+            var m = /^day(.+)$/.exec(key); if (m && LESSON_CONTENT[m[1]]) return m[1];
+            var sc = SCENES.filter(function (x) { return x.id === key; })[0]; if (sc && sc.learn != null) return String(sc.learn);
+            var hit = null;
+            Object.keys(LESSON_CONTENT).some(function (lid) { return LESSON_CONTENT[lid].steps.some(function (s) { return s.concept === key; }) && (hit = lid); });
+            return hit;
+          },
+          due: function (now) {
+            now = now || Date.now(); var c = Review.cards();
+            return Object.keys(c).filter(function (id) { return c[id].due <= now && LESSON_CONTENT[c[id].l] && rvIsQ(LESSON_CONTENT[c[id].l].steps[c[id].i]); })
+              .sort(function (a, b) { return c[a].due - c[b].due || c[a].box - c[b].box; });
+          },
+          /* correct: next box; wrong: back to box 1. Due = local midnight + the box interval */
+          answer: function (id, ok, now) {
+            var c = Review.st().cards[id]; if (!c) return null;
+            now = now || Date.now();
+            c.seen = (c.seen || 0) + 1;
+            if (ok) { c.ok = (c.ok || 0) + 1; c.box = Math.min(6, (c.box || 1) + 1); } else c.box = 1;
+            c.due = rvDay(RV_INT[c.box - 1], now); c.last = now;
+            savePrefs();
+            return c;
+          },
+          /* merge-safe: union of cards; for a card on both sides keep the copy seen last (max lastSeen) */
+          merge: function (a, b) {
+            if (!b || typeof b !== "object") return a || null;
+            if (!a || typeof a !== "object") return JSON.parse(JSON.stringify(b));
+            var out = JSON.parse(JSON.stringify(a)); out.cards = out.cards || {}; out.mk = out.mk || {};
+            Object.keys(b.cards || {}).forEach(function (id) { var x = out.cards[id], y = b.cards[id]; if (!x || (y && (y.last || 0) > (x.last || 0))) out.cards[id] = JSON.parse(JSON.stringify(y)); });
+            Object.keys(b.mk || {}).forEach(function (k) { out.mk[k] = 1; });
+            if (b.n && (b.nAt || 0) > (out.nAt || 0)) { out.n = b.n; out.nAt = b.nAt; }
+            return out;
+          }
+        };
+        (function () {
+          var mergeIn0 = Backup.mergeIn;
+          Backup.mergeIn = function (data) {
+            var mine = prefs.review ? JSON.parse(JSON.stringify(prefs.review)) : null;
+            mergeIn0.apply(Backup, arguments);
+            var theirs = data && data.prefs && data.prefs.review;
+            var m = Review.merge(mine, theirs);
+            if (m) prefs.review = m;
+          };
+        })();
+        /* a review session (in memory; the deck itself is in prefs) */
+        var RS = null;
+        function rvQHTML(s, a) {
+          var lines = s.kind === "fade" ? '<ol class="x-fade">' + s.lines.map(function (t, k) {
+            return k !== s.blank ? "<li>" + esc(t) + "</li>" : a == null ? '<li class="is-blank">? Which line goes here?</li>' : '<li class="is-filled">' + esc(s.lines[s.blank]) + "</li>";
+          }).join("") + "</ol>" : "";
+          var ctx = s.body && !s.mount && !/x-viz|<canvas|<svg|data-scene|x-cq|x-wk/.test(s.body) ? '<div class="x-rv__ctx">' + s.body + "</div>" : s.caseText ? '<p class="x-rv__ctx x-clinic__case">' + (s.measure ? '<span class="chip">' + esc(s.measure) + "</span> " : "") + esc(s.caseText) + "</p>" : "";
+          return ctx + (s.q ? '<p class="x-q">' + esc(s.q) + "</p>" : "") + lines + s.options.map(function (o, k) {
+            var cls = a == null ? "" : k === s.answer ? " is-right" : k === a ? " is-wrong" : "";
+            return '<button type="button" class="qopt press' + cls + '" data-rvo="' + k + '"' + (a != null ? " disabled" : "") + ">" + esc(o) + "</button>";
+          }).join("");
+        }
+        function fmtDue(ts) {
+          var d0 = rvDay(0), days = Math.round((rvDay(0, ts) - d0) / 864e5);
+          return days <= 0 ? "today" : days === 1 ? "tomorrow" : "in " + days + " days";
+        }
+        Views.review = function () {
+          Review.harvest();
+          var head = '<div><h1 class="greet">Review</h1><p class="dim">Spaced out so it sticks: right moves a card up a box, wrong sends it back to box 1.</p></div>';
+          var cards = Review.cards(), ids = Object.keys(cards);
+          if (RS && RS.q.length) {
+            if (RS.i >= RS.q.length) {
+              return head + '<section class="empty glass x-rv-done"><div class="empty__ring">' + I.check.replace(/width="20" height="20"/, 'width="32" height="32"') + "</div>" +
+                "<h3>Session done</h3><p>" + RS.right + " of " + RS.q.length + " right. " + (Review.due().length ? Review.due().length + " still due." : "Nothing else is due today.") + "</p>" +
+                '<button type="button" class="start press" data-rv="end">Back to the deck</button></section>';
+            }
+            var id = RS.q[RS.i], c = cards[id], s = c && LESSON_CONTENT[c.l] && LESSON_CONTENT[c.l].steps[c.i];
+            if (!s) { RS.i++; return Views.review(); }
+            var a = RS.pick, lab = labOf(c.l), right = a != null && a === s.answer;
+            var mis = a != null && !right && s.tags && s.tags[a] && MISCONCEPTIONS[s.tags[a]];
+            return head + '<section class="scard glass x-rv" aria-label="Review card">' +
+              '<div class="x-rv__top"><p class="eyebrow">Card ' + (RS.i + 1) + " of " + RS.q.length + " · Box " + c.box + "</p>" +
+              '<p class="x-rv__from">from ' + esc(lessonLabel(c.l)) + "</p></div>" +
+              '<div class="x-rv__bar" aria-hidden="true"><b style="--w:' + Math.round(100 * RS.i / RS.q.length) + '%"></b></div>' +
+              "<h2>" + esc(s.title || "Check") + "</h2>" + rvQHTML(s, a) +
+              (a != null ? '<p class="why' + (right ? "" : " is-bad") + '"><b>' + (right ? "Correct. " : "Not quite. ") + "</b>" + esc(s.why || "") + "</p>" +
+                (mis ? '<div class="x-trap" role="status"><span class="x-trap__code">' + esc(s.tags[a]) + "</span><p><b>That’s a common trap:</b> " + esc(mis.t) + "</p></div>" : "") +
+                '<p class="x-rv__next dim">' + (right ? "Up to box " + Math.min(6, c.box) : "Back to box 1") + " · next " + fmtDue(c.due) + "</p>" +
+                '<div class="x-bk"><button type="button" class="start press" data-rv="next">' + (RS.i + 1 < RS.q.length ? "Next card" : "Finish") + "</button>" +
+                '<button type="button" class="danger press" data-lesson="' + esc(c.l) + '">Open the lesson</button>' +
+                (lab ? '<button type="button" class="danger press" data-scene="' + esc(lab) + '">See it in the Lab</button>' : "") + "</div>" : "") +
+              "</section>";
+          }
+          if (!ids.length) {
+            return '<div><h1 class="greet">Review</h1></div>' +
+              '<section class="empty glass"><div class="empty__ring">' + I.review.replace(/width="20" height="20"/, 'width="32" height="32"') + "</div>" +
+              "<h3>Nothing to review yet</h3><p>Finish a lesson and its key ideas will come back here, spaced out so they stick.</p>" +
+              '<button type="button" class="start press" data-go="library">Browse the library</button></section>';
+          }
+          var due = Review.due(), n = Math.min(due.length, Review.size()), box = [0, 0, 0, 0, 0, 0];
+          ids.forEach(function (k) { box[Math.max(0, Math.min(5, (cards[k].box || 1) - 1))]++; });
+          var mx = Math.max.apply(null, box.concat([1]));
+          var next = ids.map(function (k) { return cards[k].due; }).filter(function (t) { return t > Date.now(); }).sort(function (x, y) { return x - y; })[0];
+          return head + '<section class="hero glass x-rv-deck" aria-label="Your deck">' +
+            '<p class="eyebrow">Your deck · ' + ids.length + " card" + (ids.length === 1 ? "" : "s") + "</p>" +
+            '<h2 class="x-rv-due"><b>' + due.length + "</b> due now</h2>" +
+            '<div class="x-boxes" role="img" aria-label="Cards per box: ' + box.join(", ") + '">' + box.map(function (v, i) {
+              return '<div class="x-box"><span class="x-box__b"><b style="--h:' + Math.round(100 * v / mx) + '%"></b></span><span class="x-box__n">' + v + "</span><span class=\"x-box__l\">" + RV_INT[i] + "d</span></div>";
+            }).join("") + "</div>" +
+            (n ? '<button type="button" class="start press" data-rv="start">Start review · ' + n + " card" + (n === 1 ? "" : "s") + "</button>"
+              : '<p class="dim">All caught up. Next card due ' + (next ? fmtDue(next) : "after your next lesson") + ".</p>") +
+            "</section>" +
+            '<section class="panel glass"><h3>Session length</h3><div class="x-btns" role="group" aria-label="Cards per session">' + [5, 10, 20].map(function (v) {
+              return '<button type="button" class="press" data-rvn="' + v + '" aria-pressed="' + (Review.size() === v) + '">' + v + " cards</button>";
+            }).join("") + '</div><p class="dim">Boxes come back after 1, 2, 4, 8, 16 and 32 days. Cards come from questions you answered and ideas you missed.</p></section>';
+        };
+        SELECTS["Review session"] = {
+          options: [{ v: 5, t: "5 cards", s: "Quick" }, { v: 10, t: "10 cards", s: "Default" }, { v: 20, t: "20 cards", s: "Deep" }],
+          get: function () { return Review.size(); },
+          set: function (v) { var r = Review.st(); r.n = v; r.nAt = Date.now(); }
+        };
+
+        /* ---------- study time (shared studytime.* contract, app id "psygma"); additive, never throws ---------- */
+        var StudyTime = (function () {
+          var KEY = "studytime.psygma", DKEY = "studytime.device", CKEY = "psygma_studytime", IDLE = 90000;
+          var pending = 0, last = 0, lastInput = 0, lastFlush = Date.now(), mem = null, dev = null;
+          var cloudAt = 0, cloudBusy = false, dirty = false, pulledFor = null;
+          function ls(k, v) {
+            try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {}
+            return null;
+          }
+          function device() {
+            if (dev) return dev;
+            var d = ls(DKEY);
+            if (!d) { d = ""; var c = "abcdefghijklmnopqrstuvwxyz0123456789"; for (var i = 0; i < 10; i++) d += c.charAt(Math.floor(Math.random() * 36)); ls(DKEY, d); }
+            return (dev = d);
+          }
+          function p2(n) { return ("0" + n).slice(-2); }
+          function day(d) { d = d || new Date(); return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()); }
+          function norm(o) {
+            if (typeof o === "string") { try { o = JSON.parse(o); } catch (e) { o = null; } }
+            var out = { v: 1, devices: {}, updatedAt: (o && typeof o.updatedAt === "string" && o.updatedAt) || "" }, ds = o && o.devices;
+            if (ds && typeof ds === "object") Object.keys(ds).forEach(function (id) {
+              var days = ds[id] && ds[id].days, dd = {};
+              if (days && typeof days === "object") Object.keys(days).forEach(function (k) { var n = Math.floor(+days[k]); if (/^\d{4}-\d{2}-\d{2}$/.test(k) && n > 0) dd[k] = n; });
+              out.devices[id] = { days: dd };
+            });
+            return out;
+          }
+          /* per device, per day: MAX, never a sum of two copies */
+          function merge(a, b) {
+            a = norm(a); b = norm(b);
+            Object.keys(b.devices).forEach(function (id) {
+              var t = a.devices[id] || (a.devices[id] = { days: {} }), bd = b.devices[id].days;
+              Object.keys(bd).forEach(function (k) { t.days[k] = Math.max(t.days[k] || 0, bd[k]); });
+            });
+            if (b.updatedAt > a.updatedAt) a.updatedAt = b.updatedAt;
+            return a;
+          }
+          function read() { var o = norm(ls(KEY)); return mem ? merge(o, mem) : o; }
+          function write(o) { o.updatedAt = new Date().toISOString(); mem = o; ls(KEY, JSON.stringify(o)); }
+          function flush() {
+            try {
+              lastFlush = Date.now();
+              var o = read(), n = Math.floor(pending);
+              if (n > 0) {
+                var id = device(), t = o.devices[id] || (o.devices[id] = { days: {} }), k = day();
+                t.days[k] = (t.days[k] || 0) + n; pending -= n; dirty = true; write(o);
+              }
+              return o;
+            } catch (e) { return null; }
+          }
+          function on() { try { return !!(Acct.on() && Cloud.s && Cloud.s.user); } catch (e) { return false; } }
+          /* its own PUT carrying only psygma_studytime: Supabase merges top-level metadata keys, so progress keys are untouched */
+          function push(keep) {
+            try {
+              if (!on() || !dirty || cloudBusy) return;
+              var now = Date.now();
+              if (keep !== true && now - cloudAt < 60000) return;
+              var o = flush() || read(), body = { data: {} };
+              body.data[CKEY] = o;
+              cloudAt = now; cloudBusy = true; dirty = false;
+              Cloud.req("/auth/v1/user", { method: "PUT", keepalive: keep === true, body: body })
+                .then(function (res) { cloudBusy = false; if (!res || !res.ok) dirty = true; }, function () { cloudBusy = false; dirty = true; });
+            } catch (e) { cloudBusy = false; }
+          }
+          function pull(force) {
+            try {
+              if (!on() || (!force && pulledFor === Cloud.s.user.id)) return;
+              pulledFor = Cloud.s.user.id;
+              Cloud.req("/auth/v1/user").then(function (res) {
+                try {
+                  if (!res || !res.ok) return;
+                  var d = res.data || {}, md = d.user_metadata || (d.user && d.user.user_metadata) || {};
+                  var o = flush() || read();
+                  if (md[CKEY]) o = merge(o, md[CKEY]);
+                  write(o); dirty = true; paint();
+                } catch (e) {}
+              }, function () {});
+            } catch (e) {}
+          }
+          function sum(pred) {
+            try {
+              var o = read(), id = device(), k = day(), n = 0, p = Math.floor(pending);
+              if (p > 0) { var t = o.devices[id] || (o.devices[id] = { days: {} }); t.days[k] = (t.days[k] || 0) + p; }
+              Object.keys(o.devices).forEach(function (d) { var dd = o.devices[d].days; Object.keys(dd).forEach(function (x) { if (pred(x)) n += dd[x]; }); });
+              return n;
+            } catch (e) { return 0; }
+          }
+          function today() { var k = day(); return sum(function (x) { return x === k; }); }
+          function week() {
+            var d = new Date(), off = (d.getDay() + 6) % 7;
+            var a = day(new Date(d.getFullYear(), d.getMonth(), d.getDate() - off)), b = day(new Date(d.getFullYear(), d.getMonth(), d.getDate() - off + 6));
+            return sum(function (x) { return x >= a && x <= b; });
+          }
+          function allTime() { return sum(function () { return true; }); }
+          function fmt(s) { var m = Math.floor((s || 0) / 60); if (m < 60) return m + " min"; var h = Math.floor(m / 60), r = m % 60; return h + " h" + (r ? " " + r + " min" : ""); }
+          function paint() {
+            try {
+              var t = $("#st-today"), a = $("#st-all"), w = $("#st-week");
+              if (t) t.textContent = fmt(today()); if (a) a.textContent = fmt(allTime()); if (w) w.textContent = fmt(week());
+            } catch (e) {}
+          }
+          function active() { try { return doc.visibilityState === "visible" && doc.hasFocus() && Date.now() - lastInput < IDLE; } catch (e) { return false; } }
+          function tick() {
+            try {
+              var now = Date.now();
+              if (active()) {
+                if (last) pending += Math.min(5, Math.max(0, (now - last) / 1000));
+                last = now;
+                if (now - lastFlush >= 15000) { flush(); push(); }
+              } else last = 0;
+            } catch (e) {}
+          }
+          function pause(hide) { try { last = 0; flush(); if (hide) push(true); } catch (e) {} }
+          try {
+            var mark = function () { lastInput = Date.now(); };
+            ["pointerdown", "keydown", "wheel", "touchstart", "scroll"].forEach(function (ev) { window.addEventListener(ev, mark, { passive: true, capture: true }); });
+            doc.addEventListener("visibilitychange", function () { if (doc.visibilityState === "hidden") pause(true); else paint(); });
+            window.addEventListener("blur", function () { pause(false); });
+            window.addEventListener("pagehide", function () { pause(true); });
+            setInterval(tick, 1000);
+            setInterval(function () { try { if (doc.visibilityState === "visible") paint(); } catch (e) {} }, 30000);
+            device();
+          } catch (e) {}
+          return { today: today, week: week, allTime: allTime, fmt: fmt, pull: pull, push: push, flush: flush, merge: merge, paint: paint, active: active,
+            pending: function () { return pending; }, idle: function () { lastInput = 0; }, key: KEY, ckey: CKEY };
+        })();
+        (function () {
+          var pull0 = Acct.pull;
+          Acct.pull = function () { var r = pull0.apply(Acct, arguments); try { StudyTime.pull(); } catch (e) {} return r; };
+        })();
+
+        /* ---------- account chip in the header + discoverability ---------- */
+        function initials() {
+          var u = (Cloud.s && Cloud.s.user) || {}, n = (u.name || prefs.name || "").trim();
+          if (n) return n.split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join("");
+          return (u.email || "?").charAt(0).toUpperCase();
+        }
+        function paintChip() {
+          var b = $("#acct-chip"); if (!b) return;
+          if (Acct.on()) {
+            var st = Acct.state === "live" ? "Synced" : Acct.state === "syncing" ? "Syncing" : Acct.state === "expired" ? "Sign in" : Acct.state === "offline" ? "Offline" : "Pending";
+            b.dataset.state = Acct.state;
+            b.innerHTML = '<span class="x-acchip__av">' + esc(initials()) + '</span><span class="x-acchip__t">' + st + "</span>";
+            b.setAttribute("aria-label", "Account: " + ((Cloud.s.user && Cloud.s.user.email) || "") + " · " + Acct.text());
+          } else {
+            b.dataset.state = "off";
+            b.innerHTML = I.cloud + '<span class="x-acchip__t">Sign in</span>';
+            b.setAttribute("aria-label", "Account: sign in to sync with your Numina/Anima account");
+          }
+        }
+        (function () {
+          var paint0 = Sync.paint;
+          Sync.paint = function () { paint0.apply(Sync, arguments); try { paintChip(); } catch (e) {} };
+        })();
+        function openAccount() {
+          if (State.tab !== "settings") openSettings();
+          State.open = "account"; Views.render();
+          var f = $('[data-fold="account"]');
+          if (f) { if (f.scrollIntoView) f.scrollIntoView({ block: "start" }); f.focus({ preventScroll: true }); }
+          var e = $("#ac-email"); if (e) e.focus({ preventScroll: true });
+        }
+
+        /* ---------- Home: tagline in the hero, reviews-due + study-time tiles, journey bars ---------- */
+        var JOURNEY_EXTRA = [];
+        function journeyHTML() {
+          var segOf = function (it) {
+            var has = !!(LESSON_CONTENT[it] || (SPLITS[it] && LESSON_CONTENT[SPLITS[it].day]));
+            return '<i class="' + (isDone(it) ? "is-done" : has ? "is-open" : "is-soon") + '"></i>';
+          };
+          var row = function (id, t, items) {
+            var done = items.filter(isDone).length;
+            return '<div class="x-jr__row"><span class="x-jr__id">' + esc(id) + '</span><span class="x-jr__t">' + esc(t) + '</span><span class="x-jr__n">' + done + "/" + items.length +
+              '</span><span class="x-jr__bar" role="img" aria-label="' + esc(t) + ": " + done + " of " + items.length + ' done">' + items.map(segOf).join("") + "</span></div>";
+          };
+          var parts = [{ k: "A", t: "Part A · Foundations" }, { k: "B", t: "Part B · Inference & models" }];
+          return '<section class="panel glass x-journey" aria-label="Your journey"><h3>Your journey</h3>' + parts.map(function (pt) {
+            return '<p class="eyebrow">' + pt.t + '</p><div class="x-jr">' + PILLARS.filter(function (P) { return P.part === pt.k; }).map(function (P) { return row(P.id, P.t, P.items); }).join("") + "</div>";
+          }).join("") + JOURNEY_EXTRA.map(function (u) { return '<p class="eyebrow">' + esc(u.t) + '</p><div class="x-jr">' + row(u.id, u.name, u.items) + "</div>"; }).join("") + "</section>";
+        }
+        (function () {
+          var home0 = Views.home;
+          Views.home = function () {
+            try { Review.harvest(); } catch (e) {}
+            var h = home0.apply(Views, arguments);
+            h = h.replace('<p class="eyebrow">Today · ', '<p class="x-tagline">Your mind, <em>measured</em> beautifully.</p><p class="eyebrow">Today · ');
+            var due = 0; try { due = Review.due().length; } catch (e) {}
+            var extra = (Acct.on() ? "" : '<button type="button" class="x-acline glass press" data-acct="1">' + I.cloud + "<span>Sign in with your Numina/Anima account to save everywhere</span>" + I.chev + "</button>") +
+              '<div class="x-stats"><button type="button" class="x-stat glass press" data-go="review" aria-label="Reviews due: ' + due + '. Open Review">' +
+              '<span class="eyebrow">Reviews due</span><b>' + due + '</b><span class="dim">' + (due ? "cards waiting · open Review" : Object.keys(Review.cards()).length ? "all caught up" : "after your first lesson") + "</span></button>" +
+              '<div class="x-stat glass"><span class="eyebrow">Time studied</span><b id="st-today">' + StudyTime.fmt(StudyTime.today()) + '</b><span class="dim">today · <span id="st-all">' + StudyTime.fmt(StudyTime.allTime()) + "</span> all time</span></div></div>" +
+              journeyHTML();
+            var k = h.indexOf('<section class="panel glass"><h3>The 30-day path');
+            return k < 0 ? h + extra : h.slice(0, k) + extra + h.slice(k);
+          };
+          var settings0 = Views.settings;
+          Views.settings = function () {
+            var h = settings0.apply(Views, arguments), k;
+            k = h.indexOf('<button type="button" class="tgl press" role="switch" data-toggle="remind"');
+            if (k > -1) h = h.slice(0, k) + UI.selBtn("Review session", Review.size(), "Review session", SELECTS["Review session"].options) + h.slice(k);
+            k = h.indexOf('<div class="row"><span>This device</span>');
+            if (k > -1) h = h.slice(0, k) + '<div class="row"><span>Time studied today</span><span id="st-today">' + StudyTime.fmt(StudyTime.today()) + "</span></div>" +
+              '<div class="row"><span>Time studied this week</span><span id="st-week">' + StudyTime.fmt(StudyTime.week()) + "</span></div>" +
+              '<div class="row"><span>Time studied, all time</span><span id="st-all">' + StudyTime.fmt(StudyTime.allTime()) + "</span></div>" + h.slice(k);
+            h = h.replace('<p class="dim">Psygma teaches statistics', '<p class="x-tagline x-tagline--s">Statistics for the Mind</p><p class="dim">Psygma teaches statistics');
+            return P20.settingsExtra ? P20.settingsExtra(h) : h;
+          };
+        })();
+        var P20 = { settingsExtra: null };
+
+        /* ---------- clicks for the new pieces ---------- */
+        doc.addEventListener("click", function (e) {
+          var t = e.target.closest("button"); if (!t) return;
+          if (t.dataset.acct) { e.preventDefault(); return openAccount(); }
+          if (t.dataset.rv === "start") { RS = { q: Review.due().slice(0, Review.size()), i: 0, pick: null, right: 0 }; Views.render(); var c = $(".x-rv .qopt"); if (c) c.focus(); return; }
+          if (t.dataset.rv === "next") { RS.i++; RS.pick = null; Views.render(); window.scrollTo({ top: 0, behavior: "auto" }); var f = $(".x-rv .qopt") || $("[data-rv=end]"); if (f) f.focus({ preventScroll: true }); return; }
+          if (t.dataset.rv === "end") { RS = null; return Views.render(); }
+          if (t.dataset.rvo != null && RS && RS.pick == null) {
+            var id = RS.q[RS.i], c2 = Review.cards()[id], s = LESSON_CONTENT[c2.l].steps[c2.i];
+            RS.pick = +t.dataset.rvo; var ok = RS.pick === s.answer; if (ok) RS.right++;
+            if (!ok) Learn.miss(s.concept || "day" + c2.l);
+            Review.answer(id, ok); Views.render();
+            var nx = $("[data-rv=next]"); if (nx) nx.focus({ preventScroll: true });
+            return;
+          }
+          if (t.dataset.rvn) { var r = Review.st(); r.n = +t.dataset.rvn; r.nAt = Date.now(); savePrefs(); return Views.render(); }
+        });
+        /* leaving the Review tab ends an open session */
+        (function () {
+          var tabs0 = paintTabs;
+          paintTabs = function () { if (State.tab !== "review") RS = null; return tabs0.apply(null, arguments); };
+        })();
+
+        /* ---------- full-screen Lab: one big touch slider for the primary control; Esc/back exits ---------- */
+        function labFull(ov) {
+          if (!ov || ov.querySelector(".x-lab__fs")) return;
+          ov.classList.add("has-fs");
+          var fb = doc.createElement("button");
+          fb.type = "button"; fb.className = "x-lab__fs glass press"; fb.setAttribute("aria-label", "Full screen"); fb.title = "Full screen";
+          fb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+          ov.appendChild(fb);
+          var bar = null, real = false;
+          function primary() {
+            var ctl = ov.querySelector(".x-ctl"); if (!ctl) return null;
+            var inp = Array.prototype.filter.call(ctl.querySelectorAll(".x-sl input[type=range]"), function (x) { return !x.closest(".x-kit"); })[0];
+            if (inp) return { inp: inp, label: inp.getAttribute("aria-label") || "Control", out: inp.closest(".x-sl").querySelector("output") };
+            var row = Array.prototype.filter.call(ctl.querySelectorAll(".x-btns"), function (x) { return !x.closest(".x-kit"); })[0];
+            return row ? { row: row, label: row.getAttribute("aria-label") || "Choose" } : null;
+          }
+          function exit() {
+            ov.classList.remove("is-full"); fb.hidden = false;
+            if (bar) { bar.remove(); bar = null; }
+            if (real && doc.fullscreenElement && doc.exitFullscreen) doc.exitFullscreen().catch(function () {});
+            real = false;
+            fb.focus({ preventScroll: true });
+          }
+          function enter() {
+            if (ov.classList.contains("is-full")) return;
+            var p = primary();
+            var fold = ov.querySelector(".x-lab__fold"); if (fold && fold.getAttribute("aria-expanded") === "true") fold.click();
+            ov.classList.add("is-full"); fb.hidden = true;
+            bar = doc.createElement("div"); bar.className = "x-full glass"; bar.setAttribute("role", "group"); bar.setAttribute("aria-label", "Full-screen control");
+            var html = '<div class="x-full__h"><span>' + esc(p ? p.label : "Drag to rotate") + "</span>" + (p && p.inp ? '<output class="x-pill">' + esc(p.out ? p.out.textContent : p.inp.value) + "</output>" : "") +
+              '<button type="button" class="x-full__x press" aria-label="Exit full screen">Exit</button></div>';
+            if (p && p.inp) html += '<input type="range" class="x-full__r" aria-label="' + esc(p.label) + '" min="' + p.inp.min + '" max="' + p.inp.max + '" step="' + p.inp.step + '" value="' + p.inp.value + '">';
+            else if (p && p.row) html += '<div class="x-full__b">' + Array.prototype.map.call(p.row.querySelectorAll("button"), function (b, i) {
+              return '<button type="button" class="press" data-fi="' + i + '" aria-pressed="' + (b.getAttribute("aria-pressed") || "false") + '">' + esc(b.textContent) + "</button>";
+            }).join("") + "</div>";
+            bar.innerHTML = html;
+            ["pointerdown", "pointermove", "pointerup", "touchstart", "touchmove", "touchend", "wheel"].forEach(function (ev) { bar.addEventListener(ev, function (e) { e.stopPropagation(); }, { passive: true }); });
+            ov.appendChild(bar);
+            if (p && p.inp) {
+              var big = bar.querySelector(".x-full__r"), o = bar.querySelector("output");
+              big.addEventListener("input", function () { p.inp.value = big.value; p.inp.dispatchEvent(new Event("input", { bubbles: true })); });
+              p.inp.addEventListener("input", function () { if (big.isConnected) { big.value = p.inp.value; if (o) o.textContent = p.out ? p.out.textContent : p.inp.value; } });
+            } else if (p && p.row) {
+              bar.querySelector(".x-full__b").addEventListener("click", function (e) {
+                var b = e.target.closest("[data-fi]"); if (!b) return;
+                var src = p.row.querySelectorAll("button")[+b.dataset.fi]; if (src) src.click();
+                Array.prototype.forEach.call(bar.querySelectorAll("[data-fi]"), function (x) { var s2 = p.row.querySelectorAll("button")[+x.dataset.fi]; x.setAttribute("aria-pressed", (s2 && s2.getAttribute("aria-pressed")) || "false"); });
+              });
+            }
+            bar.querySelector(".x-full__x").addEventListener("click", function () { History.closeTop(); });
+            History.push("lab-full", exit);
+            try { if (ov.requestFullscreen && !doc.fullscreenElement) ov.requestFullscreen().then(function () { real = true; }, function () {}); } catch (e) {}
+            var f = bar.querySelector(".x-full__r, [data-fi]"); if (f) f.focus({ preventScroll: true });
+          }
+          fb.addEventListener("click", enter);
+          doc.addEventListener("fullscreenchange", function () { if (real && !doc.fullscreenElement && ov.classList.contains("is-full")) { real = false; History.closeTop(); } });
+          ov.p20 = { enter: enter, exit: function () { if (ov.classList.contains("is-full")) History.closeTop(); } };
+        }
+        (function () {
+          var open0 = openScene;
+          openScene = function (id, step) {
+            var r = open0(id, step);
+            try { var all = doc.querySelectorAll(".x-lab"); labFull(all[all.length - 1]); } catch (e) {}
+            return r;
+          };
+        })();
+
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
+
+        Object.assign(window.Psygma, { v2: true, review: Review, studytime: StudyTime, labFull: labFull });
 
         function confetti() {
           if (reduce) return;
