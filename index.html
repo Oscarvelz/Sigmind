@@ -786,6 +786,9 @@
       .x-dr__calb b { display: block; height: 100%; width: var(--w); background: var(--primary); border-radius: 5px; }
       .x-dr__fc .x-box__l { white-space: nowrap; }
       @media (max-width: 380px) { .x-dr__grades { grid-template-columns: repeat(2, 1fr); } .x-dr__cmp { grid-template-columns: 1fr; } }
+.x-rt-btn, .x-rt-chip { margin-left: auto; white-space: nowrap; font-size: 0.78rem; }
+.x-rt-btn { cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: inherit; }
+.x-rt-chip { border: 1px solid var(--primary); color: var(--primary); }
     </style>
     <script>
       /* before first paint: the saved theme, and no splash if it already ran this session */
@@ -6423,12 +6426,14 @@
         }
 
         var Player = {
-          open: function (day) {
+          open: function (day, opt) {
+            var RT = !!(opt && opt.retake), RSEED = (Date.now() % 100000) + 7;
+            Player.rt = RT ? {} : null;
             var L = LESSON_CONTENT[day], info = typeof day === "number" && LESSONS[day - 1] ? LESSONS[day - 1] : { title: NEW_LESSONS[day] || L.title || String(day) }, opener = doc.activeElement;
             /* resume where this lesson was left, with its quiz answers */
             prefs.pos = prefs.pos || {};
             prefs.answers = prefs.answers || {};
-            var P = { day: day, i: Math.min(prefs.pos[day] || 0, L.steps.length - 1), answers: prefs.answers[day] || {}, folds: {}, hints: {}, pred: {}, ran: {}, sim: {}, state: {} };
+            var P = { day: day, i: RT ? 0 : Math.min(prefs.pos[day] || 0, L.steps.length - 1), answers: RT ? {} : prefs.answers[day] || {}, folds: {}, hints: {}, pred: {}, ran: {}, sim: {}, state: {} };
             var anat = L.steps.some(function (s) { return /^(predict|run|notice|formalize|transfer|check|fade)$/.test(s.kind); }) ? (function () {
               var ph = 0; return L.steps.map(function (s) { if (ANAT_OF[s.kind] != null) ph = ANAT_OF[s.kind]; return ph; });
             })() : null;
@@ -6459,8 +6464,9 @@
               if (n < 3 && P.answers[P.i] == null) r += '<button type="button" class="x-ladder__btn press" data-pl="hint" aria-label="Hint ' + (n + 1) + " of 3: " + RUNG[n] + '">Hint · ' + (n + 1) + "/3</button>";
               box.innerHTML = r;
             }
+            function ordOf(n) { var o = []; for (var k = 0; k < n; k++) o.push(k); if (!RT || n < 2) return o; var r = seeded(RSEED + P.i * 31); for (k = n - 1; k > 0; k--) { var j = Math.floor(r() * (k + 1)), t = o[k]; o[k] = o[j]; o[j] = t; } if (o.every(function (v, k) { return v === k; })) o.push(o.shift()); return o; }
             function optsHTML(s, a, mode) {
-              return s.options.map(function (o, k) {
+              return ordOf(s.options.length).map(function (k) { var o = s.options[k];
                 var cls = a == null ? "" : mode === "pick" ? (k === a ? " is-picked" : "") : k === s.answer ? " is-right" : k === a ? " is-wrong" : "";
                 return '<button type="button" class="qopt press' + cls + '" data-opt="' + k + '"' + (a != null ? " disabled" : "") + ">" + esc(o) + "</button>";
               }).join("");
@@ -6486,7 +6492,7 @@
             /* Predict-before-Run: Run stays locked until a prediction is committed; 1 / 10 / 1,000 runs at increasing speed */
             function runHTML(s) {
               var a = P.pred[P.i];
-              return '<p class="x-q">' + esc(s.q) + "</p>" + s.options.map(function (o, k) {
+              return '<p class="x-q">' + esc(s.q) + "</p>" + ordOf(s.options.length).map(function (k) { var o = s.options[k];
                 return '<button type="button" class="qopt press' + (a === k ? " is-picked" : "") + '" data-pred="' + k + '"' + (a != null ? " disabled" : "") + ">" + esc(o) + "</button>";
               }).join("") +
                 '<div class="x-run"><p class="x-run__lock" id="pl-lock"' + (a != null ? " hidden" : "") + ">Commit a prediction to unlock Run.</p>" +
@@ -6520,7 +6526,7 @@
                 runGap(s, card);
               })();
             }
-            prefs.answers[day] = P.answers;
+            if (!RT) prefs.answers[day] = P.answers;
             prefs.lesson = day;
             var el = doc.createElement("div");
             el.className = "player";
@@ -6528,7 +6534,7 @@
             el.setAttribute("aria-modal", "true");
             el.setAttribute("aria-label", lbl + " lesson");
             el.innerHTML = '<div class="player__in"><div class="player__top"><button type="button" class="iconbtn press" data-pl="close" aria-label="Close lesson">✕</button>' +
-              '<span class="mark">' + esc(lbl) + " · " + esc(info.title) + '</span><span class="eyebrow" id="pl-count"></span>' +
+              '<span class="mark">' + esc(lbl) + " · " + esc(info.title) + '</span>' + (RT ? '<span class="chip x-rt-chip">Retake · shuffled</span>' : isMastered(day) ? '<button type="button" class="chip press x-rt-btn" data-pl="retake">Retake, shuffled</button>' : "") + '<span class="eyebrow" id="pl-count"></span>' +
               (anat ? '<ol class="x-anat" aria-label="Lesson phases">' + ANAT.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ol>" : "") + "</div>" +
               '<div class="rail" aria-hidden="true">' + L.steps.map(function () { return "<span></span>"; }).join("") + "</div>" +
               '<div class="stage" id="pl-stage" aria-live="polite"></div>' +
@@ -6596,12 +6602,18 @@
               if (d > 0 && blocked()) return;
               if (n < 0 || n >= L.steps.length) return;
               P.i = n;
-              prefs.pos[day] = n;
+              if (!RT) prefs.pos[day] = n;
               savePrefs();
               paint();
               $("#pl-stage", el).scrollTop = 0;
             }
             function complete() {
+              if (RT) {
+                var tot = 0, ok = 0;
+                L.steps.forEach(function (s, k) { var a = s.clinic ? Player.rt[k] : P.answers[k]; if (/^(quiz|check|transfer|fade|clinic)$/.test(s.kind) && a != null) { tot++; if (a === s.answer) ok++; else { var c = Review.cards()[day + "::" + k]; if (c) { c.due = Date.now(); } } } });
+                savePrefs(); History.closeTop(); go("home");
+                return UI.toast("Retake: " + ok + " of " + tot + " right" + (ok < tot ? " · misses are due in Review" : ""));
+              }
               var first = !isMastered(day);
               if (first) {
                 prefs.xp = (prefs.xp || 0) + 50;
@@ -6623,6 +6635,7 @@
               e.stopPropagation();
               var a = b.dataset.pl;
               if (a === "close") return History.closeTop();
+              if (a === "retake") { History.closeTop(); return setTimeout(function () { Player.open(day, { retake: true }); }, 30); }
               if (a === "prev") return move(-1);
               if (a === "next") return P.i === L.steps.length - 1 ? complete() : move(1);
               if (a === "fold") { P.folds[P.i] = !P.folds[P.i]; paint(); return $("[data-pl=fold]", el).focus(); }
@@ -6731,8 +6744,9 @@
           s.mount = function (card) {
             var box = card.querySelector(".x-cq"); if (!box) return;
             function paintQ() {
-              var a = (prefs.answers && prefs.answers[lid] || {})[idx];
-              box.innerHTML = s.options.map(function (o, k) {
+              var RA = Player.rt, a = RA ? RA[idx] : (prefs.answers && prefs.answers[lid] || {})[idx], ord = s.options.map(function (o, k) { return k; });
+              if (RA && ord.length > 1) { ord.push(ord.shift()); if (idx % 2 && ord.length > 2) ord.reverse(); }
+              box.innerHTML = ord.map(function (k) { var o = s.options[k];
                 var cls = a == null ? "" : k === s.answer ? " is-right" : k === a ? " is-wrong" : "";
                 return '<button type="button" class="qopt press' + cls + '" data-cq="' + k + '"' + (a != null ? " disabled" : "") + ">" + esc(o) + "</button>";
               }).join("") + (a != null ? '<p class="why' + (a === s.answer ? "" : " is-bad") + '"><b>' + (a === s.answer ? "Sound call. " : "Not quite. ") + "</b>" + esc(s.why) + "</p>" : "");
@@ -6740,7 +6754,7 @@
             paintQ();
             box.addEventListener("click", function (e) {
               var b = e.target.closest("[data-cq]"); if (!b) return;
-              prefs.answers = prefs.answers || {}; var A = prefs.answers[lid] = prefs.answers[lid] || {};
+              prefs.answers = prefs.answers || {}; var A = Player.rt || (prefs.answers[lid] = prefs.answers[lid] || {});
               if (A[idx] != null) return;
               A[idx] = +b.dataset.cq;
               var cid = s.concept || "day" + lid;
@@ -8262,6 +8276,7 @@
           var tabs1 = paintTabs;
           paintTabs = function () { if (State.tab !== "review") DS = null; return tabs1.apply(null, arguments); };
         })();
+        /* Part E (lesson retakes) is applied as patches in build.py */
 
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
