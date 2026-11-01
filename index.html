@@ -879,6 +879,14 @@
       [data-theme="day"] .x-gb [data-part="pegs-back"], [data-theme="day"] .x-gb [data-part="pegs-front"], [data-theme="day"] .x-gb [data-part="gate"] { --anatomy-paper: #c79a45; --anatomy-face: #d8ac55; --anatomy-top: #ecc673;
         --anatomy-shade-0: #8f6726; --anatomy-shade-1: #a9792f; --anatomy-shade-2: #c08d3b; --anatomy-shade-3: #d29f4a; --anatomy-lit-top: #f6d98f; --anatomy-lit-shade: #d9ad5a;
         --anatomy-hi: #4e3610; --anatomy-mid: #9a742f; --anatomy-lo: #b88f45; --anatomy-faint: #d8b673; }
+      /* Part I · Library search */
+      .x-lbq { margin-top: 12px; }
+      .x-lbq__snip { display: block; margin-top: 6px; font: 400 12.5px/1.45 var(--sans); color: var(--dim); white-space: normal; }
+      .lessons[data-view="grid"] .x-lbq__snip { display: none; }
+      .x-lbq__all { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 2px 0 8px; font-size: 13px; color: var(--dim); }
+      .x-lbq__all[hidden] { display: none !important; }
+      .x-lbq__all button { min-height: 34px; padding: 0 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font-weight: 600; font-size: 13px; }
+      .lessons .lesson[hidden] { display: none !important; }
 .x-rt-btn, .x-rt-chip { margin-left: auto; white-space: nowrap; font-size: 0.78rem; }
 .x-rt-btn { cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: inherit; }
 .x-rt-chip { border: 1px solid var(--primary); color: var(--primary); }
@@ -8518,6 +8526,7 @@
             set: function (v) { api.q = v || ""; api.apply(); },
             clear: function (focus) { api.q = ""; var i = $("#lsq"); if (i) { i.value = ""; if (focus) i.focus(); } api.apply(); }
           };
+          api.core = { fold: fold, words: words, qwords: qwords, expand: expand, hit: hit, mark: mark };
           return api;
         })();
         (function () {
@@ -8649,6 +8658,113 @@
           Views.settings = function () {
             return baseSettings().replace("Version 0.1 · app shell.</p>", "Version 0.1 · app shell.</p><p class=\"dim\">Galton Board drawn with the Anatomy kit (MIT License) by wheresryan22/anatomy.</p>");
           };
+        })();
+        /* ============ PART I · LIBRARY SEARCH (same engine and feel as the Lab search) ============ */
+        var LibSearch = (function () {
+          var C = LabSearch.core, cache = {};
+          var strip = function (h) { return String(h || "").replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/gi, " ").replace(/\s+/g, " ").trim(); };
+          var lvlName = function (v) { return (GROUPS.filter(function (g) { return g.v === v; })[0] || {}).t || ""; };
+          function entry(id) {
+            if (cache[id]) return cache[id];
+            var meta = typeof id === "number" ? LESSONS[id - 1] : lessonOf(id), L = LESSON_CONTENT[id] || { steps: [] };
+            var head = [meta.title, typeof id === "number" ? "day " + id + " dia " + id + " d" + id : "new nuevo " + (pillarOf(id) || ""), meta.level, lvlName(meta.level), meta.pillar || "", L.title || "",
+              L.home ? L.home.join(" ") : ""].join(" ");
+            var body = [];
+            (L.steps || []).forEach(function (s) {
+              ["title", "body", "q", "why", "so", "caseText", "measure", "act", "costume"].forEach(function (k) { if (typeof s[k] === "string") body.push(strip(s[k])); });
+              if (typeof s.say === "string") body.push(s.say); else if (s.say && typeof s.say === "object") Object.keys(s.say).forEach(function (k) { if (typeof s.say[k] === "string") body.push(s.say[k]); });
+              if (Array.isArray(s.options)) body.push(s.options.filter(function (o) { return typeof o === "string"; }).join(" · "));
+              if (Array.isArray(s.lines)) body.push(s.lines.join(" "));
+            });
+            var text = body.join(" · ");
+            return (cache[id] = { hw: C.words(head), bw: C.words(text), text: text });
+          }
+          function match(id, qs) {
+            var e = entry(id), hits = [], inHead = 0, firstBody = null;
+            var ok = qs.every(function (q) {
+              var forms = C.expand(q), any = false, inH = false, test = function (x) { return forms.some(function (f) { return /^\d+$/.test(f) ? x === f : C.hit(f, x, f !== q); }); };
+              e.hw.forEach(function (x) { if (test(x)) { any = true; inH = true; hits.push(x); } });
+              if (inH) inHead++;
+              e.bw.forEach(function (x) { if (test(x)) { any = true; hits.push(x); if (firstBody == null) firstBody = x; } });
+              return any;
+            });
+            return { ok: ok, hits: hits, head: inHead, first: firstBody, e: e };
+          }
+          function snippet(e, w) {
+            var ft = C.fold(e.text), re = new RegExp("(^|[^a-z0-9])" + w.replace(/[^a-z0-9]/g, "") + "($|[^a-z0-9])"), m = re.exec(ft);
+            if (!m) return "";
+            var at = m.index + m[1].length, a = Math.max(0, at - 50), z = Math.min(e.text.length, at + w.length + 70);
+            while (a > 0 && /\S/.test(e.text[a - 1])) a--;
+            while (z < e.text.length && /\S/.test(e.text[z])) z++;
+            return (a > 0 ? "…" : "") + e.text.slice(a, z).trim() + (z < e.text.length ? "…" : "");
+          }
+          var api = {
+            q: "",
+            apply: function () {
+              var root = $("#view"); if (!root || !$(".x-lbq", root)) return;
+              var raw = api.q, qs = C.qwords(raw), cards = root.querySelectorAll(".lessons .lesson"), shown = 0, total = cards.length, rows = [];
+              Array.prototype.forEach.call(cards, function (t) {
+                if (t.__html == null) t.__html = t.innerHTML; else t.innerHTML = t.__html;
+                t.style.order = "";
+                if (!qs.length) { t.hidden = false; shown++; return; }
+                var id = /^\d+$/.test(t.dataset.lesson) ? +t.dataset.lesson : t.dataset.lesson, r = LESSON_CONTENT[id] || LESSONS[id - 1] ? match(id, qs) : { ok: false };
+                t.hidden = !r.ok;
+                if (!r.ok) return;
+                shown++;
+                if (!r.head && r.first) {
+                  var sn = snippet(r.e, r.first);
+                  if (sn) { var sp = doc.createElement("span"); sp.className = "x-lbq__snip"; sp.textContent = sn; (t.querySelector("span") || t).appendChild(sp); }
+                }
+                C.mark(t, r.hits);
+                /* title and tag matches first, content matches after */
+                t.style.order = String(qs.length - r.head);
+              });
+              Array.prototype.forEach.call(root.querySelectorAll(".lessons"), function (g) {
+                var sec = g.closest("section"); if (sec) sec.hidden = !g.querySelector(".lesson:not([hidden])");
+              });
+              var cnt = $("#lbq-count", root), clr = $("#lbq-clear", root), empty = $("#lbq-empty", root), all = $("#lbq-all", root);
+              if (cnt) cnt.textContent = qs.length ? shown + (shown === 1 ? " lesson" : " lessons") + " of " + total : total + " lessons";
+              if (clr) clr.hidden = !raw;
+              if (all) all.hidden = !(qs.length && prefs.level !== "all");
+              if (empty) { empty.hidden = !(qs.length && !shown); var e = $("#lbq-eq", empty); if (e) e.textContent = raw.trim(); }
+            },
+            set: function (v) { api.q = v || ""; api.apply(); },
+            clear: function (focus) { api.q = ""; var i = $("#lbq"); if (i) { i.value = ""; if (focus) i.focus(); } api.apply(); }
+          };
+          return api;
+        })();
+        (function () {
+          var base = Views.library;
+          Views.library = function () {
+            var html = base(), cut = html.indexOf("</div>") + 6;
+            var bar = '<div class="x-lsq x-lbq glass" role="search">' +
+              '<svg class="x-lsq__ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' +
+              '<input id="lbq" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search lessons · busca lecciones" aria-label="Search lessons" aria-describedby="lbq-count" value="' + esc(LibSearch.q) + '" />' +
+              '<span class="x-lsq__n" id="lbq-count" aria-live="polite"></span>' +
+              '<button type="button" class="iconbtn press x-lsq__x" id="lbq-clear" aria-label="Clear search"' + (LibSearch.q ? "" : " hidden") + '>✕</button></div>' +
+              '<p class="x-lbq__all" id="lbq-all" hidden>Searching ' + esc((GROUPS.filter(function (g) { return g.v === prefs.level; })[0] || {}).t || "") + ' only. <button type="button" class="press" id="lbq-wide">Search all levels</button></p>' +
+              '<section class="empty glass x-lsq__empty" id="lbq-empty" hidden><h3>No lesson matches “<span id="lbq-eq"></span>”</h3><p>Try a broader word, a day number, or a topic like mean, sample or power.</p>' +
+              '<button type="button" class="start press" id="lbq-reset">Show all lessons</button></section>';
+            return html.slice(0, cut) + bar + html.slice(cut);
+          };
+          var baseRender = Views.render;
+          Views.render = function () {
+            baseRender.apply(Views, arguments);
+            if (State.tab === "library") {
+              var hd = $(".hd"); if (hd) doc.documentElement.style.setProperty("--x-hdh", hd.offsetHeight + "px");
+              LibSearch.apply();
+            }
+          };
+          doc.addEventListener("input", function (e) { if (e.target.id === "lbq") LibSearch.set(e.target.value); });
+          doc.addEventListener("search", function (e) { if (e.target.id === "lbq") LibSearch.set(e.target.value); }, true);
+          doc.addEventListener("keydown", function (e) { if (e.target.id === "lbq" && e.key === "Escape" && LibSearch.q) { e.preventDefault(); e.stopPropagation(); LibSearch.clear(true); } }, true);
+          doc.addEventListener("click", function (e) {
+            var t = e.target.closest && e.target.closest("#lbq-clear, #lbq-reset, #lbq-wide");
+            if (!t) return;
+            e.preventDefault(); e.stopPropagation();
+            if (t.id === "lbq-wide") { prefs.level = "all"; savePrefs(); Views.render(); var i = $("#lbq"); if (i) i.focus(); return; }
+            LibSearch.clear(true);
+          }, true);
         })();
 
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
