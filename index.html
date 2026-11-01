@@ -789,6 +789,8 @@
 .x-rt-btn, .x-rt-chip { margin-left: auto; white-space: nowrap; font-size: 0.78rem; }
 .x-rt-btn { cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: inherit; }
 .x-rt-chip { border: 1px solid var(--primary); color: var(--primary); }
+.x-keep { display: flex !important; flex-direction: row !important; align-items: center; gap: 10px; margin-top: 10px; cursor: pointer; font-weight: 500; }
+.x-keep input { width: 20px !important; height: 20px; min-height: 0 !important; margin: 0; padding: 0 !important; accent-color: var(--primary); flex: none; }
     </style>
     <script>
       /* before first paint: the saved theme, and no splash if it already ran this session */
@@ -903,7 +905,7 @@
         /* the single local profile: progress, settings, theme and Lab preferences all live in prefs */
         var prefs = Object.assign({ night: "aurora", day: "pearl", theme: "night", goal: 10, sort: "recent", level: "all", view: "medium", cols: 2 }, Store.get(K.prefs, {}));
         var meta = Object.assign({ localAt: null, device: "This browser", rev: 1 }, Store.get(K.meta, {}));
-        delete meta.onlineAt; if (!Store.get("sm.cloud", null)) delete meta.syncAt;
+        delete meta.onlineAt; if (!Store.get("sm.cloud", null) && !(function () { try { return sessionStorage.getItem("sm.cloud"); } catch (e) { return null; } })()) delete meta.syncAt;
 
         /* one-time migration from the old on-device accounts: keep the name, fold any stored
            per-account progress into the profile, then drop the account data for good */
@@ -963,10 +965,23 @@
            so it never reads or overwrites Numina's or Anima's progress. Local saving stays exactly as before. */
         var SUPABASE_URL = "https://etyimgbooxvqejkjhfyo.supabase.co";
         var SUPABASE_KEY = "sb_publishable_PhzsifRX21bl1JX_1NXMCA_0kB-q6xB";
-        K.cloud = "sm.cloud";
+        K.cloud = "sm.cloud"; K.keep = "sm.keep"; K.last = "sm.lastUser";
+        var Keep = {
+          on: function () { try { return localStorage.getItem(K.keep) !== "0"; } catch (e) { return true; } },
+          set: function (v) { try { localStorage.setItem(K.keep, v ? "1" : "0"); } catch (e) {} var s = Cloud.s, l = Keep.last(); Keep.put(K.cloud, s ? JSON.stringify(s) : null); Keep.put(K.last, l || null); },
+          box: function () { try { return Keep.on() ? localStorage : sessionStorage; } catch (e) { return null; } },
+          other: function () { try { return Keep.on() ? sessionStorage : localStorage; } catch (e) { return null; } },
+          get: function (k) { var raw = null; try { raw = localStorage.getItem(k); if (raw == null) raw = sessionStorage.getItem(k); } catch (e) { raw = null; } if (raw == null && k in mem) raw = mem[k]; return raw; },
+          put: function (k, raw) {
+            if (raw == null) delete mem[k]; else mem[k] = raw;
+            try { var a = Keep.box(), o = Keep.other(); if (o) o.removeItem(k); if (a) { if (raw == null) a.removeItem(k); else a.setItem(k, raw); } } catch (e) {}
+          },
+          last: function () { return Keep.get(K.last) || ""; },
+          remember: function (email) { if (email) Keep.put(K.last, email); }
+        };
         var Cloud = {
-          s: Store.get(K.cloud, null),
-          save: function (s) { Cloud.s = s; if (s) Store.set(K.cloud, s); else Store.del(K.cloud); },
+          s: (function () { var r = Keep.get(K.cloud); try { return r ? JSON.parse(r) : null; } catch (e) { return null; } })(),
+          save: function (s) { Cloud.s = s; Keep.put(K.cloud, s ? JSON.stringify(s) : null); },
           take: function (d) {
             var u = d.user || {}, md = u.user_metadata || {}, old = Cloud.s && Cloud.s.user;
             var s = {
@@ -1017,7 +1032,7 @@
         };
         var Acct = {
           state: "off", dirty: false, quiet: false, t: null, busy: null, again: false,
-          form: { mode: "in", name: "", email: "", pw: "", show: false, err: "", msg: "", working: false },
+          form: { mode: "in", name: "", email: "", pw: "", show: false, err: "", msg: "", working: false, keep: true },
           labels: { off: "Saved on this device", syncing: "Syncing…", live: "Synced", pending: "Pending sync", offline: "Offline · saved on this device", expired: "Sign in again to sync" },
           on: function () { return !!(Cloud.s && Cloud.s.user && Cloud.s.user.id); },
           text: function () {
@@ -1079,7 +1094,7 @@
             else if (pw.length < 8) f.err = "Password needs at least 8 characters.";
             else if (f.mode === "up" && f.name.trim().length < 2) f.err = "Enter your name (2+ letters).";
             if (f.err) return Views.render();
-            f.working = true; Views.render();
+            f.working = true; Keep.set(f.keep !== false); Views.render();
             var call = f.mode === "up"
               ? Cloud.raw("/auth/v1/signup", { method: "POST", body: { email: email, password: pw, data: { name: f.name.trim() } } })
               : Cloud.raw("/auth/v1/token?grant_type=password", { method: "POST", body: { email: email, password: pw } });
@@ -1091,7 +1106,7 @@
                 throw e;
               }
               if (!res.data || !res.data.access_token) { f.mode = "in"; f.msg = "Check your email to confirm, then sign in."; return; }
-              Cloud.take(res.data);
+              Cloud.take(res.data); Keep.remember(Cloud.s.user.email || email);
               if (Cloud.s.user.name && !prefs.name) { prefs.name = Cloud.s.user.name; savePrefs(); }
               f.pw = ""; f.msg = ""; f.show = false;
               UI.toast("Signed in. Syncing your progress");
@@ -1124,8 +1139,8 @@
               return '<p class="x-saved" id="ac-state" aria-live="polite">' + esc(Acct.text()) + "</p>" +
                 '<div class="rows"><div class="row"><span>Account</span><span>' + esc(Cloud.s.user.email) + "</span></div>" +
                 '<div class="row"><span>Last sync</span><span>' + esc(meta.syncAt ? UI.when(meta.syncAt) : "Not yet") + "</span></div></div>" +
-                (Acct.state === "expired" ? '<p class="x-ac__err">Your session ended. Sign out and sign in again to resume syncing; progress here is kept.</p>' : "") +
-                '<div class="x-bk">' + b("ac-sync", "Sync now") + b("ac-out", "Sign out") + "</div>" +
+                (Acct.state === "expired" ? '<p class="x-ac__err">Your cloud session ended. Everything here is still saved on this device; sign in again to resume syncing.</p>' : "") +
+                '<div class="x-bk">' + (Acct.state === "expired" ? b("ac-again", "Sign in again", "x-lab__ok") : "") + b("ac-sync", "Sync now") + b("ac-out", "Sign out") + "</div>" +
                 '<p class="dim">Same account as Numina and Anima. Each app keeps its own progress.</p>';
             }
             return '<p class="dim">Sign in and your progress follows you from phone to tablet. Same account as Numina and Anima; Psygma keeps its own progress. Without an account, everything stays saved on this device.</p>' +
@@ -1134,6 +1149,7 @@
               '<label>Email<input id="ac-email" type="email" inputmode="email" autocomplete="email" value="' + esc(f.email) + '" /></label>' +
               '<label>Password<span class="x-ac__pw"><input id="ac-pw" type="' + (f.show ? "text" : "password") + '" autocomplete="' + (f.mode === "up" ? "new-password" : "current-password") + '" value="' + esc(f.pw) + '" />' +
               '<button type="button" class="iconbtn press" id="ac-eye" aria-label="Show password" aria-pressed="' + f.show + '">' + (f.show ? I.eyeOff : I.eye) + "</button></span></label>" +
+              '<label class="x-keep"><input type="checkbox" id="ac-keep"' + (f.keep !== false ? " checked" : "") + ' /><span>Keep me signed in</span></label>' +
               (f.err ? '<p class="x-ac__err" role="alert">' + esc(f.err) + "</p>" : "") +
               (f.msg ? '<p class="x-ac__ok" role="status">' + esc(f.msg) + "</p>" : "") +
               '<div class="x-bk">' + b("ac-go", f.working ? "Working…" : f.mode === "up" ? "Create account" : "Sign in", "x-lab__ok") +
@@ -1147,8 +1163,9 @@
             if (t.id === "ac-eye") { f.show = !f.show; Views.render(); var e = $("#ac-pw"); if (e) e.focus(); return; }
             if (t.id === "ac-sync") return Acct.pull();
             if (t.id === "ac-out") return Acct.signOut();
+            if (t.id === "ac-again") { var em = (Cloud.s && Cloud.s.user && Cloud.s.user.email) || Keep.last(); clearTimeout(Acct.t); Cloud.save(null); Acct.state = "off"; f.mode = "in"; f.email = em; f.pw = ""; f.err = ""; f.msg = ""; f.keep = Keep.on(); Sync.paint(); Views.render(); var pe = $("#ac-pw"); if (pe) pe.focus(); return; }
           },
-          begin: function () { if (Acct.on()) Acct.pull(); }
+          begin: function () { Acct.form.keep = Keep.on(); if (!Acct.form.email) Acct.form.email = Keep.last(); if (Acct.on()) Acct.pull(); }
         };
         doc.addEventListener("input", function (e) {
           var id = e.target.id, f = Acct.form;
@@ -1156,6 +1173,7 @@
           if (id === "ac-pw") f.pw = e.target.value;
           if (id === "ac-name") f.name = e.target.value;
         });
+        doc.addEventListener("change", function (e) { if (e.target.id === "ac-keep") { Acct.form.keep = !!e.target.checked; Keep.set(Acct.form.keep); } });
         doc.addEventListener("submit", function (e) { if (e.target.id === "ac-form") { e.preventDefault(); if (!Acct.form.working) Acct.signIn(); } });
         window.addEventListener("online", function () { if (Acct.on()) Acct.pull(); });
         window.addEventListener("offline", function () { if (Acct.on()) Acct.set("offline"); });
@@ -8277,6 +8295,7 @@
           paintTabs = function () { if (State.tab !== "review") DS = null; return tabs1.apply(null, arguments); };
         })();
         /* Part E (lesson retakes) is applied as patches in build.py */
+        /* Part F (keep me signed in) is applied as patches in build.py */
 
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
