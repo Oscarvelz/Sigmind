@@ -786,6 +786,22 @@
       .x-dr__calb b { display: block; height: 100%; width: var(--w); background: var(--primary); border-radius: 5px; }
       .x-dr__fc .x-box__l { white-space: nowrap; }
       @media (max-width: 380px) { .x-dr__grades { grid-template-columns: repeat(2, 1fr); } .x-dr__cmp { grid-template-columns: 1fr; } }
+      /* Part G · Lab search */
+      .x-lsq { position: sticky; top: calc(var(--x-hdh, 60px) + 8px); z-index: 20; display: flex; align-items: center; gap: 10px; min-height: 52px; margin: 14px 0 6px; padding: 4px 6px 4px 14px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.55); }
+      .x-lsq:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 26%, transparent), 0 10px 30px -18px rgba(0, 0, 0, 0.55); }
+      .x-lsq__ic { flex: none; color: var(--dim); }
+      .x-lsq:focus-within .x-lsq__ic { color: var(--primary); }
+      .x-lsq { box-sizing: border-box; width: auto; max-width: 100%; min-width: 0; }
+      .x-lsq input { flex: 1 1 0; width: 0; min-width: 0; height: 44px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: 500 16px/1.2 var(--sans); }
+      .x-lsq input::placeholder { color: var(--dim); opacity: 0.85; }
+      .x-lsq input::-webkit-search-cancel-button, .x-lsq input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+      .x-lsq__n { flex: none; font: 500 12px/1 var(--mono); color: var(--dim); white-space: nowrap; }
+      .x-lsq__x { flex: none; width: 40px; height: 40px; min-width: 40px; }
+      .x-lsq__x[hidden], .x-lsq__empty[hidden] { display: none !important; }
+      .x-gal .x-tile[hidden], section[hidden] { display: none !important; }
+      .x-lsq__hl { padding: 0 2px; margin: 0 -1px; border-radius: 4px; background: color-mix(in srgb, var(--primary) 30%, transparent); color: inherit; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--primary) 75%, transparent); }
+      .x-lsq__empty { margin-top: 12px; }
+      @media (min-width: 900px) { .x-lsq { min-height: 58px; padding-left: 18px; } .x-lsq input { font-size: 17px; } }
 .x-rt-btn, .x-rt-chip { margin-left: auto; white-space: nowrap; font-size: 0.78rem; }
 .x-rt-btn { cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: inherit; }
 .x-rt-chip { border: 1px solid var(--primary); color: var(--primary); }
@@ -8296,6 +8312,166 @@
         })();
         /* Part E (lesson retakes) is applied as patches in build.py */
         /* Part F (keep me signed in) is applied as patches in build.py */
+        /* ============ PART G · LAB SEARCH (instant, accent- and typo-tolerant, English + Spanish) ============ */
+        var LabSearch = (function () {
+          var fold = function (t) { return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); };
+          var words = function (t) { return fold(t).split(/[^a-z0-9]+/).filter(Boolean); };
+          /* Spanish (and a few plain-English) words → the English words the Lab uses */
+          var ES = {
+            media: "mean average", promedio: "mean average", mediana: "median", moda: "mode", rango: "range", varianza: "variance spread",
+            desviacion: "deviation sd spread", estandar: "standard", tipica: "standard", dispersion: "spread variance", variabilidad: "variability spread",
+            muestra: "sample", muestras: "samples sample", muestreo: "sampling sample", poblacion: "population", multitud: "crowd", grupo: "group", grupos: "groups group",
+            histograma: "histogram", grafico: "chart graph plot", grafica: "chart graph plot", barras: "bars bar", diagrama: "plot chart", caja: "box boxplot", dispersión: "scatter",
+            distribucion: "distribution shape", forma: "shape", normal: "normal bell", campana: "bell normal", sesgo: "skew bias", asimetria: "skew", cola: "tail", colas: "tails",
+            atipico: "outlier", atipicos: "outliers outlier", valor: "value score", valores: "values scores", puntuacion: "score", puntuaciones: "scores score", puntaje: "score",
+            datos: "data", dato: "data", variable: "variable", variables: "variables", categoria: "category categorical", categorica: "categorical", nivel: "level", escala: "scale",
+            probabilidad: "probability chance", azar: "chance random", aleatorio: "random", aleatoria: "random", aleatorizacion: "randomization random", dado: "dice die", dados: "dice",
+            moneda: "coin", lanzamiento: "flip toss", correlacion: "correlation", relacion: "relationship correlation", causa: "cause causation", causalidad: "causation cause",
+            regresion: "regression", linea: "line", recta: "line", pendiente: "slope", prediccion: "prediction predict", predecir: "predict",
+            hipotesis: "hypothesis", nula: "null", prueba: "test", pruebas: "tests test", contraste: "test", significancia: "significance significant", significativo: "significant",
+            p: "p", error: "error", errores: "errors error", tipo: "type", falso: "false", positivo: "positive", negativo: "negative", potencia: "power", poder: "power",
+            efecto: "effect", tamano: "size", magnitud: "size effect", intervalo: "interval", confianza: "confidence", incertidumbre: "uncertainty",
+            estimacion: "estimate estimation", estimar: "estimate", sesgos: "bias", confiabilidad: "reliability", fiabilidad: "reliability", validez: "validity",
+            medicion: "measurement measure", medida: "measure", medir: "measure", cambio: "change", clinico: "clinical", clinica: "clinical", cliente: "client", clientes: "clients client",
+            tratamiento: "treatment therapy", terapia: "therapy treatment", ensayo: "trial", estudio: "study", estudios: "studies study", metaanalisis: "meta analysis", meta: "meta",
+            ansiedad: "anxiety", depresion: "depression", sueno: "sleep", animo: "mood", estado: "state", diferencia: "difference", comparar: "compare", comparacion: "comparison",
+            frecuencia: "frequency", tabla: "table", proporcion: "proportion", porcentaje: "percent percentage", percentil: "percentile", tipificada: "z standardized", z: "z",
+            independiente: "independent", dependiente: "dependent", control: "control", experimento: "experiment", replicacion: "replication", simulacion: "simulation", modelo: "model",
+            bayes: "bayes bayesian", previa: "prior", posterior: "posterior", cribado: "screening screen", tamizaje: "screening screen", base: "base", tasa: "rate",
+            fundamentos: "foundations", intermedio: "intermediate", avanzado: "advanced", dia: "day", nuevo: "new", uso: "use", usar: "use", laboratorio: "lab",
+            /* plain English */
+            average: "mean", avg: "mean", sd: "deviation standard spread", spread: "variance deviation", bell: "normal", graph: "chart plot", chance: "probability", odds: "probability"
+          };
+          Object.keys(ES).forEach(function (k) { var f = fold(k); if (f !== k) { ES[f] = ES[k]; } });
+          /* multi-word terms become one concept token; filler words are ignored */
+          var PHRASES = [
+            [/desviacion (estandar|tipica)|standard deviation|desv est/g, "xsd"], [/tamano del efecto|effect size/g, "xeffect"], [/intervalos? de confianza|confidence intervals?/g, "xci"],
+            [/valor(es)? p\b|p.?values?/g, "xpval"], [/prueba t\b|t.?tests?/g, "xttest"], [/error(es)? (de )?tipo (i|1)\b|type (i|1) errors?/g, "xtype1"], [/error(es)? (de )?tipo (ii|2)\b|type (ii|2) errors?/g, "xtype2"],
+            [/puntuacion(es)? z|z.?scores?/g, "xz"], [/curva normal|normal curve|campana de gauss/g, "xnormal"], [/hipotesis nula|null hypothesis/g, "xnull"], [/tendencia central|central tendency/g, "xcenter"],
+            [/ley de los grandes numeros|law of large numbers/g, "xlln"], [/teorema del limite central|central limit theorem/g, "xclt"], [/regresion a la media|regression to the mean/g, "xrtm"], [/meta.?analisis|meta.?analysis/g, "xmeta"]
+          ];
+          ES.xsd = "sd deviation deviations standard spread"; ES.xeffect = "effect size"; ES.xci = "confidence interval"; ES.xpval = "p value significance"; ES.xttest = "t test"; ES.xtype1 = "false positive alarm alpha";
+          ES.xtype2 = "missed miss false negative power"; ES.xz = "z score standardized"; ES.xnormal = "normal bell curve"; ES.xnull = "null hypothesis"; ES.xcenter = "mean median mode center";
+          ES.xlln = "large numbers average runs"; ES.xclt = "central limit averages bell"; ES.xrtm = "regression mean extreme"; ES.xmeta = "meta analysis studies pooled";
+          var STOP = { de: 1, del: 1, la: 1, el: 1, los: 1, las: 1, y: 1, en: 1, un: 1, una: 1, por: 1, para: 1, con: 1, que: 1, the: 1, of: 1, and: 1, to: 1, in: 1, an: 1, for: 1, with: 1 };
+          var qwords = function (t) { var f = fold(t); PHRASES.forEach(function (ph) { f = f.replace(ph[0], " " + ph[1] + " "); }); return f.split(/[^a-z0-9]+/).filter(function (w) { return w && !STOP[w] && !(w.length === 1 && w !== "z" && w !== "p" && !/\d/.test(w)); }); };
+          function lev(a, b, max) {
+            if (Math.abs(a.length - b.length) > max) return max + 1;
+            var prev = [], cur, i, j, pp = [];
+            for (j = 0; j <= b.length; j++) prev[j] = j;
+            for (i = 1; i <= a.length; i++) {
+              cur = [i]; var lo = i;
+              for (j = 1; j <= b.length; j++) {
+                var c = a[i - 1] === b[j - 1] ? 0 : 1;
+                cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + c);
+                if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) cur[j] = Math.min(cur[j], pp[j - 2] + 1);
+                if (cur[j] < lo) lo = cur[j];
+              }
+              if (lo > max) return max + 1;
+              pp = prev; prev = cur;
+            }
+            return prev[b.length];
+          }
+          /* does query word q hit index word w? exact/prefix always; inside a word from 3 letters; typos from 4 letters */
+          function hit(q, w, syn) {
+            if (w === q || w.indexOf(q) === 0) return true;
+            if (syn) return false;
+            if (q.length >= 4 && w.indexOf(q) > 0) return true;
+            if (q.length >= 5) { var max = q.length >= 8 ? 2 : 1, wp = w.length > q.length + 1 ? w.slice(0, q.length) : w; return lev(q, w, max) <= max || lev(q, wp, max) <= max; }
+            return false;
+          }
+          function expand(q) {
+            var out = /^x[a-z]+\d?$/.test(q) && ES[q] ? [] : [q], es = ES[q];
+            if (!es && q.length >= 5) Object.keys(ES).some(function (k) { if (k.length >= 5 && lev(q, k, 1) <= 1) { es = ES[k]; return true; } return false; });
+            if (es) out = out.concat(es.split(" "));
+            return out;
+          }
+          var groupOf = function (s) { var v = s.level || (LESSONS[s.day - 1] || {}).level; return (GROUPS.filter(function (g) { return g.v === v; })[0] || {}).t || ""; };
+          function index(s) {
+            var L = LESSONS[s.day - 1] || {};
+            var text = [s.name, s.idea, s.useLine, s.pillar, L.title, groupOf(s), s.lid ? "L" + s.lid + " lab " + s.lid : "", s.day ? "day " + s.day + " dia " + s.day : "", s.isNew || s.lid ? "new" : ""].join(" ");
+            return words(text);
+          }
+          /* returns null (no query), or { ok: bool, hits: [index words matched] } */
+          function match(s, qs) {
+            var w = s.__w || (s.__w = index(s)), hits = [];
+            var ok = qs.every(function (q) {
+              var forms = expand(q), any = false;
+              w.forEach(function (x) { if (forms.some(function (f, fi) { return /^\d+$/.test(f) ? x === f : hit(f, x, f !== q); })) { any = true; hits.push(x); } });
+              return any;
+            });
+            return { ok: ok, hits: hits };
+          }
+          function mark(el, hits) {
+            if (!hits.length) return;
+            var set = {}; hits.forEach(function (h) { set[h] = 1; });
+            var walker = doc.createTreeWalker(el, NodeFilter.SHOW_TEXT), nodes = [], n;
+            while ((n = walker.nextNode())) nodes.push(n);
+            nodes.forEach(function (node) {
+              var t = node.nodeValue, parts = t.split(/([A-Za-zÀ-ÿ0-9]+)/), changed = false;
+              var frag = doc.createDocumentFragment();
+              parts.forEach(function (p) {
+                if (p && set[fold(p)]) { var m = doc.createElement("mark"); m.className = "x-lsq__hl"; m.textContent = p; frag.appendChild(m); changed = true; }
+                else if (p) frag.appendChild(doc.createTextNode(p));
+              });
+              if (changed) node.parentNode.replaceChild(frag, node);
+            });
+          }
+          var byId = function (id) { return SCENES.filter(function (s) { return s.id === id; })[0] || SOON.filter(function (s) { return s.id === id; })[0]; };
+          var api = {
+            q: "",
+            apply: function () {
+              var root = $("#view"); if (!root || !$(".x-lsq", root)) return;
+              var raw = api.q, qs = qwords(raw), tiles = root.querySelectorAll(".x-gal .x-tile"), shown = 0, total = tiles.length;
+              Array.prototype.forEach.call(tiles, function (t) {
+                if (t.__html == null) t.__html = t.innerHTML; else t.innerHTML = t.__html;
+                if (!qs.length) { t.hidden = false; shown++; return; }
+                var s = byId(t.dataset.scene || t.dataset.lsid), r = s ? match(s, qs) : { ok: false, hits: [] };
+                t.hidden = !r.ok;
+                if (r.ok) { shown++; mark(t, r.hits); }
+              });
+              Array.prototype.forEach.call(root.querySelectorAll(".x-gal"), function (g) {
+                var sec = g.closest("section"); if (sec) sec.hidden = !g.querySelector(".x-tile:not([hidden])");
+              });
+              var cnt = $("#lsq-count", root), clr = $("#lsq-clear", root), empty = $("#lsq-empty", root);
+              if (cnt) cnt.textContent = qs.length ? shown + (shown === 1 ? " lab" : " labs") + " of " + total : total + " labs";
+              if (clr) clr.hidden = !raw;
+              if (empty) { empty.hidden = !(qs.length && !shown); var e = $("#lsq-eq", empty); if (e) e.textContent = raw.trim(); }
+            },
+            set: function (v) { api.q = v || ""; api.apply(); },
+            clear: function (focus) { api.q = ""; var i = $("#lsq"); if (i) { i.value = ""; if (focus) i.focus(); } api.apply(); }
+          };
+          return api;
+        })();
+        (function () {
+          var base = Views.lab;
+          Views.lab = function () {
+            var html = base(), cut = html.indexOf("</div>") + 6;
+            var bar = '<div class="x-lsq glass" role="search">' +
+              '<svg class="x-lsq__ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' +
+              '<input id="lsq" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search the Lab · busca en el Lab" aria-label="Search the Lab" aria-describedby="lsq-count" value="' + esc(LabSearch.q) + '" />' +
+              '<span class="x-lsq__n" id="lsq-count" aria-live="polite"></span>' +
+              '<button type="button" class="iconbtn press x-lsq__x" id="lsq-clear" aria-label="Clear search"' + (LabSearch.q ? "" : " hidden") + '>✕</button></div>' +
+              '<section class="empty glass x-lsq__empty" id="lsq-empty" hidden><h3>No lab matches “<span id="lsq-eq"></span>”</h3><p>Try a broader word, a day number, or a topic like mean, sample or power.</p>' +
+              '<button type="button" class="start press" id="lsq-reset">Show all labs</button></section>';
+            return html.slice(0, cut) + bar + html.slice(cut);
+          };
+          var baseRender = Views.render;
+          Views.render = function () {
+            baseRender.apply(Views, arguments);
+            if (State.tab === "lab") {
+              var hd = $(".hd"); if (hd) doc.documentElement.style.setProperty("--x-hdh", hd.offsetHeight + "px");
+              LabSearch.apply();
+            }
+          };
+          doc.addEventListener("input", function (e) { if (e.target.id === "lsq") LabSearch.set(e.target.value); });
+          doc.addEventListener("search", function (e) { if (e.target.id === "lsq") LabSearch.set(e.target.value); }, true);
+          doc.addEventListener("keydown", function (e) { if (e.target.id === "lsq" && e.key === "Escape" && LabSearch.q) { e.preventDefault(); e.stopPropagation(); LabSearch.clear(true); } }, true);
+          doc.addEventListener("click", function (e) {
+            var t = e.target.closest && e.target.closest("#lsq-clear, #lsq-reset");
+            if (t) { e.preventDefault(); e.stopPropagation(); LabSearch.clear(true); }
+          }, true);
+        })();
 
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
 
