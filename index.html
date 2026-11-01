@@ -802,6 +802,83 @@
       .x-lsq__hl { padding: 0 2px; margin: 0 -1px; border-radius: 4px; background: color-mix(in srgb, var(--primary) 30%, transparent); color: inherit; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--primary) 75%, transparent); }
       .x-lsq__empty { margin-top: 12px; }
       @media (min-width: 900px) { .x-lsq { min-height: 58px; padding-left: 18px; } .x-lsq input { font-size: 17px; } }
+      /* Part H · Galton Board: warm wood, brass, steel and soft glass inside Psygma's own frame */
+      .x-gb { position: fixed; inset: 0; z-index: 60; overflow-y: auto; overscroll-behavior: contain; background: var(--bg); color: var(--text); animation: rise var(--dur) var(--ease); }
+      .x-gb::before { content: ""; position: fixed; inset: -20% -10% auto -10%; height: 80vh; pointer-events: none; background: radial-gradient(42% 46% at 18% 8%, var(--glow-a), transparent 70%), radial-gradient(38% 42% at 86% 16%, var(--glow-b), transparent 72%); opacity: 0.55; }
+      .x-gb__in { position: relative; max-width: 1180px; margin: 0 auto; padding: calc(12px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom)); }
+      .x-gb__top { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+      .x-gb__top .x-lab__chip { flex: 0 1 auto; }
+      .x-gb__lang { margin-left: auto; }
+      .x-gb__lang button { min-width: 40px; height: 36px; padding: 0 10px; border-radius: 11px; font: 600 12px/1 var(--mono); letter-spacing: 0.06em; color: var(--dim); }
+      .x-gb__lang button[aria-pressed="true"] { background: var(--primary); color: var(--bg); }
+      .x-gb .x-gb__x { position: static; flex: none; }
+      .x-gb__body { display: grid; gap: 14px; }
+      .x-gb__fig { position: relative; padding: 10px; border-radius: var(--r-l); border: 1px solid var(--border); box-shadow: var(--shadow); backdrop-filter: none;
+        background: radial-gradient(80% 60% at 50% 30%, var(--gb-halo), transparent 75%), var(--gb-card); contain: layout paint; }
+      .x-gb__read { position: absolute; top: 12px; left: 14px; z-index: 1; margin: 0; padding: 5px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font: 500 11.5px/1.3 var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+      .x-gb__read:empty { display: none; }
+      .x-gb__stage { display: grid; place-items: center; min-height: 300px; border-radius: var(--r-m); outline: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+      .x-gb__stage:focus-visible { box-shadow: 0 0 0 2px var(--primary); }
+      .x-gb__stage svg { display: block; width: 100%; height: auto; max-width: 620px; margin: 0 auto; }
+      .x-gb__msg { padding: 40px 16px; text-align: center; color: var(--dim); }
+      .x-gb__panel { min-width: 0; display: grid; gap: 12px; align-content: start; padding: 16px; border-radius: var(--r-l); font-size: 14px; }
+      .x-gb__seg { display: flex; flex-wrap: wrap; gap: 6px; }
+      .x-gb__seg button { flex: 1 1 auto; min-height: var(--tap); padding: 0 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); font: 600 14px/1 var(--sans); white-space: nowrap; }
+      .x-gb__seg button.is-main { background: var(--primary); border-color: var(--primary); color: var(--bg); box-shadow: var(--shadow); }
+      .x-gb__seg button:disabled { opacity: 0.4; cursor: default; }
+      .x-gb__tilt { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 4px; font-size: 13px; color: var(--dim); }
+      .x-gb__tilt output { font: 600 14px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .x-gb__range { width: 100%; min-height: var(--tap); margin: -6px 0 -8px; accent-color: var(--primary); }
+      .x-gb__ends { display: flex; justify-content: space-between; gap: 8px; font: 500 11px/1.2 var(--mono); color: var(--dim); }
+      .x-gb__count { font: 500 13px/1.4 var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+      .x-gb__count b { color: var(--text); font-weight: 600; }
+      .x-gb__stats { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px 14px; padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); border: 1px solid var(--border); font: 500 13.5px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+      .x-gb__stats > span:nth-child(3n+1) { font-family: var(--sans); color: var(--dim); }
+      .x-gb__stats b { color: var(--primary); font-weight: 600; }
+      .x-gb__h { font: 600 10.5px/1.2 var(--sans) !important; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+      .x-gb__note { margin: 0; font-size: 13px; line-height: 1.55; color: var(--dim); }
+      .x-gb__keys { font: 500 11.5px/1.5 var(--mono); }
+      .x-gb__classic { justify-self: start; }
+      .x-gb__credit { margin: 0; font-size: 11px; color: var(--dim); opacity: 0.75; }
+      @media (min-width: 900px) {
+        .x-gb__in { padding-left: 24px; padding-right: 24px; }
+        .x-gb__body { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+        .x-gb__stage svg { width: auto; max-width: 100%; max-height: calc(100vh - 110px); }
+        .x-gb__panel { position: sticky; top: 12px; }
+      }
+      @media (prefers-reduced-motion: reduce) { .x-gb { animation: none; } }
+      /* materials · night (deep warm neutrals) */
+      .x-gb { --gb-card: #1a1511; --gb-halo: rgba(230, 191, 114, 0.12);
+        --anatomy-page: #14100c; --anatomy-card: #1a1511; --anatomy-text: #cdbca4; --anatomy-strong: #f3e6cf; --anatomy-muted: #9b8a72;
+        --anatomy-paper: #4a3426; --anatomy-face: #5a4030; --anatomy-top: #6a4c37;
+        --anatomy-shade-0: #2b1d14; --anatomy-shade-1: #36251a; --anatomy-shade-2: #432e20; --anatomy-shade-3: #503827;
+        --anatomy-lit-top: #7a5a41; --anatomy-lit-shade: #5c4331;
+        --anatomy-hi: #ecd9b9; --anatomy-mid: #a98b68; --anatomy-lo: #6e5641; --anatomy-faint: #4b3b2e; --anatomy-lit: var(--primary);
+        --anatomy-halo: #000; --anatomy-halo-opacity: 0.85; --anatomy-dot: #ecd9b9; --anatomy-mono: var(--mono);
+        --gb-glass: rgba(214, 232, 238, 0.05); --gb-glint: rgba(255, 248, 235, 0.06);
+        --gb-steel-0: #f6f7f9; --gb-steel-1: #a2a8b0; --gb-steel-2: #2f343b; --gb-ball-edge: #121418; --gb-spec: #ffffff; }
+      .x-gb [data-part="paper"] { --anatomy-paper: #2a241e; --anatomy-face: #302821; --anatomy-top: #3a3128;
+        --anatomy-shade-0: #1f1a15; --anatomy-shade-1: #241e19; --anatomy-shade-2: #29221c; --anatomy-shade-3: #2e2720; --anatomy-faint: #3e3429; --anatomy-lo: #54473a; }
+      .x-gb [data-part="pegs-back"], .x-gb [data-part="pegs-front"], .x-gb [data-part="gate"] { --anatomy-paper: #b08431; --anatomy-face: #c99a43; --anatomy-top: #e3b95f;
+        --anatomy-shade-0: #6a4c1c; --anatomy-shade-1: #855f24; --anatomy-shade-2: #a2772f; --anatomy-shade-3: #bd8f3d; --anatomy-lit-top: #f2cf7c; --anatomy-lit-shade: #c79b46;
+        --anatomy-hi: #f7dc97; --anatomy-mid: #b48c45; --anatomy-lo: #7a5a24; --anatomy-faint: #5c4520; }
+      .x-gb .gb-theory { stroke: var(--primary); filter: drop-shadow(0 0 3px var(--primary)); }
+      .x-gb .gb-tdot { fill: var(--gb-card); stroke: var(--primary); }
+      /* materials · day (honey oak, aged brass, warm off-white paper) */
+      [data-theme="day"] .x-gb { --gb-card: #fbf7ef; --gb-halo: rgba(201, 154, 82, 0.14);
+        --anatomy-page: #f6f0e4; --anatomy-card: #fbf7ef; --anatomy-text: #5b4a38; --anatomy-strong: #2a1f15; --anatomy-muted: #8f7a62;
+        --anatomy-paper: #d9b384; --anatomy-face: #e4c195; --anatomy-top: #edcfa6;
+        --anatomy-shade-0: #a87a4d; --anatomy-shade-1: #b98a5a; --anatomy-shade-2: #c99b6a; --anatomy-shade-3: #d6ab7b;
+        --anatomy-lit-top: #f6dfbd; --anatomy-lit-shade: #e2bd8e;
+        --anatomy-hi: #3d2b1b; --anatomy-mid: #8a6c4c; --anatomy-lo: #a9876a; --anatomy-faint: #d2b591; --anatomy-lit: var(--primary);
+        --anatomy-halo: #8a6a45; --anatomy-halo-opacity: 0.3; --anatomy-dot: #4a3624;
+        --gb-glass: rgba(200, 222, 230, 0.12); --gb-glint: rgba(255, 255, 255, 0.55);
+        --gb-steel-0: #ffffff; --gb-steel-1: #b4b9c0; --gb-steel-2: #4a4f57; --gb-ball-edge: #3a3d43; }
+      [data-theme="day"] .x-gb [data-part="paper"] { --anatomy-paper: #f7f0e3; --anatomy-face: #fbf6ec; --anatomy-top: #fdf9f2;
+        --anatomy-shade-0: #e7dcc9; --anatomy-shade-1: #ede4d3; --anatomy-shade-2: #f2eadc; --anatomy-shade-3: #f6efe4; --anatomy-faint: #e0d2bb; --anatomy-lo: #c9b597; }
+      [data-theme="day"] .x-gb [data-part="pegs-back"], [data-theme="day"] .x-gb [data-part="pegs-front"], [data-theme="day"] .x-gb [data-part="gate"] { --anatomy-paper: #c79a45; --anatomy-face: #d8ac55; --anatomy-top: #ecc673;
+        --anatomy-shade-0: #8f6726; --anatomy-shade-1: #a9792f; --anatomy-shade-2: #c08d3b; --anatomy-shade-3: #d29f4a; --anatomy-lit-top: #f6d98f; --anatomy-lit-shade: #d9ad5a;
+        --anatomy-hi: #4e3610; --anatomy-mid: #9a742f; --anatomy-lo: #b88f45; --anatomy-faint: #d8b673; }
 .x-rt-btn, .x-rt-chip { margin-left: auto; white-space: nowrap; font-size: 0.78rem; }
 .x-rt-btn { cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: inherit; }
 .x-rt-chip { border: 1px solid var(--primary); color: var(--primary); }
@@ -8389,7 +8466,7 @@
           var groupOf = function (s) { var v = s.level || (LESSONS[s.day - 1] || {}).level; return (GROUPS.filter(function (g) { return g.v === v; })[0] || {}).t || ""; };
           function index(s) {
             var L = LESSONS[s.day - 1] || {};
-            var text = [s.name, s.idea, s.useLine, s.pillar, L.title, groupOf(s), s.lid ? "L" + s.lid + " lab " + s.lid : "", s.day ? "day " + s.day + " dia " + s.day : "", s.isNew || s.lid ? "new" : ""].join(" ");
+            var text = [s.name, s.idea, s.useLine, s.tags, s.pillar, L.title, groupOf(s), s.lid ? "L" + s.lid + " lab " + s.lid : "", s.day ? "day " + s.day + " dia " + s.day : "", s.isNew || s.lid ? "new" : ""].join(" ");
             return words(text);
           }
           /* returns null (no query), or { ok: bool, hits: [index words matched] } */
@@ -8471,6 +8548,107 @@
             var t = e.target.closest && e.target.closest("#lsq-clear, #lsq-reset");
             if (t) { e.preventDefault(); e.stopPropagation(); LabSearch.clear(true); }
           }, true);
+        })();
+        /* ============ PART H · GALTON BOARD (Anatomy kit, MIT · wheresryan22/anatomy), lazy-loaded from galton.js ============ */
+        var GaltonBoard = (function () {
+          var GS = SCENES.filter(function (s) { return s.id === "galton"; })[0];
+          if (GS) {
+            GS.name = "Galton Board";
+            GS.idea = "Steel balls bounce through 12 rows of brass pegs and pile into a bell. Tilt the board and the bell slides.";
+            GS.useLine = "seeing why many small random nudges add up to a bell, and how a bias moves its center.";
+            GS.tags = "galton bean machine quincunx binomial bell normal clt central limit pegs balls tabla de galton maquina de galton binomial campana";
+          }
+          var T = {
+            en: { title: "Galton Board", drop: "Drop", reset: "Reset", tilt: "Tilt · chance of going right", left: "leans left", right: "leans right",
+              dropped: "dropped", inHopper: "left in the hopper", balls: "Balls", model: "Model", mean: "Mean bin", sd: "Std. dev.",
+              note: "Bins are numbered 0–12 from the left: a ball's bin counts how many times it went right. Hundreds of balls pile into Binomial(12, p): centered on 12p, spread √(12p(1−p)).",
+              classic: "Open the 3D Galton Rain", keys: "Keys: 1 drop one · T ten · H a hundred · R reset · ← → tilt", loading: "Building the board…", fail: "The board couldn’t load. Check your connection and try again.",
+              read: function (st, p, f) { return "n " + st.n + " · mean " + f(st.mean) + " · sd " + f(st.sd) + " · p " + p.toFixed(2); }, credit: "Board drawn with the Anatomy kit (MIT) by wheresryan22." },
+            es: { title: "Tabla de Galton", drop: "Soltar", reset: "Reiniciar", tilt: "Inclinación · probabilidad de ir a la derecha", left: "inclina a la izquierda", right: "inclina a la derecha",
+              dropped: "soltadas", inHopper: "quedan en la tolva", balls: "Bolas", model: "Modelo", mean: "Casilla media", sd: "Desv. estándar",
+              note: "Las casillas van de 0 a 12 desde la izquierda: la casilla de cada bola cuenta cuántas veces fue a la derecha. Cientos de bolas forman una Binomial(12, p): centrada en 12p, con dispersión √(12p(1−p)).",
+              classic: "Abrir la Lluvia de Galton en 3D", keys: "Teclas: 1 suelta una · T diez · H cien · R reinicia · ← → inclina", loading: "Montando la tabla…", fail: "No se pudo cargar la tabla. Revisa tu conexión e inténtalo de nuevo.",
+              read: function (st, p, f) { return "n " + st.n + " · media " + f(st.mean) + " · de " + f(st.sd) + " · p " + p.toFixed(2); }, credit: "Tabla dibujada con el kit Anatomy (MIT) de wheresryan22." }
+          };
+          /* Psygma has no app-wide language yet: the board follows the device language, with an EN/ES switch it remembers */
+          var lang = function () { return prefs.galtonLang || (/^es/i.test(navigator.language || "") ? "es" : "en"); };
+          var loading = null;
+          function load() {
+            if (window.PsyGalton) return Promise.resolve(window.PsyGalton);
+            if (loading) return loading;
+            loading = new Promise(function (ok, no) {
+              var s = doc.createElement("script"); s.src = "./galton.js?v=1"; s.async = true;
+              s.onload = function () { window.PsyGalton ? ok(window.PsyGalton) : no(new Error("galton")); };
+              s.onerror = function () { loading = null; s.remove(); no(new Error("galton")); };
+              doc.head.appendChild(s);
+            });
+            return loading;
+          }
+          function styleOnce(G) {
+            if (doc.getElementById("x-gb-kit")) return;
+            var st = doc.createElement("style"); st.id = "x-gb-kit"; st.textContent = G.css; doc.head.appendChild(st);
+          }
+          function panelHTML(L) {
+            return '<div class="x-gb__seg" role="group" aria-label="' + esc(L.drop) + '">' +
+              [1, 10, 100].map(function (n, i) { return '<button type="button" class="press x-gb__drop' + (i === 0 ? " is-main" : "") + '" data-drop="' + n + '">' + esc(L.drop) + " " + n + "</button>"; }).join("") +
+              '<button type="button" class="press x-gb__reset" data-reset>' + esc(L.reset) + "</button></div>" +
+              '<label class="x-gb__tilt" for="gb-p"><span>' + esc(L.tilt) + '</span><output id="gb-pout" for="gb-p">p = 0.50</output></label>' +
+              '<input id="gb-p" class="x-gb__range" type="range" min="0.3" max="0.7" step="0.05" value="0.5" aria-describedby="gb-note" />' +
+              '<div class="x-gb__ends" aria-hidden="true"><span>← ' + esc(L.left) + " 0.30</span><span>0.70 " + esc(L.right) + " →</span></div>" +
+              '<p class="x-gb__count" aria-live="polite"><b data-s="n">0</b> ' + esc(L.dropped) + ' · <span data-s="left">300</span> ' + esc(L.inHopper) + "</p>" +
+              '<div class="x-gb__stats"><span></span><span class="x-gb__h">' + esc(L.balls) + '</span><span class="x-gb__h">' + esc(L.model) + "</span>" +
+              "<span>" + esc(L.mean) + '</span><b data-s="mean">–</b><span data-s="tmean">–</span>' +
+              "<span>" + esc(L.sd) + '</span><b data-s="sd">–</b><span data-s="tsd">–</span></div>' +
+              '<p class="x-gb__note" id="gb-note">' + esc(L.note) + "</p>" +
+              '<p class="x-gb__note x-gb__keys">' + esc(L.keys) + "</p>" +
+              '<button type="button" class="danger press x-gb__classic" data-gb="classic">' + esc(L.classic) + "</button>" +
+              '<p class="x-gb__credit">' + esc(L.credit) + "</p>";
+          }
+          function open() {
+            var L = T[lang()], opener = doc.activeElement, api = null, gone = false;
+            var ov = doc.createElement("div");
+            ov.className = "x-gb"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", L.title);
+            ov.innerHTML = '<div class="x-gb__in"><div class="x-gb__top"><p class="x-lab__chip glass">' + I.flask + "<span>" + esc(L.title) + "</span></p>" +
+              '<div class="seg x-gb__lang" role="group" aria-label="Language · Idioma">' + ["en", "es"].map(function (k) { return '<button type="button" class="press" data-gblang="' + k + '" aria-pressed="' + (lang() === k) + '">' + k.toUpperCase() + "</button>"; }).join("") + "</div>" +
+              '<button type="button" class="x-lab__x glass press x-gb__x" aria-label="Close">✕</button></div>' +
+              '<div class="x-gb__body iso iso-plate"><div class="x-gb__fig glass"><p class="x-read x-gb__read" data-readout aria-live="off"></p>' +
+              '<div class="iso-stage gb-stage x-gb__stage" tabindex="0" role="img" aria-label="' + esc(L.title + ". " + L.keys) + '"><p class="x-gb__msg">' + esc(L.loading) + "</p></div></div>" +
+              '<section class="x-gb__panel glass" aria-label="Controls">' + panelHTML(L) + "</section></div></div>";
+            doc.body.appendChild(ov);
+            var stage = $(".x-gb__stage", ov);
+            $(".x-gb__x", ov).addEventListener("click", function () { History.closeTop(); });
+            ov.addEventListener("click", function (e) {
+              var b = e.target.closest("button"); if (!b) return;
+              if (b.dataset.gblang) { prefs.galtonLang = b.dataset.gblang; savePrefs(); History.closeTop(); setTimeout(open, 30); return; }
+              if (b.dataset.gb === "classic") { History.closeTop(); setTimeout(function () { openScene("galton"); }, 30); }
+            });
+            History.push("galton", function () {
+              gone = true; if (api && api.stop) api.stop(); ov.remove();
+              if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+            });
+            $(".x-gb__x", ov).focus();
+            load().then(function (G) {
+              if (gone) return;
+              styleOnce(G);
+              stage.innerHTML = G.svg;
+              api = G.mount(ov, { read: L.read });
+              GaltonBoard.api = api;
+            }).catch(function () { if (!gone) stage.innerHTML = '<p class="x-gb__msg">' + esc(L.fail) + "</p>"; });
+            return ov;
+          }
+          /* the Lab card opens the board; the original 3D scene stays one tap away inside it */
+          doc.addEventListener("click", function (e) {
+            var t = e.target.closest && e.target.closest('.x-tile[data-scene="galton"]');
+            if (!t) return;
+            e.preventDefault(); e.stopPropagation(); open();
+          }, true);
+          return { open: open, load: load, api: null };
+        })();
+        (function () {
+          var baseSettings = Views.settings;
+          Views.settings = function () {
+            return baseSettings().replace("Version 0.1 · app shell.</p>", "Version 0.1 · app shell.</p><p class=\"dim\">Galton Board drawn with the Anatomy kit (MIT License) by wheresryan22/anatomy.</p>");
+          };
         })();
 
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
