@@ -1217,7 +1217,7 @@
             if (f.err) return Views.render();
             f.working = true; Keep.set(f.keep !== false); Views.render();
             var call = f.mode === "up"
-              ? Cloud.raw("/auth/v1/signup", { method: "POST", body: { email: email, password: pw, data: { name: f.name.trim() } } })
+              ? Cloud.raw("/auth/v1/signup?redirect_to=" + encodeURIComponent(AuthLink.back()), { method: "POST", body: { email: email, password: pw, data: { name: f.name.trim() } } })
               : Cloud.raw("/auth/v1/token?grant_type=password", { method: "POST", body: { email: email, password: pw } });
             call.then(function (res) {
               if (!res.ok) {
@@ -1239,7 +1239,7 @@
             var f = Acct.form, email = f.email.trim();
             f.err = ""; f.msg = "";
             if (email.indexOf("@") < 1) { f.err = "Enter your email first."; return Views.render(); }
-            Cloud.raw("/auth/v1/recover", { method: "POST", body: { email: email } }).then(function (res) {
+            Cloud.raw("/auth/v1/recover?redirect_to=" + encodeURIComponent(AuthLink.back()), { method: "POST", body: { email: email } }).then(function (res) {
               if (!res.ok) throw Cloud.err(res);
               f.msg = "Reset link sent. Check your inbox.";
             }).catch(function (e) { f.err = e.message; }).then(function () { Views.render(); });
@@ -8876,6 +8876,74 @@
           }, true);
           if (typeof paintTabs === "function" && $("#tabbar") && $("#tabbar").children.length) paintTabs();
           return { terms: GLOSSARY, state: S, apply: apply };
+        })();
+        /* ============ PART K · ACCOUNT LINKS: email confirmation and password reset return to Psygma ============ */
+        var AuthLink = (function () {
+          var api = { reset: false, msg: "" };
+          api.back = function () { return location.origin + location.pathname; };
+          function parse(h) {
+            var q = {};
+            String(h || "").replace(/^#/, "").split("&").forEach(function (kv) {
+              var i = kv.indexOf("="); if (i < 1) return;
+              try { q[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, " ")); } catch (e) {}
+            });
+            return q;
+          }
+          function openAccount() { setTimeout(function () { try { State.open = "account"; go("settings"); } catch (e) {} }, 60); }
+          api.handle = function () {
+            var h = location.hash;
+            if (!/access_token=|error_description=/.test(h)) return;
+            var q = parse(h);
+            try { history.replaceState(history.state, "", location.pathname + location.search); } catch (e) {}
+            if (q.error_description) {
+              Acct.form.err = q.error_description.replace(/\.$/, "") + ". Ask for a new link below.";
+              openAccount(); return;
+            }
+            if (!q.access_token) return;
+            Cloud.take({ access_token: q.access_token, refresh_token: q.refresh_token, expires_in: +q.expires_in || 3600, user: {} });
+            Cloud.raw("/auth/v1/user").then(function (res) {
+              if (!res.ok || !res.data) throw Cloud.err(res);
+              var u = res.data, md = u.user_metadata || {};
+              Cloud.s.user = { id: u.id, email: u.email || "", name: md.name || "" }; Cloud.save(Cloud.s);
+              if (typeof Keep !== "undefined") Keep.remember(u.email);
+              if (md.name && !prefs.name) { prefs.name = md.name; savePrefs(); }
+              if (q.type === "recovery") { api.reset = true; UI.toast("Choose a new password"); }
+              else UI.toast(q.type === "signup" ? "Email confirmed. You’re signed in" : "Signed in");
+              openAccount();
+              return Acct.pull();
+            }).catch(function (e) { Cloud.save(null); Acct.form.err = (e && e.message) || "That link didn’t work. Ask for a new one."; openAccount(); });
+          };
+          var baseHtml = Acct.html;
+          Acct.html = function () {
+            if (!api.reset || !Acct.on()) return baseHtml();
+            var f = Acct.form;
+            return '<form class="x-ac" id="ac-reset" novalidate><p class="x-ac__ok" role="status">Set a new password for ' + esc(Cloud.s.user.email) + ". It works in Numina and Anima too.</p>" +
+              '<label>New password<span class="x-ac__pw"><input id="ac-npw" type="' + (f.show ? "text" : "password") + '" autocomplete="new-password" value="" />' +
+              '<button type="button" class="iconbtn press" id="ac-eye" aria-label="Show password" aria-pressed="' + f.show + '">' + (f.show ? I.eyeOff : I.eye) + "</button></span></label>" +
+              (f.err ? '<p class="x-ac__err" role="alert">' + esc(f.err) + "</p>" : "") +
+              '<div class="x-bk"><button type="button" class="x-lab__ok press" id="ac-setpw">' + (f.working ? "Saving…" : "Save new password") + '</button><button type="button" class="danger press" id="ac-skip">Not now</button></div></form>';
+          };
+          function setPw() {
+            var f = Acct.form, el = $("#ac-npw"), pw = el ? el.value : "";
+            f.err = "";
+            if (pw.length < 8) { f.err = "Password needs at least 8 characters."; return Views.render(); }
+            f.working = true; Views.render();
+            Cloud.req("/auth/v1/user", { method: "PUT", body: { password: pw } }).then(function (res) {
+              if (!res.ok) throw Cloud.err(res);
+              api.reset = false; UI.toast("Password updated");
+            }).catch(function (e) { f.err = (e && e.message) || "Couldn’t save the password."; })
+              .then(function () { f.working = false; Views.render(); });
+          }
+          doc.addEventListener("click", function (e) {
+            var t = e.target.closest && e.target.closest("#ac-setpw, #ac-skip");
+            if (!t) return;
+            e.preventDefault(); e.stopPropagation();
+            if (t.id === "ac-skip") { api.reset = false; Acct.form.err = ""; return Views.render(); }
+            if (!Acct.form.working) setPw();
+          }, true);
+          doc.addEventListener("submit", function (e) { if (e.target.id === "ac-reset") { e.preventDefault(); e.stopPropagation(); if (!Acct.form.working) setPw(); } }, true);
+          try { api.handle(); } catch (e) {}
+          return api;
         })();
 
         window.Psygma = window.Sigmind = { version: "phase5b", scenes: SCENES, openScene: function (id, step) { return openScene(id, step); }, content: LESSON_CONTENT, open: function (id) { return Player.open(id); }, misconceptions: MISCONCEPTIONS, pillars: PILLARS };
